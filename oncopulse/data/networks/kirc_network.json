@@ -1,0 +1,184 @@
+{
+  "cancer_type": "KIRC",
+  "pathway": "Tight Junction",
+  "nodes": [
+    {
+      "id": "TightJunction",
+      "label": "Tight Junction Pathway",
+      "type": "pathway",
+      "cpg_direction": null,
+      "is_driver": false
+    },
+    {
+      "id": "DNMT3B",
+      "label": "DNMT3B",
+      "type": "regulator",
+      "cpg_direction": "unfavorable",
+      "is_driver": false
+    },
+    {
+      "id": "PPP1R1A",
+      "label": "PPP1R1A",
+      "type": "regulator",
+      "cpg_direction": "unfavorable",
+      "is_driver": false
+    },
+    {
+      "id": "CLDN1",
+      "label": "CLDN1",
+      "type": "gene",
+      "cpg_direction": "favorable",
+      "is_driver": false
+    },
+    {
+      "id": "CLDN2",
+      "label": "CLDN2",
+      "type": "gene",
+      "cpg_direction": "favorable",
+      "is_driver": false
+    },
+    {
+      "id": "CLDN3",
+      "label": "CLDN3",
+      "type": "gene",
+      "cpg_direction": "favorable",
+      "is_driver": false
+    },
+    {
+      "id": "CLDN4",
+      "label": "CLDN4",
+      "type": "gene",
+      "cpg_direction": "favorable",
+      "is_driver": false
+    },
+    {
+      "id": "CLDN7",
+      "label": "CLDN7",
+      "type": "gene",
+      "cpg_direction": "favorable",
+      "is_driver": false
+    },
+    {
+      "id": "CLDN8",
+      "label": "CLDN8",
+      "type": "gene",
+      "cpg_direction": "favorable",
+      "is_driver": false
+    },
+    {
+      "id": "OCLN",
+      "label": "OCLN",
+      "type": "gene",
+      "cpg_direction": "favorable",
+      "is_driver": false
+    },
+    {
+      "id": "TJP1",
+      "label": "TJP1",
+      "type": "gene",
+      "cpg_direction": "favorable",
+      "is_driver": false
+    },
+    {
+      "id": "TJP2",
+      "label": "TJP2",
+      "type": "gene",
+      "cpg_direction": "favorable",
+      "is_driver": false
+    },
+    {
+      "id": "F11R",
+      "label": "F11R",
+      "type": "gene",
+      "cpg_direction": "favorable",
+      "is_driver": false
+    },
+    {
+      "id": "JAM2",
+      "label": "JAM2",
+      "type": "gene",
+      "cpg_direction": "favorable",
+      "is_driver": false
+    }
+  ],
+  "edges": [
+    {
+      "source": "DNMT3B",
+      "target": "TightJunction",
+      "effect": "negative",
+      "weight": 0.89
+    },
+    {
+      "source": "PPP1R1A",
+      "target": "TightJunction",
+      "effect": "negative",
+      "weight": 0.75
+    },
+    {
+      "source": "CLDN1",
+      "target": "TightJunction",
+      "effect": "positive",
+      "weight": 0.65
+    },
+    {
+      "source": "CLDN2",
+      "target": "TightJunction",
+      "effect": "positive",
+      "weight": 0.5
+    },
+    {
+      "source": "CLDN3",
+      "target": "TightJunction",
+      "effect": "positive",
+      "weight": 0.55
+    },
+    {
+      "source": "CLDN4",
+      "target": "TightJunction",
+      "effect": "positive",
+      "weight": 0.58
+    },
+    {
+      "source": "CLDN7",
+      "target": "TightJunction",
+      "effect": "positive",
+      "weight": 0.6
+    },
+    {
+      "source": "CLDN8",
+      "target": "TightJunction",
+      "effect": "positive",
+      "weight": 0.62
+    },
+    {
+      "source": "OCLN",
+      "target": "TightJunction",
+      "effect": "positive",
+      "weight": 0.7
+    },
+    {
+      "source": "TJP1",
+      "target": "TightJunction",
+      "effect": "positive",
+      "weight": 0.8
+    },
+    {
+      "source": "TJP2",
+      "target": "TightJunction",
+      "effect": "positive",
+      "weight": 0.78
+    },
+    {
+      "source": "F11R",
+      "target": "TightJunction",
+      "effect": "positive",
+      "weight": 0.6
+    },
+    {
+      "source": "JAM2",
+      "target": "TightJunction",
+      "effect": "positive",
+      "weight": 0.62
+    }
+  ]
+}
