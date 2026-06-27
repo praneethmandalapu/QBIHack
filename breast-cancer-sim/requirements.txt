@@ -5,14 +5,24 @@ scikit-learn
 pandas
 numpy
 
-# Simulation & imaging
+# Simulation & imaging (PLAN.md library migration table)
 pydicom
 scipy
+SimpleITK
+highdicom
+dicom-numpy
+idc-index
+tcia-utils
+# PyRadiomics: no PyPI wheel on Python 3.11 — build from GitHub (install Cython + versioneer first)
+Cython
+versioneer
+pyradiomics @ git+https://github.com/AIM-Harvard/pyradiomics@v3.1.0
 
 # Visualization
 matplotlib
 pyvista
 plotly
+napari
 
 # App & LLM
 streamlit

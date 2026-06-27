@@ -252,7 +252,59 @@ Use **`scipy.ndimage.zoom`** for resampling (already in requirements).
 | **NBIA Data Retriever** | Bulk DICOM download (GUI or CLI) |
 | **Manual TCIA portal** | API blocked or time-critical fallback |
 
-### Case selection strategy
+### Library migration — use established tools (post-spike)
+
+**Do not refactor before the spike is green.** Current custom code in `download_tcia.py` and `tcia_extractor.py` is fine for the hackathon handoff. After step 7 passes (`solve_growth` on real data), migrate in the order below so the **public API stays the same** (`extract_volume`, `validate_series`, cohort paths, `export_raw_extract.py` output).
+
+#### Transition order
+
+| Phase | When | Action |
+|-------|------|--------|
+| **0 — Now (spike)** | Baseline export + Vinesh handoff | Keep custom code; use [`../download_spike_data.ps1`](../download_spike_data.ps1) / [`.sh`](../download_spike_data.sh) for gitignored data |
+| **1 — Scale-up downloads** | Export `TCGA-AR-A1AQ` + Basal baseline | Replace or wrap `download_tcia.py` NBIA `urllib` client |
+| **2 — Extraction hardening** | Orientation/spacing bugs or second subtype | Swap internals of `tcia_extractor.py` only |
+| **3 — Phase 2 stretch** | Day 2 PM idle or post-demo | Add **PyRadiomics** on `.npy`/NIfTI — do not build feature extractors |
+
+#### What to keep vs replace
+
+| Area | Current (custom) | Better library | Priority | Notes |
+|------|------------------|----------------|----------|-------|
+| **Spike data bootstrap** | `download_spike_data.py` / `.ps1` / `.sh` | — | **Keep** | Thin wrappers; call shared Python |
+| **Raw export handoff** | `export_raw_extract.py` | — | **Keep** | Contract JSON, slug paths, `contract_version` |
+| **Slice QC plot** | `qc_slice_plot.py` + **matplotlib** | napari / SimpleITK.Show | Low | matplotlib is enough for spike sign-off |
+| **TCIA download** | `download_tcia.py` (NBIA REST + zip) | **[idc-index](https://github.com/ImagingDataCommons/idc-index)** | **High** | Preferred for `tcga_brca`; parallel cloud downloads |
+| | same | **[tcia-utils](https://pypi.org/project/tcia-utils/)** `from tcia_utils import nbia` | Medium | Drop-in NBIA helper if IDC missing a series |
+| | same | NBIA Data Retriever CLI | Fallback | GUI/CLI when APIs blocked |
+| **DICOM → 3D + validate** | `tcia_extractor.py` (pydicom sort/stack) | **[SimpleITK](https://simpleitk.readthedocs.io/)** `ImageSeriesReader` | **High** | Series order, spacing, gap warnings; `GetArrayFromImage()` |
+| | same | **[highdicom](https://highdicom.readthedocs.io/)** `get_volume_from_series()` | Medium | IDC-maintained; correct spatial metadata / affine |
+| | same | **[dicom-numpy](https://dicom-numpy.readthedocs.io/)** `combine_slices()` | Low | Lightweight if ITK install is too heavy |
+| **Base DICOM I/O** | pydicom | pydicom | **Keep** | Foundation; libraries above build on it |
+| **PDE resample/crop** (Vinesh) | `scipy.ndimage.zoom` in `prepare_pde_input.py` | SimpleITK `Resample` | Medium | Only if axis/spacing bugs persist |
+| **Radiomics (Phase 2)** | — | **[PyRadiomics](https://pyradiomics.readthedocs.io/)** | Deferred | Out of spike scope; run on processed volume |
+
+#### Migration rules
+
+1. **Preserve the handoff contract** — `(Z, Y, X)` float32 raw extract, `spacing_mm` in sidecar JSON; bump [`../handoff_contract.json`](../handoff_contract.json) `version` if outputs change.
+2. **Swap internals, not filenames** — keep `validate_series()`, `extract_volume()`, `extract_volume_with_spacing()` signatures; existing tests in `tests/test_tcia_extractor.py` must still pass.
+3. **Add deps to `requirements.txt`** when migrating (e.g. `SimpleITK`, `idc-index`); install into `breast-cancer-sim/.venv` per project venv rule.
+4. **Tell Vinesh** if raw extract shape/spacing or download layout changes.
+
+#### Example targets after migration
+
+```python
+# download — idc-index (scale-up)
+from idc_index import IDCClient
+client = IDCClient.client()
+client.download_from_selection(collection_id="tcga_brca", patientId="TCGA-AR-A1AX", downloadDir="./data/raw/tcia")
+
+# extract — SimpleITK (inside tcia_extractor.py)
+import SimpleITK as sitk
+reader = sitk.ImageSeriesReader()
+reader.SetFileNames(sitk.ImageSeriesReader.GetGDCMSeriesFileNames(str(dicom_dir)))
+image = reader.Execute()
+volume = sitk.GetArrayFromImage(image)  # (Z, Y, X); map spacing to [dz, dy, dx] for contract
+```
+
 
 1. Praneeth provides 2 TCGA barcodes with PAM50 labels.
 2. Cross-check imaging availability on TCIA (not every TCGA case has MRI).
@@ -312,9 +364,9 @@ flowchart LR
 - [x] Cohort rev2 locked; `handoff_contract.json` agreed with Vinesh
 - [x] `tcia_extractor.py` + unit tests
 - [x] Spike baseline DICOM on disk (`TCGA-AR-A1AX` / `2002-09-12`)
-- [ ] `validate_series` passes on spike folder
-- [ ] Raw extract exported to `raw-extract-philip-chandan/`
-- [ ] Slice QC PNG saved
+- [x] `validate_series` passes on spike folder
+- [x] Raw extract exported to `raw-extract-philip-chandan/`
+- [x] Slice QC PNG saved
 - [ ] Vinesh runs `prepare_pde_input.py` + `solve_growth()` on real raw extract
 
 **Day 1 EOD (full sprint)**
@@ -338,11 +390,172 @@ flowchart LR
 
 ## Immediate next steps (start here)
 
-Follow [`SPIKE_CHECKLIST.md`](SPIKE_CHECKLIST.md). You are past download for the spike baseline.
+Philip-Chandan steps 1–4 are **done**. Waiting on Vinesh (steps 5–7).
 
-1. **Download QC** — `validate_series` on `.../TCGA-AR-A1AX/2002-09-12/` (352 DICOM slices on disk).
-2. **Export raw handoff** — `python export_raw_extract.py` → `raw-extract-philip-chandan/`.
-3. **Visual QC** — `python qc_slice_plot.py` → check PNG in `slice-plots-philip-chandan/`.
-4. **Ping Vinesh** — raw `.npy` + `.json` ready; he runs `prepare_pde_input.py`.
+1. ~~**Download QC**~~ — `validate_series` passed (352 slices, shape `[352, 256, 256]`).
+2. ~~**Export raw handoff**~~ — `raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.{npy,json}`.
+3. ~~**Visual QC**~~ — PNG in `slice-plots-philip-chandan/`.
+4. **Ping Vinesh** — [`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md) Windows commands; he runs `prepare_pde_input.py`.
 
-After spike is green: export `TCGA-AR-A1AQ` baseline, then full two-subtype `manifest.json`.
+After spike is green: export `TCGA-AR-A1AQ` baseline, then full two-subtype `manifest.json`. See **Library migration** above before rewriting download/extract code.
+
+---
+
+## Scale-up plan (while waiting on Vinesh)
+
+Philip-Chandan steps 1–4 are done for the spike. **Do not block on Vinesh** for work below — it only touches your side of Option B (DICOM → raw extract → manifest). Vinesh catches up on PDE input per slug when ready.
+
+### End state (demo-ready)
+
+| Milestone | Patients | Timepoints | Raw extracts | Downstream |
+|-----------|----------|------------|--------------|------------|
+| **Spike (now)** | 1 · Luminal A | baseline only | 1 | Vinesh: 1 PDE input |
+| **Two-subtype demo** | 2 · LumA + Basal | baseline each | 2 | Vinesh: 2 PDE inputs; UI subtype toggle |
+| **Longitudinal (stretch)** | 2 | baseline + follow-up | 4 | Compare growth from two starting volumes per patient |
+
+Primary cohort (rev2) in [`cohort/cohort.json`](cohort/cohort.json):
+
+| Subtype | TCGA ID | Baseline study | Follow-up (optional) |
+|---------|---------|----------------|----------------------|
+| Luminal A | `TCGA-AR-A1AX` | `2002-09-12` | `2003-09-24` |
+| Basal-like | `TCGA-AR-A1AQ` | `2001-11-21` | `2003-05-07` |
+
+### Slug naming (lock before batch export)
+
+One raw extract per **patient × timepoint**:
+
+```
+{subtype_slug}_{tcga_id}_{timepoint_label}
+```
+
+Examples:
+
+| Slug | Meaning |
+|------|---------|
+| `luminal_a_TCGA-AR-A1AX_baseline` | Spike — **done** |
+| `basal_TCGA-AR-A1AQ_baseline` | Next priority |
+| `luminal_a_TCGA-AR-A1AX_followup` | Longitudinal stretch |
+| `basal_TCGA-AR-A1AQ_followup` | Longitudinal stretch |
+
+Output paths (unchanged layout):
+
+```
+data/processed/raw-extract-philip-chandan/{slug}.npy
+data/processed/raw-extract-philip-chandan/{slug}.json
+data/qc/slice-plots-philip-chandan/{slug}_mid-z.png
+```
+
+### Work you can do now (no Vinesh dependency)
+
+| # | Task | Command / action | Done when |
+|---|------|------------------|-----------|
+| 1 | **Ping Vinesh** | [`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md) PowerShell block | He acknowledges raw extract |
+| 2 | **Download Basal baseline** | `download_tcia.py --tcga-id TCGA-AR-A1AQ --subtype "Basal-like" --longitudinal` | DICOM in `data/raw/tcia/basal/TCGA-AR-A1AQ/2001-11-21/` |
+| 3 | **Validate Basal series** | `validate_series` on that folder | `ok=True`, spacing present |
+| 4 | **Export Basal raw extract** | Call `export_raw_extract(..., slug="basal_TCGA-AR-A1AQ_baseline")` | `.npy` + `.json` in `raw-extract-philip-chandan/` |
+| 5 | **QC plot Basal** | `save_middle_slice_plot` with same slug | PNG looks sane |
+| 6 | **Draft `manifest.json`** | Index all `{slug}` sidecars (see schema below) | One file maps subtype → path → metadata |
+| 7 | **Follow-up LumA** (optional) | Export `2003-09-24` with slug `..._followup` | Second timepoint for A1AX |
+| 8 | **Follow-up Basal** (optional) | Export `2003-05-07` | Second timepoint for A1AQ |
+| 9 | **Sync Praneeth** | Confirm rev2 barcodes match his genomics pulls | Same TCGA IDs in both pipelines |
+
+**Out of scope for you:** `prepare_pde_input`, `solve_growth`, resample/normalize — Vinesh owns per slug.
+
+### Suggested order (parallel to Vinesh)
+
+```mermaid
+flowchart TD
+    S[Spike A1AX baseline — DONE] --> V[Vinesh: PDE + solver]
+    S --> B[Download + export A1AQ baseline]
+    B --> M[manifest.json — 2 baselines]
+    M --> V2[Vinesh: second PDE input]
+    M --> UI[Vihari/Jasim: subtype toggle]
+    B --> L[Optional: follow-up timepoints]
+    L --> M2[manifest.json — 4 volumes]
+```
+
+1. **Today (waiting):** tasks 2–5 (Basal baseline) + task 6 draft manifest with one entry (spike) + placeholder for Basal.
+2. **When spike green:** add Basal to manifest; tell Vinesh second slug path.
+3. **If time:** tasks 7–8 follow-ups; bump manifest to four volumes.
+
+### Batch export (minimal code — later)
+
+Today `export_raw_extract.py` is spike-only in `main()`. For scale-up, loop cohort timepoints without changing the handoff contract:
+
+```python
+# Pseudocode — export_all_raw.py (add when doing task 4+ at scale)
+for patient in iter_cohort_patients():
+    for tp in list_timepoints(patient):
+        if tp.get("study_date") is None:
+            continue
+        slug = f"{subtype_slug(patient['subtype'])}_{patient['tcga_id']}_{tp['label']}"
+        export_raw_extract(
+            patient["tcga_id"],
+            patient["subtype"],
+            tp["study_date"],
+            slug=slug,
+        )
+        save_middle_slice_plot(..., slug=slug)
+```
+
+Or run downloads in one shot:
+
+```bash
+python download_tcia.py --all-primary --longitudinal
+```
+
+### `manifest.json` schema (Philip-Chandan source of truth)
+
+Write to `data/processed/raw-extract-philip-chandan/manifest.json` (or `data/processed/manifest.json` if Vihari prefers repo-relative paths):
+
+```json
+{
+  "version": "1.0.0",
+  "contract_version": "1.0.0",
+  "volumes": [
+    {
+      "slug": "luminal_a_TCGA-AR-A1AX_baseline",
+      "subtype": "Luminal A",
+      "tcga_id": "TCGA-AR-A1AX",
+      "timepoint": "baseline",
+      "study_date": "2002-09-12",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/luminal_a_TCGA-AR-A1AX_baseline.npy",
+      "shape": [352, 256, 256],
+      "spacing_mm": [3.0, 0.8594, 0.8594],
+      "qc_plot": "data/qc/slice-plots-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline_mid-z.png"
+    }
+  ]
+}
+```
+
+Vihari loads by `subtype` or `slug`; Jasim reads `shape` / axis from sidecar. **Bump manifest `version`** when adding patients or timepoints.
+
+### Coordination checklist
+
+| Who | When | Message |
+|-----|------|---------|
+| **Vinesh** | Now | Spike raw extract ready + PowerShell download script |
+| **Vinesh** | After Basal export | Second slug: `basal_TCGA-AR-A1AQ_baseline` |
+| **Praneeth** | Before demo | Confirm LumA vs Basal TCGA IDs unchanged (rev2) |
+| **Vihari** | When manifest has 2 baselines | `manifest.json` path + subtype → `slug` mapping |
+| **Jasim** | Before render test | Axis `(Z,Y,X)`, raw vs PDE paths in manifest |
+
+### Risks when scaling
+
+| Risk | Mitigation |
+|------|------------|
+| Basal DICOM missing or bad series | `validate_series` early; pivot to backup in `cohort.json` |
+| Disk / download time | Basal baseline only first; follow-ups overnight |
+| Slug typo breaks Vinesh load | Use table above; one slug per folder pair |
+| Manifest drift | Generate from sidecar JSONs, don’t hand-edit shapes |
+
+### Definition of “beyond one patient”
+
+| Level | Philip-Chandan done when |
+|-------|--------------------------|
+| **2 patients, 1 image each** | Two baseline raw extracts + manifest with 2 entries + QC PNGs |
+| **2 patients, 2 images each** | Four raw extracts + manifest; longitudinal labels in metadata |
+| **Demo wired** | Vihari subtype toggle reads manifest; Vinesh has ≥1 PDE input per baseline |
+
