@@ -20,7 +20,7 @@ Philip and Chandan work as **one unit** — same deliverables, same schedule, sa
 
 **Split:** You deliver **raw** DICOM extract + spacing to `data/processed/raw-extract-philip-chandan/`. Vinesh owns resample/crop/normalize → `data/processed/pde-input-vinesh/` and `solve_growth()`. Do not duplicate his processing in `tcia_extractor.py`.
 
-**Scale-up order:** (1) one baseline spike green → (2) `TCGA-AR-A1AQ` baseline → (3) full two-subtype demo + `manifest.json`.
+**Scale-up order:** (1) one baseline spike green → (2) `TCGA-AR-A1AQ` baseline → (3) full two-subtype demo + `manifest.json` → (4) longitudinal follow-ups for both primaries. **Philip-Chandan raw extracts (4 volumes) + manifest v1.1.0 are done** — blocked on Vinesh PDE input per slug.
 
 ---
 
@@ -371,17 +371,17 @@ flowchart LR
 
 **Day 1 EOD (full sprint)**
 
-- [ ] Venv works; `pydicom` imports
-- [ ] ≥1 TCGA-BRCA DICOM series downloaded
-- [ ] `extract_volume()` returns 3D array on real data
-- [ ] Spike raw handoff complete (see above)
-- [ ] `manifest.json` drafted (after spike)
+- [x] Venv works; `pydicom` imports
+- [x] ≥1 TCGA-BRCA DICOM series downloaded
+- [x] `extract_volume()` returns 3D array on real data
+- [x] Spike raw handoff complete (see above)
+- [x] `manifest.json` drafted — **v1.1.0**, four volumes (2 patients × baseline + follow-up)
 - [x] Handoff contract agreed with Vinesh
 
 **Day 2 EOD (demo-ready)**
 
-- [ ] Both Luminal A + Basal `.npy` files
-- [ ] Vinesh runs full simulation on real data
+- [x] Both Luminal A + Basal raw `.npy` files (baselines + follow-ups exported)
+- [ ] Vinesh runs full simulation on real data (PDE input per slug)
 - [ ] Jasim renders without axis flip
 - [ ] Subtype toggle loads correct volume
 - [ ] Fallback case documented if live pipeline fails
@@ -390,28 +390,31 @@ flowchart LR
 
 ## Immediate next steps (start here)
 
-Philip-Chandan steps 1–4 are **done**. Waiting on Vinesh (steps 5–7).
+**Philip-Chandan imaging pipeline is complete** for rev2 primaries (4 raw extracts + QC + manifest). **Blocked on Vinesh** for spike integration (steps 5–7), then PDE input for remaining slugs.
 
-1. ~~**Download QC**~~ — `validate_series` passed (352 slices, shape `[352, 256, 256]`).
-2. ~~**Export raw handoff**~~ — `raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.{npy,json}`.
-3. ~~**Visual QC**~~ — PNG in `slice-plots-philip-chandan/`.
-4. **Ping Vinesh** — [`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md) Windows commands; he runs `prepare_pde_input.py`.
+1. **Ping Vinesh** — spike baseline first: `luminal_a_TCGA-AR-A1AX_baseline` ([`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md)).
+2. **When spike green** — share additional slugs + `manifest.json` (v1.1.0):
+   - `basal_TCGA-AR-A1AQ_baseline`
+   - `luminal_a_TCGA-AR-A1AX_followup`
+   - `basal_TCGA-AR-A1AQ_followup`
+3. **Sync Praneeth** — confirm rev2 TCGA IDs unchanged for genomics alignment.
+4. **Tell Vihari/Jasim** — `data/processed/raw-extract-philip-chandan/manifest.json` maps subtype + timepoint → paths (gitignored; share file or re-export locally).
 
-After spike is green: export `TCGA-AR-A1AQ` baseline, then full two-subtype `manifest.json`. See **Library migration** above before rewriting download/extract code.
+Optional code cleanup (not blocking): `export_all_raw.py` batch script per scale-up pseudocode below; library migration after spike green.
 
 ---
 
 ## Scale-up plan (while waiting on Vinesh)
 
-Philip-Chandan steps 1–4 are done for the spike. **Do not block on Vinesh** for work below — it only touches your side of Option B (DICOM → raw extract → manifest). Vinesh catches up on PDE input per slug when ready.
+Philip-Chandan raw pipeline for rev2 primaries is **complete**. Vinesh catches up on PDE input per slug when ready.
 
 ### End state (demo-ready)
 
-| Milestone | Patients | Timepoints | Raw extracts | Downstream |
-|-----------|----------|------------|--------------|------------|
-| **Spike (now)** | 1 · Luminal A | baseline only | 1 | Vinesh: 1 PDE input |
-| **Two-subtype demo** | 2 · LumA + Basal | baseline each | 2 | Vinesh: 2 PDE inputs; UI subtype toggle |
-| **Longitudinal (stretch)** | 2 | baseline + follow-up | 4 | Compare growth from two starting volumes per patient |
+| Milestone | Patients | Timepoints | Raw extracts | Philip-Chandan | Downstream |
+|-----------|----------|------------|--------------|----------------|------------|
+| **Spike** | 1 · Luminal A | baseline | 1 | **done** | Vinesh: 1 PDE input |
+| **Two-subtype demo** | 2 · LumA + Basal | baseline each | 2 | **done** | Vinesh: 2 PDE inputs; UI subtype toggle |
+| **Longitudinal** | 2 | baseline + follow-up | 4 | **done** | Vinesh: up to 4 PDE inputs; compare timepoints |
 
 Primary cohort (rev2) in [`cohort/cohort.json`](cohort/cohort.json):
 
@@ -430,12 +433,12 @@ One raw extract per **patient × timepoint**:
 
 Examples:
 
-| Slug | Meaning |
-|------|---------|
-| `luminal_a_TCGA-AR-A1AX_baseline` | Spike — **done** |
-| `basal_TCGA-AR-A1AQ_baseline` | Next priority |
-| `luminal_a_TCGA-AR-A1AX_followup` | Longitudinal stretch |
-| `basal_TCGA-AR-A1AQ_followup` | Longitudinal stretch |
+| Slug | Status | Shape | Spacing (mm) |
+|------|--------|-------|--------------|
+| `luminal_a_TCGA-AR-A1AX_baseline` | **done** | `[352, 256, 256]` | `[3.0, 0.8594, 0.8594]` |
+| `basal_TCGA-AR-A1AQ_baseline` | **done** | `[464, 256, 256]` | `[3.0, 0.859375, 0.859375]` |
+| `luminal_a_TCGA-AR-A1AX_followup` | **done** | `[552, 512, 512]` | `[2.2, 0.5273, 0.5273]` |
+| `basal_TCGA-AR-A1AQ_followup` | **done** | `[448, 256, 256]` | `[3.0, 0.9375, 0.9375]` |
 
 Output paths (unchanged layout):
 
@@ -445,19 +448,19 @@ data/processed/raw-extract-philip-chandan/{slug}.json
 data/qc/slice-plots-philip-chandan/{slug}_mid-z.png
 ```
 
-### Work you can do now (no Vinesh dependency)
+### Scale-up tasks (Philip-Chandan)
 
-| # | Task | Command / action | Done when |
-|---|------|------------------|-----------|
-| 1 | **Ping Vinesh** | [`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md) PowerShell block | He acknowledges raw extract |
-| 2 | **Download Basal baseline** | `download_tcia.py --tcga-id TCGA-AR-A1AQ --subtype "Basal-like" --longitudinal` | DICOM in `data/raw/tcia/basal/TCGA-AR-A1AQ/2001-11-21/` |
-| 3 | **Validate Basal series** | `validate_series` on that folder | `ok=True`, spacing present |
-| 4 | **Export Basal raw extract** | Call `export_raw_extract(..., slug="basal_TCGA-AR-A1AQ_baseline")` | `.npy` + `.json` in `raw-extract-philip-chandan/` |
-| 5 | **QC plot Basal** | `save_middle_slice_plot` with same slug | PNG looks sane |
-| 6 | **Draft `manifest.json`** | Index all `{slug}` sidecars (see schema below) | One file maps subtype → path → metadata |
-| 7 | **Follow-up LumA** (optional) | Export `2003-09-24` with slug `..._followup` | Second timepoint for A1AX |
-| 8 | **Follow-up Basal** (optional) | Export `2003-05-07` | Second timepoint for A1AQ |
-| 9 | **Sync Praneeth** | Confirm rev2 barcodes match his genomics pulls | Same TCGA IDs in both pipelines |
+| # | Task | Status |
+|---|------|--------|
+| 1 | **Ping Vinesh** | Pending — spike baseline first |
+| 2 | **Download Basal baseline** | **done** — DICOM on disk |
+| 3 | **Validate Basal series** | **done** |
+| 4 | **Export Basal raw extract** | **done** — `basal_TCGA-AR-A1AQ_baseline` |
+| 5 | **QC plot Basal** | **done** |
+| 6 | **`manifest.json`** | **done** — v1.1.0, four volumes |
+| 7 | **Follow-up LumA** | **done** — `2003-09-24`, slug `..._followup` |
+| 8 | **Follow-up Basal** | **done** — `2003-05-07` |
+| 9 | **Sync Praneeth** | Pending |
 
 **Out of scope for you:** `prepare_pde_input`, `solve_growth`, resample/normalize — Vinesh owns per slug.
 
@@ -466,17 +469,12 @@ data/qc/slice-plots-philip-chandan/{slug}_mid-z.png
 ```mermaid
 flowchart TD
     S[Spike A1AX baseline — DONE] --> V[Vinesh: PDE + solver]
-    S --> B[Download + export A1AQ baseline]
-    B --> M[manifest.json — 2 baselines]
-    M --> V2[Vinesh: second PDE input]
-    M --> UI[Vihari/Jasim: subtype toggle]
-    B --> L[Optional: follow-up timepoints]
-    L --> M2[manifest.json — 4 volumes]
+    B[Basal + follow-ups — DONE] --> M[manifest v1.1.0 — 4 volumes]
+    M --> V2[Vinesh: PDE per slug]
+    M --> UI[Vihari/Jasim: subtype + timepoint toggle]
 ```
 
-1. **Today (waiting):** tasks 2–5 (Basal baseline) + task 6 draft manifest with one entry (spike) + placeholder for Basal.
-2. **When spike green:** add Basal to manifest; tell Vinesh second slug path.
-3. **If time:** tasks 7–8 follow-ups; bump manifest to four volumes.
+**Next:** Vinesh integrates spike baseline → remaining three slugs → demo wiring with Vihari/Jasim.
 
 ### Batch export (minimal code — later)
 
@@ -553,9 +551,9 @@ Vihari loads by `subtype` or `slug`; Jasim reads `shape` / axis from sidecar. **
 
 ### Definition of “beyond one patient”
 
-| Level | Philip-Chandan done when |
-|-------|--------------------------|
-| **2 patients, 1 image each** | Two baseline raw extracts + manifest with 2 entries + QC PNGs |
-| **2 patients, 2 images each** | Four raw extracts + manifest; longitudinal labels in metadata |
-| **Demo wired** | Vihari subtype toggle reads manifest; Vinesh has ≥1 PDE input per baseline |
+| Level | Philip-Chandan | Team |
+|-------|----------------|------|
+| **2 patients, 1 image each** | **done** — baseline raw extracts + manifest | Vinesh: PDE per baseline slug |
+| **2 patients, 2 images each** | **done** — four raw extracts + manifest v1.1.0 + QC PNGs | Vinesh: PDE per slug; demo compares timepoints |
+| **Demo wired** | manifest ready to share | Vihari subtype toggle; Jasim render; Vinesh ≥1 PDE input per baseline |
 
