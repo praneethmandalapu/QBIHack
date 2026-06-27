@@ -16,8 +16,8 @@ from pathlib import Path
 
 import numpy as np
 
-SOLVER_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(SOLVER_DIR))
+VINESH_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(VINESH_DIR))
 
 from mask_seeding import BRATS_LABEL_DENSITY, seed_from_mask  # noqa: E402
 from tumor_pde_solver import solve_growth, total_volume  # noqa: E402
