@@ -2,6 +2,8 @@
 
 Parent plan: [`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md)
 
+**Contract:** [`../handoff_contract.json`](../handoff_contract.json) (`version` **1.0.0**)
+
 **Case:** `TCGA-AR-A1AX` · Luminal A · `2002-09-12`
 
 ---
@@ -70,4 +72,4 @@ Open the PNG under `data/qc/slice-plots-philip-chandan/`. Confirm anatomy looks 
 
 > Raw extract for spike is ready.
 > `data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy`
-> + `.json` (spacing_mm, shape). Contract in `HANDOFF_SPIKE.md`. Your turn: `prepare_pde_input.py` → `pde-input-vinesh/`.
+> + `.json` (`contract_version` **1.0.0**, spacing_mm, shape). Your turn: `prepare_pde_input.py` → `pde-input-vinesh/`.

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from handoff_contract import spike_patient
+
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # Philip-Chandan: DICOM download + QC (existing layout; do not rename mid-download)
@@ -19,12 +21,7 @@ PDE_INPUT_VINESH = REPO_ROOT / "data" / "processed" / "pde-input-vinesh"
 QC_SLICE_PLOTS_PHILIP_CHANDAN = REPO_ROOT / "data" / "qc" / "slice-plots-philip-chandan"
 QC_SOLVER_RUNS_VINESH = REPO_ROOT / "data" / "qc" / "solver-runs-vinesh"
 
-SPIKE_PATIENT = {
-    "tcga_id": "TCGA-AR-A1AX",
-    "subtype": "Luminal A",
-    "study_date": "2002-09-12",
-    "slug": "luminal_a_TCGA-AR-A1AX_baseline",
-}
+SPIKE_PATIENT = spike_patient()
 
 
 def ensure_spike_dirs() -> None:

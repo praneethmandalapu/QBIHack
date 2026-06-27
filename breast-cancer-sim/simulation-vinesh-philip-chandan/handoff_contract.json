@@ -1,0 +1,62 @@
+{
+  "version": "1.0.0",
+  "description": "Philip-Chandan ↔ Vinesh array handoff contract for the one-patient Option B spike. Edit numbers here; both sides load this file.",
+  "spike_patient": {
+    "tcga_id": "TCGA-AR-A1AX",
+    "subtype": "Luminal A",
+    "study_date": "2002-09-12",
+    "slug": "luminal_a_TCGA-AR-A1AX_baseline"
+  },
+  "raw_extract": {
+    "producer": "philip-chandan",
+    "output_dir": "data/processed/raw-extract-philip-chandan",
+    "axis_order": ["Z", "Y", "X"],
+    "dtype": "float32",
+    "normalize": false,
+    "value_semantics": {
+      "description": "Raw MR scanner intensity; not scaled to [0, 1]"
+    },
+    "required_metadata_fields": [
+      "contract_version",
+      "slug",
+      "tcga_id",
+      "subtype",
+      "study_date",
+      "source_dicom_dir",
+      "shape",
+      "dtype",
+      "spacing_mm"
+    ]
+  },
+  "pde_input": {
+    "producer": "vinesh",
+    "output_dir": "data/processed/pde-input-vinesh",
+    "axis_order": ["Z", "Y", "X"],
+    "dtype": "float32",
+    "max_shape": [64, 64, 64],
+    "target_spacing_mm": [1.0, 1.0, 1.0],
+    "value_range": [0.0, 1.0],
+    "background_value": 0.0,
+    "tumor_burden_rule": "values strictly greater than background_value",
+    "segmentation": {
+      "method": "otsu",
+      "notes": "Applied after normalize; Vinesh-owned in prepare_pde_input.py"
+    },
+    "required_metadata_fields": [
+      "contract_version",
+      "slug",
+      "source_raw_extract",
+      "shape",
+      "dtype",
+      "spacing_mm",
+      "value_semantics"
+    ]
+  },
+  "solver": {
+    "timesteps": 50,
+    "dt": 0.1,
+    "default_params": {
+      "risk_multiplier": 1.2
+    }
+  }
+}

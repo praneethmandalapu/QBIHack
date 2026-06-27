@@ -2,6 +2,8 @@
 
 Parent plan: [`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md)
 
+**Contract:** [`../handoff_contract.json`](../handoff_contract.json) (`version` **1.0.0**)
+
 **Case:** `TCGA-AR-A1AX` · Luminal A · `2002-09-12`
 
 **Wait for:** Philip-Chandan files in `data/processed/raw-extract-philip-chandan/`
@@ -28,13 +30,13 @@ python simulation-vinesh-philip-chandan/spike_paths.py
 python simulation-vinesh-philip-chandan/vinesh/prepare_pde_input.py
 ```
 
-Implement in `prepare_pde_input.py` (you own this):
+Implement in `prepare_pde_input.py` (you own this). Read targets from `handoff_contract.json` via `handoff_contract.pde_input_spec()` — do not hardcode 64 or 1.0 mm:
 
 1. Load raw array + `spacing_mm` from JSON.
-2. Resample toward isotropic **1 mm** (`scipy.ndimage.zoom` or equivalent).
-3. Crop or downsample to agreed max shape (default **64³** — confirm with Philip-Chandan).
-4. Normalize to **`[0, 1]`**; map initial tumor burden to > 0 (threshold/Otsu on contrast is fine).
-5. Write `pde-input-vinesh/{slug}.npy` + `.json`.
+2. Resample toward contract `target_spacing_mm` (`scipy.ndimage.zoom` or equivalent).
+3. Crop or downsample to contract `max_shape`.
+4. Normalize to contract `value_range`; tumor voxels follow `tumor_burden_rule`.
+5. Write `pde-input-vinesh/{slug}.npy` + `.json` with matching `contract_version`.
 
 **Do not** re-download or re-parse DICOM for the spike.
 
@@ -42,20 +44,7 @@ Implement in `prepare_pde_input.py` (you own this):
 
 ## Step 6 — PDE input manifest
 
-Sidecar JSON should include at minimum:
-
-```json
-{
-  "slug": "luminal_a_TCGA-AR-A1AX_baseline",
-  "source_raw_extract": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy",
-  "shape": [64, 64, 64],
-  "dtype": "float32",
-  "spacing_mm": [1.0, 1.0, 1.0],
-  "value_semantics": {"0": "background/healthy", ">0": "initial tumor burden"}
-}
-```
-
-Adjust shape/spacing to what you actually use.
+Sidecar JSON is written by `save_pde_input()` using `handoff_contract.json`. Expected fields include `contract_version`, `shape`, `spacing_mm`, and `value_semantics`.
 
 ---
 
@@ -63,12 +52,18 @@ Adjust shape/spacing to what you actually use.
 
 ```python
 import numpy as np
+from handoff_contract import solver_spec, spike_patient
 from tumor_pde_solver import solve_growth
 
-vol = np.load(
-    "data/processed/pde-input-vinesh/luminal_a_TCGA-AR-A1AX_baseline.npy"
+spec = solver_spec()
+slug = spike_patient()["slug"]
+vol = np.load(f"data/processed/pde-input-vinesh/{slug}.npy")
+frames = solve_growth(
+    vol,
+    timesteps=spec["timesteps"],
+    dt=spec["dt"],
+    params=spec["default_params"],
 )
-frames = solve_growth(vol, timesteps=50, dt=0.1, params={"risk_multiplier": 1.2})
 ```
 
 **Done when:** solver runs without reformatting the array on Philip-Chandan's side.

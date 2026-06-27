@@ -13,6 +13,7 @@ SPIKE_ROOT = PHILIP_CHANDAN_DIR.parent
 sys.path.insert(0, str(PHILIP_CHANDAN_DIR))
 sys.path.insert(0, str(SPIKE_ROOT))
 
+from handoff_contract import contract_version, raw_extract_spec  # noqa: E402
 from spike_paths import (  # noqa: E402
     SPIKE_PATIENT,
     ensure_spike_dirs,
@@ -53,7 +54,9 @@ def export_raw_extract(
 
     np.save(npy_path, volume)
 
+    raw_spec = raw_extract_spec()
     metadata = {
+        "contract_version": contract_version(),
         "slug": output_slug,
         "tcga_id": tcga_id,
         "subtype": subtype,
@@ -62,7 +65,9 @@ def export_raw_extract(
         "shape": list(volume.shape),
         "dtype": str(volume.dtype),
         "spacing_mm": spacing_mm,
-        "value_semantics": "raw MR intensity; not normalized",
+        "axis_order": raw_spec["axis_order"],
+        "normalize": raw_spec["normalize"],
+        "value_semantics": raw_spec["value_semantics"],
         "handoff": "Option B — Vinesh resamples in prepare_pde_input.py",
         "validate_series": {
             "n_slices": report["n_slices"],
