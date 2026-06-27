@@ -432,9 +432,9 @@ Isolated pipeline under [`stretch/`](stretch/). Does **not** modify sprint hando
 | Optional fast backend | **fastrad** | `--backend fastrad --device cpu` (Mac); NVIDIA users can opt into `fastrad[cuda]` separately — not in default `requirements.txt` |
 | Mask (heuristic) | skimage Otsu + scipy CC | Mirrors [`vinesh/calibrate.py`](../vinesh/calibrate.py); not radiologist ground truth |
 
-### Validation (optional, not blocking demo)
+### Validation (`.les` ground truth — done)
 
-[`VALIDATION.md`](VALIDATION.md) documents comparing Otsu masks to TCIA **TCGA-Breast-Radiogenomics** radiologist `.les` files (~91 patients). Cohort flags `"use_les_mask": true` but `.les` loader is **not wired yet**.
+[`VALIDATION.md`](VALIDATION.md) — TCIA radiologist `.les` masks downloaded; [`stretch/load_les_mask.py`](stretch/load_les_mask.py) + [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) compare Otsu vs expert (Dice **0** on rev2 baselines; Otsu captures orders of magnitude more tissue). See [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) Section 7 / Figure 6.
 
 ### Known issue — Luminal A follow-up (stretch blocked)
 

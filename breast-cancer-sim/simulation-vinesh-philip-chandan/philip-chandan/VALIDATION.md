@@ -8,96 +8,127 @@ Living instructions for validating Philip-Chandan segmentation and radiomics aga
 |------|--------|
 | Longitudinal MR DICOM (4 volumes) | Downloaded and exported to raw `.npy` |
 | Genomic labels (PAM50, ER/PR, survival) | Praneeth / GDC — separate from imaging masks |
-| **Radiologist tumor masks (`.les`)** | Available on TCIA for **~91** TCGA-BRCA MRI patients — **not downloaded or used yet** |
+| **Radiologist tumor masks (`.les`)** | Downloaded (~103 KB ZIP, 91 patients) → `data/raw/tcia-radiogenomics/lesions/` |
+| **`.les` loader** | **done** — [`stretch/load_les_mask.py`](stretch/load_les_mask.py) |
+| **Segmentation validation** | **done** — [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) |
 | Our tumor masks | Otsu + largest connected component ([`stretch/prep_volume.py`](stretch/prep_volume.py), mirrored in [`vinesh/calibrate.py`](../vinesh/calibrate.py)) |
-| Segmentation “validation” today | Visual QC overlays only — not Dice vs expert |
+| Metrics on disk | `data/processed/validation-philip-chandan/validation_metrics.csv` |
+| QC overlays | `data/qc/validation-philip-chandan/*_{les,otsu}_mid-z.png` |
+| Pipeline report | Section 7 + Figure 6 in [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) |
 
-[`cohort.json`](cohort/cohort.json) sets `"use_les_mask": true` and `"subset": "TCGA-Breast-Radiogenomics"` as **intent**; [`tcia_extractor.py`](tcia_extractor.py) does not load `.les` files yet.
+[`cohort.json`](cohort/cohort.json) sets `"use_les_mask": true` as **intent** for future radiomics; sprint/PDE handoff still uses Otsu today. [`tcia_extractor.py`](tcia_extractor.py) does not load `.les` in the main export path yet.
 
 **TCIA reference:** [TCGA-Breast-Radiogenomics — Segmented Lesions (`*.les`)](https://www.cancerimagingarchive.net/analysis-result/tcga-breast-radiogenomics/)
 
 ---
 
-## Do you need another dataset?
+## Findings — Otsu vs expert `.les` (rev2 baselines)
 
-**Not necessarily** — you may already have ground truth on the same cohort:
+**Conclusion: our Otsu segmentation scores poorly against radiologist `.les` masks.** Treat Otsu ROIs as demo heuristics for PDE/radiomics prototyping, not clinician-equivalent tumor boundaries.
 
-1. **Download `.les` masks** from TCGA-Breast-Radiogenomics for your primaries (if present).
-2. **Parse `.les` → 3D mask** aligned to the DCE series used for annotation.
-3. **Compare Otsu mask vs `.les`** (Dice, volume error) on baseline — and on follow-up **only if** a `.les` exists for that timepoint.
+Both rev2 primaries have baseline `.les` files. Annotations are on **DCE sequence S2 = VIBRANT** (same series as our raw extract when slice counts match). Neither primary has a follow-up `.les`.
 
-### `.les` file format (TCIA)
+| Slug | TCGA ID | `.les` file | Dice | Expert vol (mm³) | Otsu vol (mm³) | Area (Otsu / `.les`) |
+|------|---------|-------------|------|------------------|----------------|----------------------|
+| `luminal_a_TCGA-AR-A1AX_baseline` | TCGA-AR-A1AX | `TCGA-AR-A1AX-S2-1.les` | **0.000** | ~2,927 | ~7,756,222 | **~2,650×** |
+| `basal_TCGA-AR-A1AQ_baseline` | TCGA-AR-A1AQ | `TCGA-AR-A1AQ-S2-1.les` | **0.000** | ~6,075 | ~3,762,799 | **~620×** |
+
+Expert masks are small, localized lesions (~1.3k–2.7k voxels). Otsu + largest connected component captures **orders of magnitude more tissue** (~1.7M–3.5M voxels) with **no voxel overlap** (Dice = 0).
+
+### Why Otsu fails here
+
+1. **Wrong region, not just wrong size** — on VIBRANT (352–464 slices), Otsu’s largest bright component often lies on **different z indices** than the radiologist ROI (e.g. A1AX: `.les` peak z ≈ 22, Otsu peak z ≈ 299).
+2. **Dynamic series geometry** — full VIBRANT stacks are not a simple 3D slab; SimpleITK stacks hundreds of slices with repeated patient position metadata. Global Otsu + largest-CC is a brittle default.
+3. **Thresholding whole FOV** — percentile-normalized Otsu on the entire volume favors large enhancing regions (breast parenchyma / vasculature), not the annotated lesion cuboid.
+
+### Implications
+
+| Use case | Recommendation |
+|----------|----------------|
+| **PDE demo / relative longitudinal change** | Otsu may still be usable if the team accepts heuristic ROIs (document limitation). |
+| **Radiomics vs literature / TCIA features** | Prefer **`.les` masks** (or tightened ROI logic) — see [`PLAN.md`](PLAN.md) known issue on Luminal A follow-up. |
+| **Claiming segmentation quality** | Do **not** — validation shows expert disagreement, not minor tuning error. |
+
+Re-run validation after local `.les` download:
+
+```bash
+cd breast-cancer-sim
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/stretch/validate_segmentation.py --all-primary
+```
+
+Regenerate report Section 7 / Figure 6:
+
+```bash
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/generate_pipeline_report.py
+```
+
+---
+
+## Step 0 — `.les` availability (done)
+
+| Patient | Subtype | `.les`? | DCE index | Annotated series | Follow-up `.les`? |
+|---------|---------|---------|-----------|------------------|-------------------|
+| **TCGA-AR-A1AX** | Luminal A | Yes | S2 | VIBRANT (baseline 2002-09-12) | No |
+| **TCGA-AR-A1AQ** | Basal-like | Yes | S2 | VIBRANT (baseline 2001-11-21) | No |
+
+Download URL (full archive, ~103 KB): [TCGA_Segmented_Lesions_UofC.zip](https://www.cancerimagingarchive.net/wp-content/uploads/TCGA_Segmented_Lesions_UofC.zip)
+
+Local path: `data/raw/tcia-radiogenomics/lesions/TCGA_Segmented_Lesions_UofC/`
+
+Backup patients with `.les` (if pivoting): `TCGA-BH-A0DK`, `TCGA-BH-A0BQ`, `TCGA-AR-A24S` — see [`cohort/COHORT.md`](cohort/COHORT.md).
+
+---
+
+## `.les` file format (TCIA)
 
 Each file is binary:
 
-1. Six `uint16` values: inclusive cuboid bounds `y_start, y_end, x_start, x_end, z_start, z_end` (relative to the annotated DCE volume).
-2. Remaining bytes: `int8` voxels (0 = background, 1 = lesion) for that cuboid, row-major over the box.
+1. Six `uint16` values in **column-major 3×2 order**: `y_start, x_start, z_start, y_end, x_end, z_end` (inclusive bounds relative to the annotated DCE volume).
+2. Remaining bytes: `int8` voxels (0 = background, 1 = lesion) for that cuboid, row-major with shape `(Y, X, Z)`.
 
-Naming convention: `*Sn-m.les` — `n` = DCE sequence index, `m` = lesion index (e.g. `S2-1.les` = sequence 2, lesion 1). Use the sequence that matches the series radiologists annotated.
+Embed into our `(Z, Y, X)` volumes via [`load_les_mask.py`](stretch/load_les_mask.py) (transpose cuboid → dense mask).
+
+Naming: `*Sn-m.les` — `n` = DCE-MRI sequence index, `m` = lesion index (e.g. `S2-1.les` = sequence 2, lesion 1). DCE order: ax T1 → VIBRANT → BRAVA (see `pick_dce_series` in [`validate_segmentation.py`](stretch/validate_segmentation.py)).
 
 ### Caveats
 
 - Masks are usually **one lesion / one annotated timepoint**, not guaranteed for both baseline and follow-up.
-- Your primaries might be in the 91, but **~48** TCGA-BRCA MRI patients on TCIA **do not** have `.les` masks — confirm per barcode before planning validation.
-- **Axis/spacing alignment** between `.les` cuboid coordinates and our SimpleITK `(Z, Y, X)` volumes needs care (index order, series choice, resampling).
-
-### If `TCGA-AR-A1AX` / `TCGA-AR-A1AQ` lack `.les`
-
-- Pick a **backup** from the 91 with both MRI + mask — see [`cohort/COHORT.md`](cohort/COHORT.md) backups.
-- Use an **external benchmark** (e.g. Duke Breast Cancer MRI, ISPY) only if you need broader segmentation benchmarking beyond TCGA.
+- ~48 TCGA-BRCA MRI patients on TCIA **do not** have `.les` masks — confirm per barcode before planning validation.
+- Compare on the **annotated DCE series**, not an arbitrary contrast pick — slice counts must match (validation uses VIBRANT for both primaries).
 
 ---
 
-## Practical recommendations
+## Implementation (done)
 
-| Goal | Path |
-|------|------|
-| **Ship demo / Praneeth handoff** | Keep Otsu; review QC overlays in `data/qc/radiomics-philip-chandan/`; run [`stretch/run_all_radiomics.py`](stretch/run_all_radiomics.py) → `features_all.csv` |
-| **Validate segmentation** | Wire `.les` loader + Dice/volume-error QC (same TCIA collection); optional script under `stretch/` |
-| **Validate radiomics pipeline** | Compare selected features to TCIA’s **Quantitative Radiomic Features** XLS on masked cases |
+| Component | Path |
+|-----------|------|
+| `.les` parser | [`stretch/load_les_mask.py`](stretch/load_les_mask.py) |
+| Dice + volume + area fraction + QC PNGs | [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) |
+| Unit tests | [`stretch/tests/test_load_les_mask.py`](stretch/tests/test_load_les_mask.py) |
+| Paths | [`stretch/paths.py`](stretch/paths.py) (`QC_VALIDATION_DIR`, `validation_metrics_csv`, …) |
+
+Metrics written to `data/processed/validation-philip-chandan/validation_metrics.csv`.
 
 ---
 
-## Suggested workflow
+## Optional next steps
 
-### Step 0 — Confirm `.les` availability per primary
-
-For each barcode (`TCGA-AR-A1AX`, `TCGA-AR-A1AQ`):
-
-- Query or browse [TCGA-Breast-Radiogenomics segmentations](https://www.cancerimagingarchive.net/analysis-result/tcga-breast-radiogenomics/) for matching `*.les` files.
-- Note which DCE sequence (`Sn`) and timepoint they correspond to.
-- If missing, pick a backup patient from [`COHORT.md`](cohort/COHORT.md) that has both MRI and `.les`.
-
-### Step 1 — Download segmentations
-
-- Download **Segmented Lesions (`*.les`)** ZIP from TCIA (Radiogenomics collection).
-- Store under a gitignored path, e.g. `data/raw/tcia-radiogenomics/lesions/`.
-- Do **not** commit `.les` or large ZIPs to git.
-
-### Step 2 — Parse and align
-
-- Implement a small `.les` reader (cuboid header + voxel payload → dense 3D mask in annotation frame).
-- Map cuboid indices onto the **same DCE series** used for our raw extract (match series UID / study date from DICOM).
-- Document axis convention: TCIA docs use `y, x, z` bounds; our volumes are `(Z, Y, X)` from SimpleITK — verify with one known case before batch metrics.
-
-### Step 3 — Compare masks
-
-On each slug with a matching `.les`:
-
-| Metric | Compare |
-|--------|---------|
-| **Dice** | Otsu mask ([`stretch/prep_volume.py`](stretch/prep_volume.py)) vs radiologist mask |
-| **Volume error** | Relative difference in mm³ (use `spacing_mm` from raw extract sidecar) |
-| **Visual QC** | Overlay both contours on mid-Z slice (similar to [`stretch/qc_mask_overlay.py`](stretch/qc_mask_overlay.py)) |
-
-Acceptance is project-defined; document results in QC PNGs or a small CSV (`validation_metrics.csv`).
-
-### Step 4 — Optional radiomics cross-check
+### Radiomics cross-check (not done)
 
 For patients in the 91 with TCIA’s pre-computed feature spreadsheets:
 
 - Extract the same feature classes (firstorder, shape, GLCM) with our pipeline on **radiologist** mask vs **Otsu** mask.
 - Compare a handful of features to TCIA XLS values (allow tolerance; bin width and normalization must match their protocol or comparison is qualitative only).
+
+### Use `.les` in stretch radiomics (not done)
+
+Wire `.les` as ROI in [`stretch/prep_volume.py`](stretch/prep_volume.py) when `cohort.json` `"use_les_mask": true` and a matching file exists — would address oversized Otsu masks (especially Luminal A follow-up; see [`PLAN.md`](PLAN.md)).
+
+### 3D inspection (manual)
+
+No packaged Fiji plugin. Quick options:
+
+- **napari** (in `requirements.txt`) — load MR + `.les` labels interactively; see inline example in prior team notes or export NIfTI via SimpleITK for **ITK-SNAP** / **3D Slicer** / Fiji.
 
 ---
 
@@ -108,18 +139,17 @@ For patients in the 91 with TCIA’s pre-computed feature spreadsheets:
 
 ---
 
-## Next implementation (optional)
+## Practical recommendations
 
-If validation becomes a priority:
-
-1. `stretch/load_les_mask.py` — parse `.les` → `(Z, Y, X)` numpy mask.
-2. `stretch/validate_segmentation.py` — Dice + volume error vs Otsu; write QC overlays and metrics CSV.
-3. Unit test on a synthetic `.les`-sized cuboid (round-trip header + voxels).
-
-Until then, treat Otsu masks as **heuristic ROIs** suitable for demo and relative longitudinal comparison, not as clinician-equivalent segmentations.
+| Goal | Path |
+|------|------|
+| **Ship demo / PDE handoff** | Keep Otsu; document poor `.les` agreement in report and this file |
+| **Improve segmentation** | Use `.les` where available, or tighten Otsu / connected-component logic; do not expect Dice improvement without ROI change |
+| **Validate radiomics pipeline** | Compare features on `.les` vs Otsu ROI; optional TCIA XLS cross-check |
+| **Re-run metrics** | `stretch/validate_segmentation.py --all-primary` |
 
 ---
 
 ## Summary
 
-Annotations **exist on TCIA** for a subset of our collection, but we **are not using them yet**. You do **not** need a new dataset first — check whether your two primaries have `.les` files, then either use those or pick a radiogenomics case that does.
+Expert `.les` annotations **exist for both rev2 primaries** and are **downloaded and validated**. Our Otsu + largest-component masks **agree poorly** with radiologist ROIs (Dice 0, Otsu area **620–2,650×** expert). No new dataset is required for this conclusion — the gap is algorithm/ROI choice, not missing ground truth.
