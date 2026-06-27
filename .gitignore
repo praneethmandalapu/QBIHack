@@ -17,5 +17,12 @@ venv/
 
 # Trained model + SHAP artifacts ARE tracked (the deliverable for the team).
 
+# Generated visualization artifacts
+*.html
+breast-cancer-sim/visualization-jasim/streamlit.log
+
+# Claude Code
+.claude/
+
 # OS
 .DS_Store
