@@ -20,7 +20,7 @@ Philip and Chandan work as **one unit** — same deliverables, same schedule, sa
 
 **Split:** You deliver **raw** DICOM extract + spacing to `data/processed/raw-extract-philip-chandan/`. Vinesh owns resample/crop/normalize → `data/processed/pde-input-vinesh/` and `solve_growth()`. Do not duplicate his processing in `tcia_extractor.py`.
 
-**Scale-up order:** (1) one baseline spike green → (2) `TCGA-AR-A1AQ` baseline → (3) full two-subtype demo + `manifest.json` → (4) longitudinal follow-ups for both primaries. **Philip-Chandan raw extracts (4 volumes) + manifest v1.1.0 are done** — blocked on Vinesh PDE input per slug.
+**Scale-up order:** (1) one baseline spike green → (2) `TCGA-AR-A1AQ` baseline → (3) full two-subtype demo + `manifest.json` → (4) longitudinal follow-ups for both primaries. **Philip-Chandan raw extracts (4 volumes) + manifest v1.1.0 are done.** **Vinesh delivered** all four PDE inputs + manifest in [`../../pde-handoff-vinesh.zip`](../../pde-handoff-vinesh.zip). **Praneeth confirmed** rev2 TCGA IDs. **Jasim** has the zip and is testing render. **Next:** Vihari subtype toggle; Vinesh `solve_growth` verification; Jasim render sign-off.
 
 ---
 
@@ -360,7 +360,8 @@ flowchart LR
 - [x] `validate_series` passes on spike folder
 - [x] Raw extract exported to `raw-extract-philip-chandan/`
 - [x] Slice QC PNG saved
-- [ ] Vinesh runs `prepare_pde_input.py` + `solve_growth()` on real raw extract
+- [x] Vinesh PDE inputs delivered — [`../../pde-handoff-vinesh.zip`](../../pde-handoff-vinesh.zip) (4 slugs + manifest)
+- [ ] Vinesh `solve_growth()` verified end-to-end on real PDE input
 
 **Day 1 EOD (full sprint)**
 
@@ -374,8 +375,9 @@ flowchart LR
 **Day 2 EOD (demo-ready)**
 
 - [x] Both Luminal A + Basal raw `.npy` files (baselines + follow-ups exported)
-- [ ] Vinesh runs full simulation on real data (PDE input per slug)
-- [ ] Jasim renders without axis flip
+- [x] Vinesh PDE input per slug (in `pde-handoff-vinesh.zip`)
+- [ ] Vinesh full simulation on real data (`solve_growth` per slug)
+- [ ] Jasim renders without axis flip — **in progress** (zip shared; testing)
 - [ ] Subtype toggle loads correct volume
 - [ ] Fallback case documented if live pipeline fails
 
@@ -383,31 +385,36 @@ flowchart LR
 
 ## Immediate next steps (start here)
 
-**Philip-Chandan imaging pipeline is complete** for rev2 primaries (4 raw extracts + QC + manifest). **Blocked on Vinesh** for spike integration (steps 5–7), then PDE input for remaining slugs.
+**Philip-Chandan imaging pipeline is complete** for rev2 primaries (4 raw extracts + QC + manifest). **Vinesh delivered** [`../../pde-handoff-vinesh.zip`](../../pde-handoff-vinesh.zip). **Praneeth aligned** on rev2 IDs. **Jasim** has the zip and is testing render.
 
-1. **Ping Vinesh** — spike baseline first: `luminal_a_TCGA-AR-A1AX_baseline` ([`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md)).
-2. **When spike green** — share additional slugs + `manifest.json` (v1.1.0):
-   - `basal_TCGA-AR-A1AQ_baseline`
-   - `luminal_a_TCGA-AR-A1AX_followup`
-   - `basal_TCGA-AR-A1AQ_followup`
-3. **Sync Praneeth** — confirm rev2 TCGA IDs unchanged for genomics alignment.
-4. **Tell Vihari/Jasim** — `data/processed/raw-extract-philip-chandan/manifest.json` maps subtype + timepoint → paths (gitignored; share file or re-export locally).
+**Philip-Chandan next:** Vihari handoff + demo prep while Jasim tests (stand by for render triage).
+
+1. ~~**Ping Vinesh**~~ — **done** — zip contains all slugs + manifest.
+2. ~~**Sync Praneeth**~~ — **done** — confirmed rev2 barcodes for GDC/genomics.
+3. ~~**Tell Jasim**~~ — **done** — zip shared; render test **in progress**.
+4. **Tell Vihari** — `manifest.json` maps subtype + timepoint → `slug` → `pde_npy` (in zip at `data/processed/raw-extract-philip-chandan/manifest.json`).
+
+**Useful while waiting (not blocking):**
+
+- Document **fallback case** in PLAN or Slack if live pipeline fails at demo (deterministic blob `.npy` path or dummy-sphere note).
+- Keep **QC slice PNGs** handy for demo (`data/qc/slice-plots-philip-chandan/`).
+- Optional: `load_volume_for_subtype(subtype, timepoint)` helper in `philip-chandan/` if Vihari wants a one-liner to resolve manifest paths (coordinate first).
 
 Optional code cleanup (not blocking): PyRadiomics pipeline still deferred.
 
 ---
 
-## Scale-up plan (while waiting on Vinesh)
+## Scale-up plan (downstream integration)
 
-Philip-Chandan raw pipeline for rev2 primaries is **complete**. Vinesh catches up on PDE input per slug when ready.
+Philip-Chandan raw pipeline for rev2 primaries is **complete**. Vinesh delivered PDE inputs in [`../../pde-handoff-vinesh.zip`](../../pde-handoff-vinesh.zip).
 
 ### End state (demo-ready)
 
 | Milestone | Patients | Timepoints | Raw extracts | Philip-Chandan | Downstream |
 |-----------|----------|------------|--------------|----------------|------------|
-| **Spike** | 1 · Luminal A | baseline | 1 | **done** | Vinesh: 1 PDE input |
-| **Two-subtype demo** | 2 · LumA + Basal | baseline each | 2 | **done** | Vinesh: 2 PDE inputs; UI subtype toggle |
-| **Longitudinal** | 2 | baseline + follow-up | 4 | **done** | Vinesh: up to 4 PDE inputs; compare timepoints |
+| **Spike** | 1 · Luminal A | baseline | 1 | **done** | Vinesh: PDE input **done** (in zip) |
+| **Two-subtype demo** | 2 · LumA + Basal | baseline each | 2 | **done** | Vinesh: 2 PDE inputs **done**; UI subtype toggle pending |
+| **Longitudinal** | 2 | baseline + follow-up | 4 | **done** | Vinesh: 4 PDE inputs **done**; Jasim render **in progress** |
 
 Primary cohort (rev2) in [`cohort/cohort.json`](cohort/cohort.json):
 
@@ -445,7 +452,7 @@ data/qc/slice-plots-philip-chandan/{slug}_mid-z.png
 
 | # | Task | Status |
 |---|------|--------|
-| 1 | **Ping Vinesh** | Pending — spike baseline first |
+| 1 | **Ping Vinesh** | **done** — [`../../pde-handoff-vinesh.zip`](../../pde-handoff-vinesh.zip) delivered |
 | 2 | **Download Basal baseline** | **done** — DICOM on disk |
 | 3 | **Validate Basal series** | **done** |
 | 4 | **Export Basal raw extract** | **done** — `basal_TCGA-AR-A1AQ_baseline` |
@@ -453,7 +460,8 @@ data/qc/slice-plots-philip-chandan/{slug}_mid-z.png
 | 6 | **`manifest.json`** | **done** — v1.1.0, four volumes |
 | 7 | **Follow-up LumA** | **done** — `2003-09-24`, slug `..._followup` |
 | 8 | **Follow-up Basal** | **done** — `2003-05-07` |
-| 9 | **Sync Praneeth** | Pending |
+| 9 | **Sync Praneeth** | **done** — confirmed rev2 IDs (`TCGA-AR-A1AX`, `TCGA-AR-A1AQ`) |
+| 10 | **Hand off Jasim** | **in progress** — zip shared; render test underway |
 
 **Out of scope for you:** `prepare_pde_input`, `solve_growth`, resample/normalize — Vinesh owns per slug.
 
@@ -467,7 +475,16 @@ flowchart TD
     M --> UI[Vihari/Jasim: subtype + timepoint toggle]
 ```
 
-**Next:** Vinesh integrates spike baseline → remaining three slugs → demo wiring with Vihari/Jasim.
+**Next:** Jasim render sign-off + Vihari subtype toggle (PDE inputs in zip; solver frames from Vinesh).
+
+### Jasim handoff workflow
+
+1. ~~**Share data**~~ — **done** — [`../../pde-handoff-vinesh.zip`](../../pde-handoff-vinesh.zip) shared with Jasim.
+2. **Manifest** — `data/processed/raw-extract-philip-chandan/manifest.json` (v1.1.0): each entry has `subtype`, `timepoint`, `slug`, `pde_npy`, `shape`, `spacing_mm`.
+3. **Static render test** — load `pde_npy` (64³ float32, `[0,1]`, tumor `> 0`); axis **(Z, Y, X)** per [`../handoff_contract.json`](../handoff_contract.json).
+4. **Animation** — Vinesh runs `solve_growth()` → `list[np.ndarray]` of frames; contract in [`../vinesh/INTERFACE.md`](../vinesh/INTERFACE.md) (continuous density, not label map).
+5. **Verify** — Jasim confirms no axis flip; isosurface at ~0.5 looks like a tumor blob. **Status: testing.**
+6. **You on standby** — if render looks wrong, check whether Jasim loaded `raw_npy` (wrong — huge MR intensities) vs `pde_npy` / solver frames.
 
 ### Batch export — `export_all_raw.py`
 
@@ -522,11 +539,10 @@ Vihari loads by `subtype` or `slug`; Jasim reads `shape` / axis from sidecar. **
 
 | Who | When | Message |
 |-----|------|---------|
-| **Vinesh** | Now | Spike raw extract ready + PowerShell download script |
-| **Vinesh** | After Basal export | Second slug: `basal_TCGA-AR-A1AQ_baseline` |
-| **Praneeth** | Before demo | Confirm LumA vs Basal TCGA IDs unchanged (rev2) |
-| **Vihari** | When manifest has 2 baselines | `manifest.json` path + subtype → `slug` mapping |
-| **Jasim** | Before render test | Axis `(Z,Y,X)`, raw vs PDE paths in manifest |
+| **Vinesh** | ~~Now~~ | **done** — [`../../pde-handoff-vinesh.zip`](../../pde-handoff-vinesh.zip) (4 PDE inputs + manifest) |
+| **Praneeth** | ~~Before demo~~ | **done** — rev2 IDs confirmed (`TCGA-AR-A1AX`, `TCGA-AR-A1AQ`) |
+| **Vihari** | Now | `manifest.json` in zip + subtype/timepoint → `slug` → `pde_npy` |
+| **Jasim** | ~~Now~~ | **in progress** — zip shared; static render test underway ([`../vinesh/INTERFACE.md`](../vinesh/INTERFACE.md)) |
 
 ### Risks when scaling
 
@@ -541,7 +557,7 @@ Vihari loads by `subtype` or `slug`; Jasim reads `shape` / axis from sidecar. **
 
 | Level | Philip-Chandan | Team |
 |-------|----------------|------|
-| **2 patients, 1 image each** | **done** — baseline raw extracts + manifest | Vinesh: PDE per baseline slug |
-| **2 patients, 2 images each** | **done** — four raw extracts + manifest v1.1.0 + QC PNGs | Vinesh: PDE per slug; demo compares timepoints |
-| **Demo wired** | manifest ready to share | Vihari subtype toggle; Jasim render; Vinesh ≥1 PDE input per baseline |
+| **2 patients, 1 image each** | **done** — baseline raw extracts + manifest | Vinesh: PDE per baseline slug **done** (zip) |
+| **2 patients, 2 images each** | **done** — four raw extracts + manifest v1.1.0 + QC PNGs | Vinesh: PDE per slug **done**; demo compares timepoints |
+| **Demo wired** | manifest in zip | Vihari subtype toggle; Jasim render **in progress**; Vinesh `solve_growth` verification |
 
