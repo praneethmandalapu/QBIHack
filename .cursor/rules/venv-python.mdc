@@ -1,0 +1,56 @@
+---
+description: Use breast-cancer-sim/.venv for Python; never bare python3/pip3
+alwaysApply: true
+---
+
+# Python virtual environment
+
+All Python work for this repo uses the **shared venv** under `breast-cancer-sim/`.
+
+## Location
+
+```
+breast-cancer-sim/.venv/     # Python 3.11 — gitignored, create locally
+breast-cancer-sim/requirements.txt
+```
+
+## Agent commands
+
+Do **not** use bare `python3`, `pip3`, or `python -m pip` — system Python may differ (e.g. 3.9 user site-packages vs project 3.11).
+
+Prefer explicit venv paths from repo root:
+
+```bash
+breast-cancer-sim/.venv/bin/python ...
+breast-cancer-sim/.venv/bin/pip install -r breast-cancer-sim/requirements.txt
+```
+
+Or activate first, then run commands:
+
+```bash
+cd breast-cancer-sim && source .venv/bin/activate
+python -m pytest simulation-vinesh-philip-chandan/philip-chandan/tests/
+```
+
+## Create or refresh
+
+If `.venv` is missing:
+
+```bash
+cd breast-cancer-sim
+python3.11 -m venv .venv   # or: python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Installing packages
+
+When adding a dependency:
+
+1. Install into the venv: `breast-cancer-sim/.venv/bin/pip install <package>`
+2. Add the package to `breast-cancer-sim/requirements.txt` (match existing unpinned style unless pinning is required)
+3. Verify: `breast-cancer-sim/.venv/bin/python -c "import <package>"`
+
+## Verify before assuming failure
+
+If `import` fails after `pip install`, check that install targeted `.venv` (wrong interpreter is the usual cause).

@@ -1,0 +1,33 @@
+---
+description: Teammate OS and paths — Vinesh on Windows; Philip-Chandan on macOS
+alwaysApply: true
+---
+
+# Team environment
+
+## Vinesh — Windows
+
+Vinesh develops on **Windows**. When writing handoff scripts, setup steps, or commands for him:
+
+- Prefer **PowerShell** (`.ps1`) over bash for one-click setup
+- Use backslashes in Windows path examples when showing his commands: `.venv\Scripts\python.exe`
+- Venv activation: `.venv\Scripts\Activate.ps1` — or call `.venv\Scripts\python.exe` directly (avoids execution-policy issues)
+- Python launcher: `py -3` if `python` is not on PATH
+- Do not assume `source`, `bash`, or `/` path separators in instructions meant for Vinesh
+
+Shared spike download (gitignored data):
+
+```powershell
+cd breast-cancer-sim
+.\simulation-vinesh-philip-chandan\download_spike_data.ps1 -ExportRaw
+```
+
+Philip-Chandan (macOS/Linux) equivalent: `download_spike_data.sh`.
+
+## Philip-Chandan — macOS
+
+Default venv and shell conventions: see `venv-python.mdc` (`.venv/bin/python`, bash).
+
+## Cross-platform Python
+
+Handoff logic lives in `simulation-vinesh-philip-chandan/download_spike_data.py` — shell/PowerShell wrappers only bootstrap the venv and call that script.

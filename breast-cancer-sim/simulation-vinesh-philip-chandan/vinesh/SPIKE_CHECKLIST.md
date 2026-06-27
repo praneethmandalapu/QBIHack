@@ -10,6 +10,46 @@ Parent plan: [`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md)
 
 ---
 
+## Step 0 — Get raw extract on Windows
+
+Philip-Chandan export is done. `data/` is not in git — pick **Option A** or **Option B**.
+
+### Option A — Download + export (recommended)
+
+```powershell
+cd path\to\QBIHack
+git pull
+
+cd breast-cancer-sim
+
+# One-time if scripts are blocked
+Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
+
+.\simulation-vinesh-philip-chandan\download_spike_data.ps1 -ExportRaw
+```
+
+Check:
+
+```powershell
+Test-Path data\processed\raw-extract-philip-chandan\luminal_a_TCGA-AR-A1AX_baseline.npy
+Test-Path data\processed\raw-extract-philip-chandan\luminal_a_TCGA-AR-A1AX_baseline.json
+```
+
+### Option B — Copy files Philip-Chandan sent
+
+```powershell
+cd path\to\QBIHack\breast-cancer-sim
+git pull
+
+New-Item -ItemType Directory -Force -Path data\processed\raw-extract-philip-chandan
+Copy-Item path\to\luminal_a_TCGA-AR-A1AX_baseline.npy data\processed\raw-extract-philip-chandan\
+Copy-Item path\to\luminal_a_TCGA-AR-A1AX_baseline.json data\processed\raw-extract-philip-chandan\
+```
+
+**Contract check:** open the `.json` and confirm `"contract_version": "1.0.0"`, `"shape": [352, 256, 256]`, `"spacing_mm": [3.0, 0.8594, 0.8594]`.
+
+---
+
 ## Your outputs
 
 | Artifact | Path |
@@ -22,12 +62,13 @@ Parent plan: [`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md)
 
 ## Step 5 — Load raw + resample / crop / normalize
 
-Input: `raw-extract-philip-chandan/{slug}.npy` + `.json`
+Input: `raw-extract-philip-chandan\{slug}.npy` + `.json`
 
-```bash
-cd breast-cancer-sim
-python simulation-vinesh-philip-chandan/spike_paths.py
-python simulation-vinesh-philip-chandan/vinesh/prepare_pde_input.py
+```powershell
+cd path\to\QBIHack\breast-cancer-sim
+
+.\.venv\Scripts\python.exe simulation-vinesh-philip-chandan\spike_paths.py
+.\.venv\Scripts\python.exe simulation-vinesh-philip-chandan\vinesh\prepare_pde_input.py
 ```
 
 Implement in `prepare_pde_input.py` (you own this). Read targets from `handoff_contract.json` via `handoff_contract.pde_input_spec()` — do not hardcode 64 or 1.0 mm:
@@ -36,9 +77,9 @@ Implement in `prepare_pde_input.py` (you own this). Read targets from `handoff_c
 2. Resample toward contract `target_spacing_mm` (`scipy.ndimage.zoom` or equivalent).
 3. Crop or downsample to contract `max_shape`.
 4. Normalize to contract `value_range`; tumor voxels follow `tumor_burden_rule`.
-5. Write `pde-input-vinesh/{slug}.npy` + `.json` with matching `contract_version`.
+5. Write `pde-input-vinesh\{slug}.npy` + `.json` with matching `contract_version`.
 
-**Do not** re-download or re-parse DICOM for the spike.
+You do **not** need DICOM for the spike if you have the raw extract. Use `download_spike_data.ps1 -ExportRaw` only if Philip-Chandan did not share the `.npy`/`.json`.
 
 ---
 

@@ -28,7 +28,7 @@ Before editing code outside `philip-chandan/`, **pause and tell the user** to co
 
 | Directory | Owner | Touch only when… |
 |-----------|-------|------------------|
-| `simulation-vinesh-philip-chandan/vinesh/` | Vinesh | Agreed handoff contract (array shape, spacing, `.npy` path); minimal integration glue |
+| `simulation-vinesh-philip-chandan/vinesh/` | Vinesh (**Windows**) | Agreed handoff contract (array shape, spacing, `.npy` path); minimal integration glue; use `.ps1` for his setup scripts |
 | `models-praneeth/` | Praneeth | Same TCGA IDs in `cohort.json`; no duplicate genomics work |
 | `visualization-jasim/` | Jasim | Volume format / axis convention questions only |
 | `app-vihari/` | Vihari | Loading processed volumes in UI — coordinate first |
