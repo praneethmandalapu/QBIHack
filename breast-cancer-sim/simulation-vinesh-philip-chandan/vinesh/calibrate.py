@@ -132,6 +132,60 @@ def calibrate_growth(
     }
 
 
+def validate_growth(
+    baseline: np.ndarray,
+    followup: np.ndarray,
+    risk_multiplier: float,
+    timesteps: int,
+    dt: float,
+    base_params: dict | None = None,
+) -> dict:
+    """Out-of-sample check: grow with a FIXED genomics-derived risk_multiplier.
+
+    This is the prediction counterpart to ``calibrate_growth``. Instead of
+    back-solving ``risk_multiplier`` so the simulation reproduces the follow-up
+    (a fit), this takes the multiplier as a given input -- e.g.
+
+        from oncopulse import growth_multiplier        # Praneeth's model
+        res = validate_growth(baseline, followup, growth_multiplier(tcga_id), 50, 0.1)
+
+    Because the multiplier never saw the follow-up, the follow-up burden is
+    held-out ground truth and ``burden_error_pct`` is an honest forecast error,
+    not a fit residual. Mirrors ``calibrate_growth``'s return keys so downstream
+    (animation, reporting) consumes either the same way.
+
+    Scale note: a raw genomic multiplier (~0.8-1.8) sets the per-patient *ratio*,
+    not the absolute time-scale. For a fair number, anchor the scale once with
+    ``calibrate_growth`` on one patient, then reuse that scale (the lo/hi anchors
+    in ``oncopulse.growth_multiplier``) for the rest. See
+    models-praneeth/HOWTOUSEMODEL.md section 7.
+    """
+    base = {**(base_params or {})}
+    base_iso = isolate_tumor(baseline)
+    fu_iso = isolate_tumor(followup)
+
+    b0 = tumor_burden(base_iso)
+    target = tumor_burden(fu_iso)
+    if b0 <= 0:
+        raise ValueError("Baseline tumor is empty after isolation; cannot validate.")
+
+    params = {**base, "risk_multiplier": float(risk_multiplier), "delta": 0.0}
+    frames = solve_growth(base_iso, timesteps, dt, params)
+    achieved = tumor_burden(frames[-1])
+
+    return {
+        "params": params,
+        "regime": "prediction",
+        "risk_multiplier": float(risk_multiplier),
+        "baseline_burden": b0,
+        "target_burden": target,
+        "achieved_burden": achieved,
+        "burden_error_pct": 100.0 * (achieved - target) / target if target else 0.0,
+        "baseline_iso": base_iso,
+        "followup_iso": fu_iso,
+    }
+
+
 def predict_trajectory(
     baseline_iso: np.ndarray,
     params: dict,

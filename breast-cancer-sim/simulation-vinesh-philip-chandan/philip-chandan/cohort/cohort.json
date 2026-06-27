@@ -27,7 +27,13 @@
       },
       "genomics": {
         "source": "GDC Data Portal",
-        "fields": ["pam50", "er_status", "pr_status", "survival"]
+        "fields": ["pam50", "er_status", "pr_status", "survival"],
+        "risk_model": {
+          "producer": "models-praneeth (oncopulse.get_patient)",
+          "risk": 0.247,
+          "risk_multiplier": 1.047,
+          "pam50_pred": "BRCA_LumA"
+        }
       }
     },
     {
@@ -55,7 +61,13 @@
       },
       "genomics": {
         "source": "GDC Data Portal",
-        "fields": ["pam50", "er_status", "pr_status", "survival"]
+        "fields": ["pam50", "er_status", "pr_status", "survival"],
+        "risk_model": {
+          "producer": "models-praneeth (oncopulse.get_patient)",
+          "risk": 0.083,
+          "risk_multiplier": 0.883,
+          "pam50_pred": "BRCA_Basal"
+        }
       }
     }
   ],

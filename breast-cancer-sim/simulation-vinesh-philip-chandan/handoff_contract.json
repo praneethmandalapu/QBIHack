@@ -58,5 +58,15 @@
     "default_params": {
       "risk_multiplier": 1.2
     }
+  },
+  "genomics": {
+    "producer": "praneeth / models-praneeth",
+    "loader": "oncopulse.get_patient(tcga_id)['risk'] ; oncopulse.growth_multiplier(tcga_id) -> risk_multiplier",
+    "mapping": "risk_multiplier = lo + (hi - lo) * risk  (default lo=0.8, hi=1.8)",
+    "per_patient": {
+      "TCGA-AR-A1AX": { "risk": 0.247, "risk_multiplier": 1.047, "pam50": "BRCA_LumA" },
+      "TCGA-AR-A1AQ": { "risk": 0.083, "risk_multiplier": 0.883, "pam50": "BRCA_Basal" }
+    },
+    "note": "Genomic multiplier sets the per-patient RATIO (this LumA > this Basal); calibrate.py's brentq value sets the absolute SCALE. validate_growth() scores the genomic prediction against the held-out follow-up. See models-praneeth/HOWTOUSEMODEL.md section 7."
   }
 }
