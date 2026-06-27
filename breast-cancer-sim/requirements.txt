@@ -1,0 +1,19 @@
+# Risk modeling & explainability
+xgboost
+shap
+scikit-learn
+pandas
+numpy
+
+# Simulation & imaging
+pydicom
+scipy
+
+# Visualization
+pyvista
+plotly
+
+# App & LLM
+streamlit
+langchain
+langchain-openai
