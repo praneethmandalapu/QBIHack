@@ -10,7 +10,7 @@ venv/
 .env
 
 # Model artifacts (optional local training output)
-breast-cancer-sim/models/saved/*.pkl
+breast-cancer-sim/models-praneeth/saved/*.pkl
 
 # OS
 .DS_Store

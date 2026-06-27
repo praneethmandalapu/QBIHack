@@ -7,10 +7,10 @@ Multi-domain pipeline for breast cancer risk prediction, explainability, tumor g
 | Directory | Owner | Purpose |
 |-----------|-------|---------|
 | `data/` | — | Raw METABRIC/TCIA inputs and processed features (gitignored) |
-| `models/` | Praneeth | Genomics & risk ML (XGBoost, SHAP) |
-| `simulation/` | Vinesh, Philip, Chandan | DICOM extraction, PDE tumor growth, drug interventions |
-| `visualization/` | Jasim | 3D rendering and tissue color maps |
-| `app/` | Vihari | Streamlit frontend and LLM narrative |
+| `models-praneeth/` | Praneeth | Genomics & risk ML (XGBoost, SHAP) |
+| `simulation-vinesh-philip-chandan/` | Vinesh, Philip, Chandan | DICOM extraction, PDE tumor growth, drug interventions |
+| `visualization-jasim/` | Jasim | 3D rendering and tissue color maps |
+| `app-vihari/` | Vihari | Streamlit frontend and LLM narrative |
 
 ## Setup
 
@@ -26,5 +26,5 @@ Place METABRIC CSVs in `data/raw/` and TCIA DICOM series in `data/raw/`. Process
 ## Run the app
 
 ```bash
-streamlit run app/app.py
+streamlit run app-vihari/app.py
 ```

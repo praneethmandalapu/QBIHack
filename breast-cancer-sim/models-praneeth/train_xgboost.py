@@ -7,7 +7,7 @@ MODEL_DIR = Path(__file__).resolve().parent / "saved"
 
 
 def train() -> Path:
-    """Load processed features, fit model, and save to models/saved/."""
+    """Load processed features, fit model, and save to models-praneeth/saved/."""
     raise NotImplementedError
 
 
