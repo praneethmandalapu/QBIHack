@@ -12,5 +12,12 @@ venv/
 # Model artifacts (optional local training output)
 breast-cancer-sim/models-praneeth/saved/*.pkl
 
+# Generated visualization artifacts
+*.html
+breast-cancer-sim/visualization-jasim/streamlit.log
+
+# Claude Code
+.claude/
+
 # OS
 .DS_Store
