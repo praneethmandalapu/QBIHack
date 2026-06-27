@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from scipy.ndimage import center_of_mass, zoom
+from skimage.filters import threshold_otsu
 
 VINESH_DIR = Path(__file__).resolve().parent
 SPIKE_ROOT = VINESH_DIR.parent
@@ -42,6 +44,36 @@ def load_raw_extract(slug: str | None = None) -> tuple[np.ndarray, dict]:
     return volume, metadata
 
 
+def _crop_or_pad_centered(
+    volume: np.ndarray,
+    target_shape: tuple[int, int, int],
+    center: tuple[float, ...],
+    pad_value: float,
+) -> np.ndarray:
+    """Return a `target_shape` box of `volume` centered on `center` (voxel coords).
+
+    Crops where the volume is larger than the target and pads with `pad_value`
+    where it is smaller, so the tumor stays roughly centered regardless of how
+    resampling changed the dimensions.
+    """
+    out = np.full(target_shape, pad_value, dtype=volume.dtype)
+    for_slices_src: list[slice] = []
+    for_slices_dst: list[slice] = []
+    for axis, (size, tgt, c) in enumerate(zip(volume.shape, target_shape, center)):
+        # Start of the source box so that `center` lands in the middle of target.
+        start = int(round(c - tgt / 2))
+        end = start + tgt
+        # Clamp the source window to the array, tracking the matching dst window.
+        src_start = max(start, 0)
+        src_end = min(end, size)
+        dst_start = src_start - start
+        dst_end = dst_start + (src_end - src_start)
+        for_slices_src.append(slice(src_start, src_end))
+        for_slices_dst.append(slice(dst_start, dst_end))
+    out[tuple(for_slices_dst)] = volume[tuple(for_slices_src)]
+    return out
+
+
 def prepare_pde_input(
     volume: np.ndarray,
     spacing_mm: list[float],
@@ -49,16 +81,57 @@ def prepare_pde_input(
     max_shape_xyz: tuple[int, int, int] | None = None,
     target_spacing: list[float] | None = None,
 ) -> tuple[np.ndarray, list[float]]:
-    """Resample, crop, and normalize for solve_growth. Implement for the spike."""
+    """Resample, crop, and normalize a raw extract into solve_growth input.
+
+    Pipeline (all targets read from handoff_contract.json, nothing hardcoded):
+      1. Resample to isotropic `target_spacing` mm via scipy.ndimage.zoom.
+      2. Normalize intensities into the contract `value_range` (min-max).
+      3. Otsu-threshold (skimage) to separate tumor from background; keep the
+         *continuous* normalized intensity inside the tumor and set background
+         to `background_value`. Continuous (not binary) values matter: a binary
+         field would sit at u=1 where the solver's logistic term rho*u*(1-u)=0,
+         so the tumor would only diffuse, not grow.
+      4. Crop/pad to `max_shape`, tumor roughly centered on its center of mass.
+
+    Returns the float32 PDE volume and its new (isotropic) spacing.
+    """
     pde_spec = pde_input_spec()
-    shape_limit = max_shape_xyz or max_shape()
+    shape_limit = tuple(max_shape_xyz or max_shape())
     spacing_target = target_spacing or target_spacing_mm()
-    value_range = pde_spec["value_range"]
-    raise NotImplementedError(
-        "Vinesh: resample with scipy.ndimage.zoom using spacing_mm, "
-        f"crop/downsample to {shape_limit}, normalize to {value_range}, "
-        f"target spacing {spacing_target} mm, segmentation={pde_spec['segmentation']['method']}"
-    )
+    vmin_out, vmax_out = (float(v) for v in pde_spec["value_range"])
+    background = float(pde_spec["background_value"])
+
+    vol = np.asarray(volume, dtype=np.float32)
+
+    # 1. Resample to isotropic target spacing. zoom factor > 1 upsamples.
+    zoom_factors = [s / t for s, t in zip(spacing_mm, spacing_target)]
+    resampled = zoom(vol, zoom_factors, order=1)  # linear interpolation
+
+    # 2. Normalize intensities into the contract value range.
+    rmin, rmax = float(resampled.min()), float(resampled.max())
+    if rmax > rmin:
+        norm = (resampled - rmin) / (rmax - rmin)
+    else:
+        norm = np.zeros_like(resampled)
+    norm = norm * (vmax_out - vmin_out) + vmin_out
+
+    # 3. Otsu segmentation: zero out background, keep continuous tumor density.
+    finite_vals = norm[np.isfinite(norm)]
+    if finite_vals.size and finite_vals.max() > finite_vals.min():
+        thresh = threshold_otsu(finite_vals)
+        tumor_mask = norm > thresh
+    else:
+        tumor_mask = np.zeros_like(norm, dtype=bool)
+    segmented = np.where(tumor_mask, norm, background).astype(np.float32)
+
+    # 4. Crop/pad to max_shape, centered on the tumor (fallback: array center).
+    if tumor_mask.any():
+        center = center_of_mass(tumor_mask.astype(np.float32))
+    else:
+        center = tuple(s / 2 for s in segmented.shape)
+    pde_volume = _crop_or_pad_centered(segmented, shape_limit, center, background)
+
+    return pde_volume, list(spacing_target)
 
 
 def save_pde_input(
