@@ -86,6 +86,7 @@ Per slug ``{subtype_slug}_{tcga_id}_{timepoint_label}``:
 | Raw volume | ``data/processed/raw-extract-philip-chandan/{slug}.npy`` |
 | Sidecar | ``data/processed/raw-extract-philip-chandan/{slug}.json`` |
 | QC plot | ``data/qc/slice-plots-philip-chandan/{slug}_mid-z.png`` |
+| QC overlay | ``data/qc/slice-plots-philip-chandan/{slug}_mid-z-overlay.png`` |
 
 Contract version and spacing come from ``handoff_contract.json``. Vinesh resamples
 in ``vinesh/prepare_pde_input.py`` — do not normalize here.
@@ -106,7 +107,7 @@ sys.path.insert(0, str(PHILIP_CHANDAN_DIR))
 sys.path.insert(0, str(SPIKE_ROOT))
 
 from export_raw_extract import export_raw_extract  # noqa: E402
-from qc_slice_plot import save_middle_slice_plot  # noqa: E402
+from qc_slice_plot import save_middle_slice_overlay_plot, save_middle_slice_plot  # noqa: E402
 from tcia_extractor import (  # noqa: E402
     iter_cohort_patients,
     list_timepoints,
@@ -219,13 +220,24 @@ def export_batch(
             print(f"OK {slug}: {npy_path.name}")
 
             if not skip_qc:
+                import numpy as np
+
+                volume = np.load(npy_path)
                 plot_path = save_middle_slice_plot(
                     patient["tcga_id"],
                     patient["subtype"],
                     study_date,
                     slug=slug,
+                    volume=volume,
                 )
-                print(f"QC {slug}: {plot_path.name}")
+                overlay_path = save_middle_slice_overlay_plot(
+                    patient["tcga_id"],
+                    patient["subtype"],
+                    study_date,
+                    slug=slug,
+                    volume=volume,
+                )
+                print(f"QC {slug}: {plot_path.name}, {overlay_path.name}")
         except (ValueError, OSError) as exc:
             message = f"FAIL {slug}: {exc}"
             errors.append(message)
