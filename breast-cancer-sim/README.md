@@ -36,6 +36,45 @@ pip install -r requirements.txt
 
 Place METABRIC CSVs in `data/raw/` and TCIA DICOM series in `data/raw/`. Processed arrays go in `data/processed/`.
 
+## Philip + Chandan imaging handoff
+
+The locked sprint cohort is stored in `cohort.json`.
+
+Primary pair:
+
+- Luminal A: `TCGA-BH-A0BR`
+- Basal-like: `TCGA-A2-A04P`
+
+Print the cohort handoff:
+
+```bash
+python simulation-vinesh-philip-chandan/philip-chandan/tcia_extractor.py cohort-summary
+```
+
+List TCIA series for the primary pair:
+
+```bash
+python simulation-vinesh-philip-chandan/philip-chandan/tcia_extractor.py list-cohort
+```
+
+If the primary pair fails, include the backup roster:
+
+```bash
+python simulation-vinesh-philip-chandan/philip-chandan/tcia_extractor.py list-cohort --include-backups
+```
+
+Create a dummy 3D volume so Vinesh and Jasim are never blocked:
+
+```bash
+python simulation-vinesh-philip-chandan/philip-chandan/tcia_extractor.py dummy
+```
+
+Convert an already downloaded local DICOM folder:
+
+```bash
+python simulation-vinesh-philip-chandan/philip-chandan/tcia_extractor.py convert-local --dicom-dir data/raw/example_series --output data/processed/tumor_volume.npy
+```
+
 ## Run the app
 
 ```bash

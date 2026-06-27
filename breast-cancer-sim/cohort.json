@@ -1,0 +1,43 @@
+{
+  "cohort_name": "tcga_brca_sprint_matched_pair",
+  "imaging_collection": "TCGA-Breast-Radiogenomics",
+  "fallback_imaging_collection": "TCGA-BRCA",
+  "genomics_project": "TCGA-BRCA",
+  "primary_pair": [
+    {
+      "patient_id": "TCGA-BH-A0BR",
+      "pam50_subtype": "Luminal A",
+      "demo_role": "slow-growing comparison arm",
+      "priority": 1
+    },
+    {
+      "patient_id": "TCGA-A2-A04P",
+      "pam50_subtype": "Basal-like",
+      "demo_role": "aggressive comparison arm",
+      "priority": 2
+    }
+  ],
+  "backup_roster": {
+    "Luminal A": [
+      "TCGA-BH-A0BQ",
+      "TCGA-A2-A04V",
+      "TCGA-E2-A15C"
+    ],
+    "Basal-like": [
+      "TCGA-AR-A1AQ",
+      "TCGA-A2-A04Q",
+      "TCGA-BH-A0BW"
+    ],
+    "Luminal B": [
+      "TCGA-A2-A04R",
+      "TCGA-E2-A15A"
+    ]
+  },
+  "handoff": {
+    "imaging_owner": "Philip and Chandan",
+    "genomics_owner": "Praneeth",
+    "imaging_instruction": "Query TCIA/NBIA by PatientID inside TCGA-Breast-Radiogenomics first, then use TCGA-BRCA as a fallback if no series are returned.",
+    "genomics_instruction": "Query GDC by the same TCGA submitter IDs and export subtype, receptor status, survival fields, model features, and baseline risk scores.",
+    "preferred_imaging_artifact": ".les segmentation masks when available, plus clean 3D numpy volumes for Vinesh"
+  }
+}
