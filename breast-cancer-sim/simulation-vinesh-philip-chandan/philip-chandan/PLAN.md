@@ -404,7 +404,7 @@ flowchart LR
 - Keep **QC slice PNGs** handy for demo (`data/qc/slice-plots-philip-chandan/`).
 - Optional: `load_volume_for_subtype(subtype, timepoint)` helper in `philip-chandan/` if Vihari wants a one-liner to resolve manifest paths (coordinate first).
 
-Optional code cleanup (not blocking): PyRadiomics stretch — see [`stretch/STRETCH_PLAN.md`](stretch/STRETCH_PLAN.md) (code **done**; run batch + Praneeth handoff pending).
+Optional code cleanup (not blocking): PyRadiomics stretch — see [`stretch/STRETCH_PLAN.md`](stretch/STRETCH_PLAN.md) and [Known issue — Luminal A follow-up](#known-issue--luminal-a-follow-up-stretch-blocked) below (basal CSV in progress; Luminal A blocked on mask fix).
 
 ---
 
@@ -420,8 +420,8 @@ Isolated pipeline under [`stretch/`](stretch/). Does **not** modify sprint hando
 | 2 | `prep_volume.py` — percentile norm, Otsu mask, SITK | **done** |
 | 2b | `qc_mask_overlay.py` | **done** — 4 slugs on disk |
 | 3 | `extract_radiomics.py` | **done** — PyRadiomics default + optional `fastrad` backend |
-| 4 | `run_all_radiomics.py`, `compare_longitudinal.py` | **done** (not yet run on all slugs → CSV) |
-| 5 | `PRANEETH_HANDOFF.md`, CSV to Praneeth | **pending** |
+| 4 | `run_all_radiomics.py`, `compare_longitudinal.py` | **partial** — basal slugs only; Luminal A deferred (see Known issue) |
+| 5 | `PRANEETH_HANDOFF.md`, CSV to Praneeth | **pending** (basal CSV first) |
 | 6 | `stretch/tests/` | **done** (10 tests: prep + dual-backend parity) |
 
 ### Libraries
@@ -436,16 +436,43 @@ Isolated pipeline under [`stretch/`](stretch/). Does **not** modify sprint hando
 
 [`VALIDATION.md`](VALIDATION.md) documents comparing Otsu masks to TCIA **TCGA-Breast-Radiogenomics** radiologist `.les` files (~91 patients). Cohort flags `"use_les_mask": true` but `.les` loader is **not wired yet**.
 
+### Known issue — Luminal A follow-up (stretch blocked)
+
+**Do not run full `run_all_radiomics.py` until fixed.** Batch extraction hung for 20+ minutes on the first slug because PyRadiomics is CPU-bound on large cropped volumes.
+
+| Slug | Raw shape | Cropped mask shape | Masked voxels | Notes |
+|------|-----------|-------------------|---------------|-------|
+| `luminal_a_TCGA-AR-A1AX_baseline` | 352×256×256 | 277×256×212 | ~3.5M | Slow but feasible |
+| **`luminal_a_TCGA-AR-A1AX_followup`** | **552×512×512** | **552×367×512** | **~18.3M** | **Root cause** — Otsu + largest-CC mask spans nearly full FOV; PyRadiomics runtime explodes |
+
+**Symptoms:** `run_all_radiomics.py` at 100% CPU with no `features_all.csv` for extended periods.
+
+**Workaround (current):** Skip Luminal A stretch; run basal slugs only:
+```bash
+cd breast-cancer-sim
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/stretch/extract_radiomics.py --slug basal_TCGA-AR-A1AQ_baseline
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/stretch/extract_radiomics.py --slug basal_TCGA-AR-A1AQ_followup
+# Or: run_all_radiomics.py --slug basal_TCGA-AR-A1AQ_baseline --slug basal_TCGA-AR-A1AQ_followup
+```
+
+**Fix needed (pick one or combine):**
+1. Tighten tumor isolation in `stretch/prep_volume.py` (Otsu threshold / connected-component logic) so follow-up ROI is tumor-sized, not breast-sized.
+2. Wire TCIA radiologist `.les` masks (`cohort.json` has `"use_les_mask": true` — loader not implemented; see [`VALIDATION.md`](VALIDATION.md)).
+3. Cap crop bbox max extent or resample to isotropic spacing before PyRadiomics (document if chosen — affects feature comparability).
+
+Sprint handoff (raw extracts + Vinesh PDE inputs) is **unaffected** — this issue is stretch-only.
+
 ### Stretch next steps (Philip-Chandan)
 
-1. Review mask QC overlays in `data/qc/radiomics-philip-chandan/` (4 PNGs).
-2. Run batch extraction:
+1. Review mask QC overlays in `data/qc/radiomics-philip-chandan/` — **basal OK**; **re-check Luminal A follow-up** after fix.
+2. Run basal batch extraction (Luminal A deferred until mask fix):
    ```bash
    cd breast-cancer-sim
-   .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/stretch/run_all_radiomics.py
+   .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/stretch/run_all_radiomics.py \
+     --slug basal_TCGA-AR-A1AQ_baseline --slug basal_TCGA-AR-A1AQ_followup
    .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/stretch/compare_longitudinal.py
    ```
-3. Write `stretch/PRANEETH_HANDOFF.md` and share `features_all.csv` (join on `tcga_id`).
+3. Write `stretch/PRANEETH_HANDOFF.md` and share basal `features_all.csv` (join on `tcga_id`; Luminal A rows TBD).
 
 ---
 
@@ -460,7 +487,7 @@ Philip-Chandan raw pipeline for rev2 primaries is **complete**. Vinesh delivered
 | **Spike** | 1 · Luminal A | baseline | 1 | **done** | Vinesh: PDE input **done** (in zip) |
 | **Two-subtype demo** | 2 · LumA + Basal | baseline each | 2 | **done** | Vinesh: 2 PDE inputs **done**; UI subtype toggle pending |
 | **Longitudinal** | 2 | baseline + follow-up | 4 | **done** | Vinesh: 4 PDE inputs **done**; Jasim render **in progress** |
-| **Radiomics (stretch)** | 2 | baseline + follow-up | 4 | masks + QC **done**; CSV **pending** | Praneeth: join on `tcga_id` after `run_all_radiomics.py` |
+| **Radiomics (stretch)** | 2 | baseline + follow-up | 4 | sprint **done**; stretch **basal only** (2 slugs → CSV); Luminal A **blocked** — mask fix | Praneeth: basal CSV first; LumA after fix |
 
 Primary cohort (rev2) in [`cohort/cohort.json`](cohort/cohort.json):
 

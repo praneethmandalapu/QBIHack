@@ -15,10 +15,22 @@ MANIFEST_PATH = RAW_EXTRACT_DIR / "manifest.json"
 RADIOMICS_DIR = REPO_ROOT / "data" / "processed" / "radiomics-philip-chandan"
 QC_RADIOMICS_DIR = REPO_ROOT / "data" / "qc" / "radiomics-philip-chandan"
 
+LESIONS_DIR = REPO_ROOT / "data" / "raw" / "tcia-radiogenomics" / "lesions"
+LESIONS_EXTRACT_DIR = LESIONS_DIR / "TCGA_Segmented_Lesions_UofC"
+VALIDATION_DICOM_DIR = REPO_ROOT / "data" / "raw" / "tcia-radiogenomics" / "validation-dicom"
+VALIDATION_DIR = REPO_ROOT / "data" / "processed" / "validation-philip-chandan"
+QC_VALIDATION_DIR = REPO_ROOT / "data" / "qc" / "validation-philip-chandan"
+
 
 def ensure_radiomics_dirs() -> None:
     """Create gitignored output folders for stretch artifacts."""
     for path in (RADIOMICS_DIR, QC_RADIOMICS_DIR):
+        path.mkdir(parents=True, exist_ok=True)
+
+
+def ensure_validation_dirs() -> None:
+    """Create gitignored folders for segmentation validation artifacts."""
+    for path in (VALIDATION_DIR, QC_VALIDATION_DIR, VALIDATION_DICOM_DIR):
         path.mkdir(parents=True, exist_ok=True)
 
 
@@ -47,3 +59,15 @@ def features_all_csv() -> Path:
 
 def features_longitudinal_csv() -> Path:
     return RADIOMICS_DIR / "features_longitudinal.csv"
+
+
+def validation_metrics_csv() -> Path:
+    return VALIDATION_DIR / "validation_metrics.csv"
+
+
+def validation_qc_les_overlay(slug: str) -> Path:
+    return QC_VALIDATION_DIR / f"{slug}_les_mid-z.png"
+
+
+def validation_qc_otsu_overlay(slug: str) -> Path:
+    return QC_VALIDATION_DIR / f"{slug}_otsu_mid-z.png"
