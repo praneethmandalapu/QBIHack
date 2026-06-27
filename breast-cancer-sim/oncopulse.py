@@ -71,6 +71,21 @@ def get_patient(barcode: str) -> dict:
     }
 
 
+def growth_multiplier(barcode: str, lo: float = 0.8, hi: float = 1.8) -> float:
+    """Map a patient's genomic risk to Vinesh's solver `risk_multiplier`.
+
+    tumor_pde_solver scales the growth rate rho by `risk_multiplier`
+    (rho_eff = rho * risk_multiplier). This converts risk in [0, 1] linearly to
+    [lo, hi]: lo + (hi - lo) * risk. Defaults (0.8, 1.8) sit in the 0.7/1.6
+    ballpark used in vinesh/test_solver.py. The lo/hi anchors are the knobs to
+    reconcile against vinesh/calibrate.py (which fits the multiplier from the two
+    imaging timepoints) -- genomics sets the per-patient ratio, calibration sets
+    the absolute scale.
+    """
+    risk = get_patient(barcode)["risk"]
+    return float(lo + (hi - lo) * risk)
+
+
 def score_expression(expr) -> float:
     """Escape hatch: score a raw z-scored vector/dict if a barcode is missing.
     `expr` = {gene: zscore} or sequence in GENE_LIST order."""
