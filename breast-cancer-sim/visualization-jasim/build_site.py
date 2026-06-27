@@ -71,14 +71,12 @@ SERIES = [{
     "day": i * 7,
     "vol": round(m["total_mm3"] / 1000, 2),
     "diam": round(m["max_diameter_mm"], 1),
-    "necro": round(m["necrotic_fraction"] * 100),
 } for i, m in enumerate(A["series"])]
 MAXVOL_MM3 = max(m["total_mm3"] for m in A["series"])
 
 NUMS = {
     "peak_vol_cm3": round(peak_m["total_mm3"] / 1000, 2),
     "max_diam_mm": round(peak_m["max_diameter_mm"], 1),
-    "necrotic_pct": round(peak_m["necrotic_fraction"] * 100),
     "doubling_d": None if peak_m is None else (
         None if (A["doubling_time_days"] != A["doubling_time_days"]) else round(A["doubling_time_days"])),
     "recist": A["recist"],
@@ -216,11 +214,12 @@ section{position:relative;z-index:2}
 .cell .val{font-family:var(--font-m);font-weight:700;font-size:clamp(1.7rem,4vw,2.6rem);letter-spacing:-.02em;line-height:1}
 .cell .val .u{font-size:.9rem;color:var(--muted);margin-left:.25rem}
 .cell .sub{font-family:var(--font-m);font-size:.72rem;color:var(--muted)}
-.cell.c-wide{grid-column:span 4} .cell.c-mid{grid-column:span 4} .cell.c-twin{grid-column:span 2}
+.cell.c-5{grid-column:span 5} .cell.c-4{grid-column:span 4} .cell.c-3{grid-column:span 3}
 .up{color:var(--crit)} .down{color:var(--vital)}
 .pill{display:inline-block;padding:.25rem .7rem;font-family:var(--font-m);font-size:.72rem;letter-spacing:.04em;
   border:1px solid currentColor;margin-top:.2rem;width:max-content}
-@media(max-width:880px){.cell.c-wide,.cell.c-mid{grid-column:span 6}.cell.c-twin{grid-column:span 6}}
+@media(max-width:880px){.cell.c-5,.cell.c-4,.cell.c-3{grid-column:span 6}}
+@media(max-width:520px){.cell.c-5,.cell.c-4,.cell.c-3{grid-column:span 12}}
 
 /* ---------- 3D + telemetry split ---------- */
 .split{display:grid;grid-template-columns:1.55fr 1fr;gap:1.4rem;align-items:stretch}
@@ -338,7 +337,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
     </h1>
     <p class="lede">A reaction–diffusion model evolves a <b>real MRI-derived lesion</b> through
        __N_STEPS__ timesteps — then renders it as a living volumetric twin with quantified
-       burden, necrotic-core dynamics, and <b>RECIST</b> response under therapy.</p>
+       burden, <b>growth kinetics</b>, and <b>RECIST</b> response under therapy.</p>
     <div class="cta-row">
       <a class="btn btn--signal" href="#twin">Enter the twin →</a>
       <a class="btn" href="#method">How it works</a>
@@ -359,40 +358,35 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
   <section id="vitals">
     <div class="divider reveal"><span class="num">01</span><h2>Live readout</h2><span class="ln"></span></div>
     <div class="cluster reveal">
-      <div class="cell c-wide">
+      <div class="cell c-5">
         <span class="lab">Peak tumor volume</span>
         <span class="val"><span class="cu" data-to="__PEAKVOL__" data-dec="2">0</span><span class="u">cm³</span></span>
         <span class="sub up">▲ __DIAMCH__% diameter vs baseline</span>
       </div>
-      <div class="cell c-mid">
+      <div class="cell c-4">
         <span class="lab">Max diameter</span>
         <span class="val"><span class="cu" data-to="__MAXD__" data-dec="1">0</span><span class="u">mm</span></span>
         <span class="sub">RECIST long-axis · day __DAYPEAK__</span>
       </div>
-      <div class="cell c-twin">
-        <span class="lab">Necrotic</span>
-        <span class="val" style="color:var(--crit)"><span class="cu" data-to="__NECRO__" data-dec="0">0</span><span class="u">%</span></span>
-        <span class="sub">dead core</span>
-      </div>
-      <div class="cell c-twin">
+      <div class="cell c-3">
         <span class="lab">Doubling</span>
         <span class="val"><span class="cu" data-to="__DOUBLE__" data-dec="0">0</span><span class="u">d</span></span>
         <span class="sub">pre-therapy</span>
       </div>
-      <div class="cell c-wide">
+      <div class="cell c-5">
         <span class="lab">Response assessment</span>
-        <span class="val" style="font-size:clamp(1.3rem,3vw,1.9rem);color:var(--vital)">__RECIST__</span>
+        <span class="val" style="font-size:clamp(1.5rem,3.2vw,2.1rem);color:var(--vital)">__RECIST__</span>
         <span class="pill" style="color:var(--vital)">RECIST 1.1 · ON THERAPY</span>
       </div>
-      <div class="cell c-mid">
+      <div class="cell c-4">
         <span class="lab">Simulation</span>
         <span class="val"><span class="cu" data-to="__N_STEPS__" data-dec="0">0</span><span class="u">steps</span></span>
         <span class="sub">__VOXELS__ voxels / frame</span>
       </div>
-      <div class="cell c-mid">
+      <div class="cell c-3">
         <span class="lab">Engine</span>
         <span class="val" style="font-size:clamp(1.1rem,2.4vw,1.5rem)">PDE · 3D</span>
-        <span class="sub">reaction–diffusion + drug term</span>
+        <span class="sub">reaction–diffusion</span>
       </div>
     </div>
   </section>
@@ -421,7 +415,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
           <input class="tl" id="tl" type="range" min="0" max="__NFRAMES_MAX__" value="0" step="1" aria-label="Timestep">
           <div class="tlread" id="tlread">DAY 00 · <b>0.00 cm³</b></div>
         </div>
-        <div class="cap">Scrub or play to evolve the lesion · drag to orbit · rim → viable → hypoxic → necrotic core</div>
+        <div class="cap">Scrub or play to evolve the lesion · drag to orbit · outer rim → viable bulk → dense core</div>
       </div>
       <div class="panel reveal">
         <div class="ph"><span class="t">Tumor burden telemetry</span><span class="t" style="color:var(--signal)">mm³ / day</span></div>
@@ -429,7 +423,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
         <div class="read">
           Lesion is <b class="ok">__RECIST__</b>. After aggressive growth (<b>doubling __DOUBLE__ d</b>),
           therapy at day __DAYTHER__ drives regression — longest axis
-          <b class="ok">__DIAMCH__%</b> from peak, necrotic core <b>__NECRO__%</b> of viable mass.
+          <b class="ok">__DIAMCH__%</b> from peak tumor burden.
         </div>
       </div>
     </div>
@@ -460,7 +454,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
       <div class="step reveal"><div class="n">02 · SIMULATE</div><h3>Reaction–diffusion PDE</h3>
         <p>A 3D solver advances proliferation and diffusion, modulated by a genomics-derived risk multiplier and a drug-response term.</p></div>
       <div class="step reveal"><div class="n">03 · VISUALIZE</div><h3>Living digital twin</h3>
-        <p>Each timestep is rendered volumetrically with quantified burden, necrotic dynamics, and RECIST response — this layer.</p></div>
+        <p>Each timestep is rendered volumetrically with quantified burden, growth dynamics, and RECIST response — this layer.</p></div>
     </div>
     <p class="pullquote reveal">Not a picture of a tumor. A <span>simulation you can interrogate</span> — frame by frame, axis by axis.</p>
   </section>
@@ -494,7 +488,7 @@ const FIGS = {
   slices: __FIG_SLICES__
 };
 const VALUES = __VALUES__;     // per-frame density fields for the isosurface
-const SERIES = __SERIES__;     // per-frame {day, vol, diam, necro}
+const SERIES = __SERIES__;     // per-frame {day, vol, diam}
 const MAXVOL = __MAXVOL__;     // y-range for the curve marker (mm³)
 const CFG = {responsive:true, displayModeBar:false, staticPlot:false};
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -614,7 +608,6 @@ replacements = {
     "__NFRAMES_MAX__": str(len(SERIES) - 1),
     "__PEAKVOL__": str(NUMS["peak_vol_cm3"]),
     "__MAXD__": str(NUMS["max_diam_mm"]),
-    "__NECRO__": str(NUMS["necrotic_pct"]),
     "__DOUBLE__": double_txt,
     "__RECIST__": NUMS["recist"],
     "__DIAMCH__": str(NUMS["diam_change"]),

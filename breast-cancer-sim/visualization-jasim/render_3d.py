@@ -359,7 +359,7 @@ def render_growth_curve(analytics: dict):
 
     days = analytics["days"]
     vol = analytics["volume_mm3"]
-    necf = analytics["necrotic_fraction"]
+    diam = analytics["diameter_mm"]
     peak = analytics["peak_index"]
 
     fig = go.Figure()
@@ -369,8 +369,8 @@ def render_growth_curve(analytics: dict):
         fill="tozeroy", fillcolor="rgba(34,211,238,0.10)",
     ))
     fig.add_trace(go.Scatter(
-        x=days, y=necf * 100, mode="lines", name="Necrotic fraction (%)",
-        line=dict(color=cm.HYPOXIC, width=2, dash="dot"), yaxis="y2",
+        x=days, y=diam, mode="lines", name="Max diameter (mm)",
+        line=dict(color=cm.VIABLE_TUMOR, width=2, dash="dot"), yaxis="y2",
     ))
     fig.add_trace(go.Scatter(
         x=[days[peak]], y=[vol[peak]], mode="markers+text",
@@ -384,8 +384,7 @@ def render_growth_curve(analytics: dict):
         margin=dict(l=10, r=10, t=30, b=10),
         xaxis=dict(title="days", gridcolor=cm.GRID, zerolinecolor=cm.GRID),
         yaxis=dict(title="volume (mm³)", gridcolor=cm.GRID, zerolinecolor=cm.GRID),
-        yaxis2=dict(title="necrotic %", overlaying="y", side="right",
-                    range=[0, 100], showgrid=False),
+        yaxis2=dict(title="diameter (mm)", overlaying="y", side="right", showgrid=False),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, x=0,
                     bgcolor="rgba(0,0,0,0)"),
     )

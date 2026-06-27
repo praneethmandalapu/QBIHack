@@ -138,8 +138,8 @@ kpi(c1, "Tumor volume", f"{m['total_mm3']/1000:.2f} cm³",
     f"{vol_delta:+.0f}% vs baseline", cm.BAD if vol_delta > 0 else cm.GOOD)
 kpi(c2, "Max diameter", f"{m['max_diameter_mm']:.1f} mm",
     f"{analytics['diameter_change_pct']:+.0f}% overall")
-kpi(c3, "Necrotic fraction", f"{m['necrotic_fraction']*100:.0f}%",
-    "dead core / viable", cm.HYPOXIC)
+kpi(c3, "Longest axis", f"{m['longest_axis_mm']:.1f} mm",
+    "RECIST target lesion", cm.PROLIFERATING)
 kpi(c4, "Volume doubling", "—" if np.isnan(dt) else f"{dt:.0f} d",
     f"<span class='pill' style='background:{recist_color}22;color:{recist_color}'>{recist}</span>",
     cm.TEXT_DIM)
@@ -172,8 +172,8 @@ with right:
     trend = "regressing under therapy" if vol_delta < 0 else "progressing"
     st.markdown(
         f"<div class='kpi'>Lesion is <b style='color:{recist_color}'>{recist}</b> "
-        f"({trend}). Necrotic core now <b>{m['necrotic_fraction']*100:.0f}%</b> "
-        f"of viable mass; longest axis <b>{m['longest_axis_mm']:.1f} mm</b>. "
+        f"({trend}). Longest axis <b>{m['longest_axis_mm']:.1f} mm</b>; "
+        f"tumor volume <b>{m['total_mm3']/1000:.2f} cm³</b>. "
         f"{'Doubling time ' + format(dt, '.0f') + ' days.' if not np.isnan(dt) else ''}"
         "</div>", unsafe_allow_html=True)
 
