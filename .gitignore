@@ -1,6 +1,9 @@
 # Raw and processed datasets (METABRIC, TCIA DICOM, numpy arrays)
 breast-cancer-sim/data/
 
+# Philip-Chandan → Vinesh handoff packages (share via Drive/Slack, not git)
+breast-cancer-sim/pde-handoff*.zip
+
 # Python
 __pycache__/
 *.py[cod]
