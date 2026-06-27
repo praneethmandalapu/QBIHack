@@ -1,20 +1,19 @@
 # Brain Cancer Simulation (QBIHack)
 
-Longitudinal glioma / brain tumor growth simulation. Forked from the breast-cancer-sim
-modular layout: **copy** disease-agnostic engine + viz; **write fresh** imaging pipeline
-(expert segmentations, NIfTI loaders — see `simulation/imaging/`).
+Longitudinal glioma / brain tumor growth simulation. Layout mirrors [`breast-cancer-sim`](../breast-cancer-sim/): team-owned folders, shared handoff contract, gitignored `data/raw/`.
 
 ## Structure
 
-| Directory | Purpose |
-|-----------|---------|
-| `DATASETS.md` | Candidate longitudinal MRI datasets (UCSF, MU-Glioma-Post, …) |
-| `data/` | Raw downloads + processed arrays (gitignored under `data/raw/`) |
-| `simulation/solver/` | PDE growth engine + drug interventions (ported from breast) |
-| `simulation/imaging/` | **Fresh code** — volume extraction, masks, cohort (not copied) |
-| `simulation/handoff_contract.json` | Versioned array contract between imaging ↔ solver |
-| `visualization/` | Plotly 3D rendering (ported from breast) |
-| `app/` | Streamlit shell (tab stubs; wire in Phase 3) |
+| Directory | Owner | Purpose |
+|-----------|-------|---------|
+| `DATASETS.md` | shared | Candidate longitudinal MRI datasets (UCSF, MU-Glioma-Post, …) |
+| `data/` | shared | Raw downloads + processed arrays (`data/raw/` gitignored) |
+| `simulation-vinesh-philip-chandan/` | Philip-Chandan + Vinesh | Imaging pipeline + PDE solver + handoff contract |
+| `simulation-vinesh-philip-chandan/philip-chandan/` | Philip-Chandan | NIfTI extract, masks, cohort — see `PLAN.md` |
+| `simulation-vinesh-philip-chandan/vinesh/` | Vinesh | PDE growth engine, `prepare_pde_input.py` *(stub)* |
+| `models-praneeth/` | Praneeth | Genomics / risk models *(stub)* |
+| `visualization-jasim/` | Jasim | Plotly 3D rendering |
+| `app-vihari/` | Vihari | Streamlit shell (tab stubs) |
 
 ## Setup
 
@@ -29,29 +28,29 @@ pip install -r requirements.txt
 
 ```bash
 # PDE solver
-python simulation/solver/test_solver.py
+python simulation-vinesh-philip-chandan/vinesh/test_solver.py
 
 # End-to-end via contract wrapper
-python simulation/run_growth.py
+python simulation-vinesh-philip-chandan/vinesh/run_growth.py
 
 # 3D preview (writes tumor_preview.html)
-python visualization/render_3d.py
+python visualization-jasim/render_3d.py
 
-# Interactive MR + segmentation (napari — see script header for full options)
-python simulation/imaging/view_volume_napari.py --demo
+# Interactive MR + segmentation (napari — demo works without data)
+python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py --demo
 ```
 
 ## Run the app
 
 ```bash
-streamlit run app/app.py
+streamlit run app-vihari/app.py
 ```
 
 ## Relationship to breast-cancer-sim
 
 | Copied (stable) | Written fresh |
 |-----------------|---------------|
-| `tumor_pde_solver.py`, `growth_interventions.py` | `simulation/imaging/` — NIfTI, expert masks |
+| `tumor_pde_solver.py`, `growth_interventions.py` | `philip-chandan/` — NIfTI, expert masks |
 | `handoff_contract.py` pattern | `handoff_contract.json` — brain segmentation spec |
 | `render_3d.py`, `color_maps.py` | Cohort, genomics, longitudinal validation |
 | Streamlit tab shell | Dataset download scripts |

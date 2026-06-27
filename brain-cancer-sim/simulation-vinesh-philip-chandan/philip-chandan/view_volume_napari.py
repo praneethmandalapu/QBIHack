@@ -6,15 +6,15 @@ Run (macOS/Linux):
     pip install -r requirements.txt   # includes napari[pyqt6]
 
     # Synthetic demo (default when no data on disk — no args needed)
-    python simulation/imaging/view_volume_napari.py
-    python simulation/imaging/view_volume_napari.py --demo
+    python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py
+    python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py --demo
 
 Run (Windows):
     cd brain-cancer-sim
     py -3 -m venv .venv
     .venv\\Scripts\\Activate.ps1
     pip install -r requirements.txt
-    .venv\\Scripts\\python.exe simulation\\imaging\\view_volume_napari.py --demo
+    .venv\\Scripts\\python.exe simulation-vinesh-philip-chandan\\philip-chandan\\view_volume_napari.py --demo
 
 Requires napari[pyqt6]. First launch may take ~10s while Qt initializes.
 Arrays are (Z, Y, X); napari scale is (dz, dy, dx) mm from sidecar metadata.
@@ -35,7 +35,7 @@ SIM_ROOT = IMAGING_DIR.parent
 REPO_ROOT = SIM_ROOT.parent
 
 sys.path.insert(0, str(SIM_ROOT))
-sys.path.insert(0, str(SIM_ROOT / "solver"))
+sys.path.insert(0, str(SIM_ROOT / "vinesh"))
 
 from handoff_contract import load_handoff_contract, pde_input_spec, raw_extract_spec  # noqa: E402
 from tumor_pde_solver import dummy_volume  # noqa: E402
@@ -222,7 +222,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description="View brain MR with expert segmentation overlay in napari.",
     )
-    parser.add_argument("--slug", help="Raw extract slug under data/processed/raw-extract-imaging/")
+    parser.add_argument("--slug", help="Raw extract slug under data/processed/raw-extract-philip-chandan/")
     parser.add_argument("--mr", type=Path, help="MR NIfTI path (.nii / .nii.gz)")
     parser.add_argument("--mask", type=Path, help="Segmentation NIfTI path")
     parser.add_argument("--pde-input", action="store_true", help="Overlay PDE-ready volume if present")
@@ -236,7 +236,7 @@ def main() -> None:
         for slug in list_slugs():
             print(slug)
         if not list_slugs():
-            print("(none yet — use --demo or export to data/processed/raw-extract-imaging/)")
+            print("(none yet — use --demo or export to data/processed/raw-extract-philip-chandan/)")
         return
 
     if args.demo:

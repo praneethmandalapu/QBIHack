@@ -1,21 +1,22 @@
 {
   "version": "1.0.0",
-  "description": "Imaging ↔ solver handoff for brain-cancer-sim. Expert segmentation masks (not Otsu) feed the PDE initial condition.",
+  "description": "Philip-Chandan ↔ Vinesh array handoff contract for brain-cancer-sim. Expert segmentation masks (not Otsu) feed the PDE initial condition.",
   "spike_patient": {
     "dataset": "UCSF Longitudinal Glioma",
     "patient_id": "TBD",
     "disease": "Glioma",
+    "grade": "TBD",
     "timepoint": "baseline",
     "slug": "glioma_ucsf_TBD_baseline"
   },
   "raw_extract": {
-    "producer": "imaging",
-    "output_dir": "data/processed/raw-extract-imaging",
+    "producer": "philip-chandan",
+    "output_dir": "data/processed/raw-extract-philip-chandan",
     "axis_order": ["Z", "Y", "X"],
     "dtype": "float32",
     "normalize": false,
     "value_semantics": {
-      "description": "Raw MR intensity; paired mask in data/processed/segmentations/"
+      "description": "Raw MR intensity; paired expert mask in data/processed/segmentations/"
     },
     "required_metadata_fields": [
       "contract_version",
@@ -33,8 +34,8 @@
     ]
   },
   "pde_input": {
-    "producer": "solver",
-    "output_dir": "data/processed/pde-input-solver",
+    "producer": "vinesh",
+    "output_dir": "data/processed/pde-input-vinesh",
     "axis_order": ["Z", "Y", "X"],
     "dtype": "float32",
     "max_shape": [64, 64, 64],

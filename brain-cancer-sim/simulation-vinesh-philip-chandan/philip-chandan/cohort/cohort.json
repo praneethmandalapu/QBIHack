@@ -1,0 +1,23 @@
+{
+  "version": "rev0-stub",
+  "description": "Brain imaging cohort — populate after UCSF/MU-Glioma patient selection.",
+  "patients": [
+    {
+      "patient_id": "TBD",
+      "dataset": "UCSF Longitudinal Glioma",
+      "disease": "Glioma",
+      "grade": "TBD",
+      "idh_status": "TBD",
+      "timepoints": [
+        {
+          "label": "baseline",
+          "study_date": "TBD",
+          "mr_path": "data/raw/ucsf_glioma/TBD/baseline/mr.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/TBD/baseline/seg.nii.gz"
+        }
+      ],
+      "backup": true,
+      "notes": "Replace TBD after download; sync grade/IDH with Praneeth."
+    }
+  ]
+}

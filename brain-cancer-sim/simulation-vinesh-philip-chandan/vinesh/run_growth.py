@@ -5,9 +5,10 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-SIM_ROOT = Path(__file__).resolve().parent
-sys.path.insert(0, str(SIM_ROOT))
-sys.path.insert(0, str(SIM_ROOT / "solver"))
+VINESH_DIR = Path(__file__).resolve().parent
+HANDOFF_ROOT = VINESH_DIR.parent
+sys.path.insert(0, str(HANDOFF_ROOT))
+sys.path.insert(0, str(VINESH_DIR))
 
 from handoff_contract import solver_spec  # noqa: E402
 from tumor_pde_solver import dummy_volume, solve_growth, total_volume  # noqa: E402

@@ -6,9 +6,10 @@ from pathlib import Path
 import streamlit as st
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT / "simulation"))
-sys.path.insert(0, str(ROOT / "simulation" / "solver"))
-sys.path.insert(0, str(ROOT / "visualization"))
+HANDOFF = ROOT / "simulation-vinesh-philip-chandan"
+sys.path.insert(0, str(HANDOFF))
+sys.path.insert(0, str(HANDOFF / "vinesh"))
+sys.path.insert(0, str(ROOT / "visualization-jasim"))
 
 from render_3d import downsample, growth_analytics, render_growth_curve, render_sequence  # noqa: E402
 from run_growth import run_growth  # noqa: E402

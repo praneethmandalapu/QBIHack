@@ -9,20 +9,20 @@ Quick start with no data:
 ```bash
 cd brain-cancer-sim
 source .venv/bin/activate
-python simulation/imaging/view_volume_napari.py --demo
+python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py --demo
 ```
 
 When raw extracts exist:
 
 ```bash
-python simulation/imaging/view_volume_napari.py --list
-python simulation/imaging/view_volume_napari.py --slug <slug>
+python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py --list
+python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py --slug <slug>
 ```
 
 Direct NIfTI (before export pipeline):
 
 ```bash
-python simulation/imaging/view_volume_napari.py \
+python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py \
   --mr data/raw/.../T1.nii.gz \
   --mask data/raw/.../seg.nii.gz
 ```
