@@ -1,68 +1,143 @@
-"""Download TCIA DICOM series for cohort patients via the public NBIA REST API."""
+"""Download TCIA DICOM series for cohort patients.
+
+Series discovery and download use IDC Index (primary) with tcia-utils NBIA helpers
+as fallback. Public function signatures and on-disk cohort layout are unchanged.
+"""
 
 from __future__ import annotations
 
 import argparse
 import json
-import urllib.parse
-import urllib.request
-import zipfile
 from collections import defaultdict
+from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 from tcia_extractor import iter_cohort_patients, load_cohort, resolve_dicom_dir, resolve_study_dir
 
-NBIA_BASE = "https://services.cancerimagingarchive.net/nbia-api/services/v1"
 DEFAULT_COLLECTION = "TCGA-BRCA"
 
-
-def _api_get(path: str, params: dict[str, str] | None = None) -> bytes:
-    query = urllib.parse.urlencode(params or {})
-    url = f"{NBIA_BASE}/{path}"
-    if query:
-        url = f"{url}?{query}"
-    with urllib.request.urlopen(url) as response:
-        return response.read()
+IDC_COLLECTION_IDS = {
+    "TCGA-BRCA": "tcga_brca",
+}
 
 
-def _study_date(series: dict) -> str:
-    raw_date = str(series.get("StudyDate", ""))
-    return raw_date[:10] if raw_date else "unknown-study"
+@lru_cache(maxsize=1)
+def _get_idc_client():
+    from idc_index import IDCClient
+
+    return IDCClient()
+
+
+def _idc_collection_id(collection: str) -> str:
+    return IDC_COLLECTION_IDS.get(collection, collection.lower().replace("-", "_"))
+
+
+def normalize_study_date(raw: str) -> str:
+    """Normalize TCIA/IDC study dates to YYYY-MM-DD."""
+    value = str(raw).strip()
+    if not value:
+        return "unknown-study"
+    if len(value) >= 8 and value[:8].isdigit():
+        digits = value[:8]
+        return f"{digits[:4]}-{digits[4:6]}-{digits[6:8]}"
+    parts = value.split("-")
+    if len(parts) >= 3:
+        first, second, third = parts[0], parts[1], parts[2]
+        if len(first) == 4 and first.isdigit() and second.isdigit() and third.isdigit():
+            return f"{first}-{second.zfill(2)}-{third.zfill(2)}"
+        if len(third) == 4 and third.isdigit() and first.isdigit() and second.isdigit():
+            return f"{third}-{first.zfill(2)}-{second.zfill(2)}"
+    return value[:10]
+
+
+def _study_date(series: dict[str, Any]) -> str:
+    return normalize_study_date(str(series.get("StudyDate", "")))
+
+
+def _series_dict_from_idc_row(row: dict[str, Any]) -> dict[str, Any]:
+    image_count = int(row.get("ImageCount", 0) or 0)
+    size_mb = row.get("series_size_MB")
+    file_size = int(float(size_mb) * 1_000_000) if size_mb not in (None, "") else 0
+    return {
+        "PatientID": row.get("PatientID", ""),
+        "StudyDate": normalize_study_date(str(row.get("StudyDate", ""))),
+        "SeriesInstanceUID": row.get("SeriesInstanceUID", ""),
+        "SeriesDescription": row.get("SeriesDescription", ""),
+        "Modality": row.get("Modality", "MR"),
+        "ImageCount": image_count,
+        "FileSize": file_size,
+        "Collection": DEFAULT_COLLECTION,
+    }
+
+
+def _list_mr_series_idc(patient_id: str, collection: str) -> list[dict[str, Any]]:
+    idc_collection = _idc_collection_id(collection)
+    query = f"""
+        SELECT
+            PatientID,
+            StudyDate,
+            SeriesInstanceUID,
+            SeriesDescription,
+            Modality,
+            instanceCount AS ImageCount,
+            series_size_MB
+        FROM index
+        WHERE collection_id = '{idc_collection}'
+          AND PatientID = '{patient_id}'
+          AND Modality = 'MR'
+    """
+    dataframe = _get_idc_client().sql_query(query)
+    if dataframe.empty:
+        return []
+    return [_series_dict_from_idc_row(row) for row in dataframe.to_dict(orient="records")]
+
+
+def _list_mr_series_nbia(patient_id: str, collection: str) -> list[dict[str, Any]]:
+    from tcia_utils import nbia
+
+    series_list = nbia.getSeries(collection=collection, patientId=patient_id, modality="MR")
+    if not series_list:
+        return []
+
+    normalized: list[dict[str, Any]] = []
+    for entry in series_list:
+        record = dict(entry)
+        record["StudyDate"] = normalize_study_date(str(entry.get("StudyDate", "")))
+        normalized.append(record)
+    return normalized
 
 
 def list_mr_series(
     patient_id: str,
     collection: str = DEFAULT_COLLECTION,
-) -> list[dict]:
-    payload = _api_get(
-        "getSeries",
-        {
-            "Collection": collection,
-            "PatientID": patient_id,
-            "Modality": "MR",
-        },
-    )
-    if not payload.strip():
-        return []
-    return json.loads(payload)
+) -> list[dict[str, Any]]:
+    """List MR series metadata for a patient from IDC Index, falling back to NBIA."""
+    try:
+        series_list = _list_mr_series_idc(patient_id, collection)
+        if series_list:
+            return series_list
+    except Exception:
+        pass
+    return _list_mr_series_nbia(patient_id, collection)
 
 
-def group_series_by_study(series_list: list[dict]) -> dict[str, list[dict]]:
-    grouped: dict[str, list[dict]] = defaultdict(list)
+def group_series_by_study(series_list: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for entry in series_list:
         grouped[_study_date(entry)].append(entry)
     return dict(grouped)
 
 
 def pick_series(
-    series_list: list[dict],
+    series_list: list[dict[str, Any]],
     *,
     prefer_contrast: bool = True,
-) -> dict | None:
+) -> dict[str, Any] | None:
     if not series_list:
         return None
 
-    def score(entry: dict) -> tuple[int, int]:
+    def score(entry: dict[str, Any]) -> tuple[int, int]:
         description = str(entry.get("SeriesDescription", "")).lower()
         image_count = int(entry.get("ImageCount", 0) or 0)
         contrast_bonus = 0
@@ -75,29 +150,34 @@ def pick_series(
     return sorted(series_list, key=score)[0]
 
 
-def download_series_zip(series_uid: str, destination_zip: Path) -> Path:
-    destination_zip.parent.mkdir(parents=True, exist_ok=True)
-    payload = _api_get("getImage", {"SeriesInstanceUID": series_uid})
-    destination_zip.write_bytes(payload)
-    return destination_zip
+def _download_series_idc(series_uid: str, destination_dir: Path) -> None:
+    _get_idc_client().download_dicom_series(
+        series_uid,
+        str(destination_dir),
+        dirTemplate=None,
+        quiet=True,
+        show_progress_bar=True,
+    )
 
 
-def extract_zip(zip_path: Path, destination_dir: Path) -> Path:
-    destination_dir.mkdir(parents=True, exist_ok=True)
-    with zipfile.ZipFile(zip_path) as archive:
-        archive.extractall(destination_dir)
-    return destination_dir
+def _download_series_nbia(series_uid: str, destination_dir: Path) -> None:
+    from tcia_utils import nbia
+
+    nbia.downloadSeries([series_uid], path=str(destination_dir), input_type="list")
 
 
 def download_series_to_dir(
-    series: dict,
+    series: dict[str, Any],
     destination_dir: Path,
-) -> dict:
+) -> dict[str, Any]:
     series_uid = series["SeriesInstanceUID"]
-    zip_path = destination_dir / f"{series_uid}.zip"
-    download_series_zip(series_uid, zip_path)
-    extract_zip(zip_path, destination_dir)
-    zip_path.unlink(missing_ok=True)
+    destination_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        _download_series_idc(series_uid, destination_dir)
+    except Exception:
+        _download_series_nbia(series_uid, destination_dir)
+
     return {
         "dicom_dir": destination_dir,
         "series_uid": series_uid,
@@ -114,7 +194,7 @@ def download_patient_mr(
     collection: str = DEFAULT_COLLECTION,
     output_dir: Path | None = None,
     prefer_contrast: bool = True,
-) -> dict:
+) -> dict[str, Any]:
     """Download the best MR series for a patient into the cohort DICOM layout."""
     destination = output_dir or resolve_dicom_dir(tcga_id, subtype)
     series_list = list_mr_series(tcga_id, collection=collection)
@@ -138,7 +218,7 @@ def download_patient_longitudinal(
     collection: str = DEFAULT_COLLECTION,
     prefer_contrast: bool = True,
     study_dates: list[str] | None = None,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Download the best contrast MR series for each longitudinal study date."""
     series_list = list_mr_series(tcga_id, collection=collection)
     if not series_list:
@@ -153,7 +233,7 @@ def download_patient_longitudinal(
                 f"Requested study dates not found for {tcga_id}: {', '.join(missing)}"
             )
 
-    downloads: list[dict] = []
+    downloads: list[dict[str, Any]] = []
     for study_date in selected_dates:
         chosen = pick_series(grouped[study_date], prefer_contrast=prefer_contrast)
         if chosen is None:
@@ -178,9 +258,9 @@ def download_cohort(
     primary_only: bool = True,
     prefer_contrast: bool = True,
     longitudinal: bool = False,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Download MR for cohort patients that have imaging on TCIA."""
-    results: list[dict] = []
+    results: list[dict[str, Any]] = []
     errors: list[str] = []
 
     patients = list(iter_cohort_patients(include_backups=include_backups))

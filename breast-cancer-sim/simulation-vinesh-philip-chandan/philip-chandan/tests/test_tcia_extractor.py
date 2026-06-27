@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -11,6 +12,7 @@ from pydicom.uid import generate_uid
 
 from tcia_extractor import (
     RAW_TCIA_DIR,
+    REPO_ROOT,
     extract_volume,
     extract_volume_with_spacing,
     extract_volume_with_spacing_for_timepoint,
@@ -25,6 +27,8 @@ from tcia_extractor import (
     validate_series,
 )
 from tests.conftest import _write_synthetic_slice
+
+RAW_EXTRACT_DIR = REPO_ROOT / "data" / "processed" / "raw-extract-philip-chandan"
 
 
 def test_validate_series_ok(synthetic_dicom_dir: Path) -> None:
@@ -199,3 +203,33 @@ def test_extract_backup_patient(subtype: str, tcga_id: str) -> None:
     assert volume.size > 0
     assert len(spacing_mm) == 3
     assert all(value > 0 for value in spacing_mm)
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize(
+    "slug",
+    [
+        "luminal_a_TCGA-AR-A1AX_baseline",
+        "luminal_a_TCGA-AR-A1AX_followup",
+        "basal_TCGA-AR-A1AQ_baseline",
+        "basal_TCGA-AR-A1AQ_followup",
+    ],
+)
+def test_extract_matches_saved_raw_export(slug: str) -> None:
+    """Regression: SimpleITK extraction must match previously exported raw volumes."""
+    sidecar_path = RAW_EXTRACT_DIR / f"{slug}.json"
+    npy_path = RAW_EXTRACT_DIR / f"{slug}.npy"
+    if not sidecar_path.exists() or not npy_path.exists():
+        pytest.skip(f"Saved raw export not present: {slug}")
+
+    meta = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    dicom_dir = REPO_ROOT / meta["source_dicom_dir"]
+    if not dicom_dir.exists():
+        pytest.skip(f"DICOM not downloaded: {dicom_dir}")
+
+    volume, spacing_mm = extract_volume_with_spacing(dicom_dir)
+    saved = np.load(npy_path)
+
+    assert volume.shape == tuple(saved.shape) == tuple(meta["shape"])
+    assert spacing_mm == meta["spacing_mm"]
+    assert np.array_equal(volume, saved)
