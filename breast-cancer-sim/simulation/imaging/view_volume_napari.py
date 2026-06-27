@@ -1,23 +1,31 @@
 """Interactive 3D viewer: brain MR + expert segmentation overlay (napari).
 
-Run (macOS/Linux):
-    cd brain-cancer-sim
-    python3.11 -m venv .venv && source .venv/bin/activate
-    pip install -r requirements.txt   # includes napari[pyqt6]
+Run from breast-cancer-sim (shared .venv — no brain dataset required for demo):
 
-    # Synthetic demo (default when no data on disk — no args needed)
+    cd breast-cancer-sim
+    source .venv/bin/activate
+    pip install -r requirements.txt   # napari[pyqt6]
+
+    # Synthetic glioma demo (default when no data on disk)
     python simulation/imaging/view_volume_napari.py
     python simulation/imaging/view_volume_napari.py --demo
 
+    # After brain data is exported to ../brain-cancer-sim/data/...
+    python simulation/imaging/view_volume_napari.py --list
+    python simulation/imaging/view_volume_napari.py --slug glioma_ucsf_P001_baseline
+
+    # Direct NIfTI pair
+    python simulation/imaging/view_volume_napari.py \\
+        --mr ../brain-cancer-sim/data/raw/patient001/T1.nii.gz \\
+        --mask ../brain-cancer-sim/data/raw/patient001/seg.nii.gz
+
 Run (Windows):
-    cd brain-cancer-sim
-    py -3 -m venv .venv
+    cd breast-cancer-sim
     .venv\\Scripts\\Activate.ps1
-    pip install -r requirements.txt
     .venv\\Scripts\\python.exe simulation\\imaging\\view_volume_napari.py --demo
 
 Requires napari[pyqt6]. First launch may take ~10s while Qt initializes.
-Arrays are (Z, Y, X); napari scale is (dz, dy, dx) mm from sidecar metadata.
+Canonical copy also lives in ../brain-cancer-sim/simulation/imaging/.
 """
 
 from __future__ import annotations
@@ -31,28 +39,74 @@ from typing import Any
 import numpy as np
 
 IMAGING_DIR = Path(__file__).resolve().parent
-SIM_ROOT = IMAGING_DIR.parent
-REPO_ROOT = SIM_ROOT.parent
+BREAST_ROOT = IMAGING_DIR.parents[1]
+BRAIN_ROOT = BREAST_ROOT.parent / "brain-cancer-sim"
 
-sys.path.insert(0, str(SIM_ROOT))
-sys.path.insert(0, str(SIM_ROOT / "solver"))
 
-from handoff_contract import load_handoff_contract, pde_input_spec, raw_extract_spec  # noqa: E402
-from tumor_pde_solver import dummy_volume  # noqa: E402
+def _brain_repo() -> Path:
+    if BRAIN_ROOT.is_dir():
+        return BRAIN_ROOT
+    return BREAST_ROOT
 
 
 def _repo_path(relative: str) -> Path:
-    return REPO_ROOT / relative
+    return _brain_repo() / relative
+
+
+def _ensure_brain_solver_path() -> None:
+    solver = _brain_repo() / "simulation" / "solver"
+    sim = _brain_repo() / "simulation"
+    for path in (solver, sim):
+        if path.is_dir() and str(path) not in sys.path:
+            sys.path.insert(0, str(path))
+
+
+def dummy_volume(shape=(48, 48, 48), radius: float = 10.0, seed: int = 0) -> np.ndarray:
+    """Synthetic tumor blob — used when ../brain-cancer-sim solver is unavailable."""
+    rng = np.random.default_rng(seed)
+    zz, yy, xx = np.indices(shape)
+    cz, cy, cx = (s / 2 for s in shape)
+    r2 = (zz - cz) ** 2 + (yy - cy) ** 2 + (xx - cx) ** 2
+    blob = np.exp(-r2 / (2.0 * radius**2))
+    blob = blob + 0.02 * rng.standard_normal(shape)
+    return np.clip(blob, 0.0, 1.0).astype(np.float32)
+
+
+def get_dummy_volume():
+    _ensure_brain_solver_path()
+    try:
+        from tumor_pde_solver import dummy_volume as solver_dummy  # type: ignore
+
+        return solver_dummy(shape=(48, 48, 48), radius=10.0)
+    except ImportError:
+        return dummy_volume()
 
 
 def normalize_for_display(volume: np.ndarray) -> np.ndarray:
-    """Percentile clip to [0, 1] for napari contrast."""
     flat = volume.astype(np.float32, copy=False).ravel()
     lo, hi = np.percentile(flat, (1.0, 99.0))
     if hi <= lo:
         hi = lo + 1.0
-    out = np.clip((volume.astype(np.float32) - lo) / (hi - lo), 0.0, 1.0)
-    return out.astype(np.float32)
+    return np.clip((volume.astype(np.float32) - lo) / (hi - lo), 0.0, 1.0).astype(np.float32)
+
+
+def load_handoff_contract() -> dict[str, Any]:
+    path = _brain_repo() / "simulation" / "handoff_contract.json"
+    if not path.exists():
+        return {
+            "raw_extract": {"output_dir": "data/processed/raw-extract-imaging"},
+            "pde_input": {"output_dir": "data/processed/pde-input-solver"},
+        }
+    with path.open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def raw_extract_spec() -> dict[str, Any]:
+    return dict(load_handoff_contract()["raw_extract"])
+
+
+def pde_input_spec() -> dict[str, Any]:
+    return dict(load_handoff_contract()["pde_input"])
 
 
 def load_nifti(path: Path) -> tuple[np.ndarray, tuple[float, float, float]]:
@@ -60,7 +114,6 @@ def load_nifti(path: Path) -> tuple[np.ndarray, tuple[float, float, float]]:
 
     img = nib.load(str(path))
     data = np.asanyarray(img.dataobj)
-    # NIfTI is typically (X, Y, Z) or (X, Y, Z, 1) — reorder to (Z, Y, X)
     if data.ndim == 4:
         data = data[..., 0]
     if data.ndim != 3:
@@ -77,21 +130,17 @@ def load_raw_extract(slug: str) -> tuple[np.ndarray, dict[str, Any], Path]:
     npy_path = out_dir / f"{slug}.npy"
     json_path = out_dir / f"{slug}.json"
     if not npy_path.exists() or not json_path.exists():
-        raise FileNotFoundError(
-            f"Missing raw extract for {slug!r}. Expected:\n"
-            f"  {npy_path}\n  {json_path}"
-        )
+        raise FileNotFoundError(f"Missing raw extract for {slug!r} under {out_dir}")
     with json_path.open(encoding="utf-8") as handle:
         meta = json.load(handle)
-    volume = np.load(npy_path).astype(np.float32)
-    return volume, meta, json_path
+    return np.load(npy_path).astype(np.float32), meta, json_path
 
 
 def resolve_segmentation_path(meta: dict[str, Any], slug: str) -> Path | None:
     if meta.get("segmentation_path"):
         path = Path(meta["segmentation_path"])
         if not path.is_absolute():
-            path = REPO_ROOT / path
+            path = _brain_repo() / path
         if path.exists():
             return path
     seg_dir = _repo_path("data/processed/segmentations")
@@ -112,11 +161,8 @@ def load_segmentation(path: Path, target_shape: tuple[int, ...]) -> np.ndarray:
     else:
         mask, _ = load_nifti(path)
     if mask.shape != target_shape:
-        raise ValueError(
-            f"Segmentation shape {mask.shape} != MR shape {target_shape} ({path})"
-        )
-    labels = (mask > 0).astype(np.uint8)
-    return labels
+        raise ValueError(f"Segmentation shape {mask.shape} != MR shape {target_shape}")
+    return (mask > 0).astype(np.uint8)
 
 
 def list_slugs() -> list[str]:
@@ -127,8 +173,8 @@ def list_slugs() -> list[str]:
     slugs: list[str] = []
     for json_path in sorted(out_dir.glob("*.json")):
         slug = json_path.stem
-        seg = resolve_segmentation_path(json.loads(json_path.read_text()), slug)
-        if seg is not None:
+        meta = json.loads(json_path.read_text())
+        if resolve_segmentation_path(meta, slug) is not None:
             slugs.append(slug)
     return slugs
 
@@ -136,16 +182,17 @@ def list_slugs() -> list[str]:
 def view_demo() -> None:
     import napari
 
-    volume = dummy_volume(shape=(48, 48, 48), radius=10.0)
+    volume = get_dummy_volume()
     display_mr = normalize_for_display(volume)
     mask = (volume >= 0.35).astype(np.uint8)
     scale = (1.0, 1.0, 1.0)
 
-    viewer = napari.Viewer(title="brain-cancer-sim — demo")
+    viewer = napari.Viewer(title="brain tumor — demo (no dataset yet)")
     viewer.add_image(display_mr, name="MR (synthetic)", scale=scale, colormap="gray",
                      contrast_limits=(0.0, 1.0))
     viewer.add_labels(mask, name="tumor (synthetic)", scale=scale, opacity=0.55)
-    print("Demo mode: synthetic MR + threshold mask. Replace with --slug when data exists.")
+    print("Demo mode: synthetic MR + mask. No brain dataset required.")
+    print("When UCSF/MU-Glioma data arrives, export to brain-cancer-sim/data/ and use --slug.")
     napari.run()
 
 
@@ -166,13 +213,10 @@ def view_nifti(mr_path: Path, mask_path: Path | None, *, show_pde: bool = False)
             raise ValueError(f"Mask shape {mask_arr.shape} != MR {volume.shape}")
         viewer.add_labels((mask_arr > 0).astype(np.uint8), name=f"seg ({mask_path.name})",
                           scale=scale, opacity=0.55)
-    if show_pde:
-        weight = (mask_arr > 0) if mask_arr is not None else 1.0
-        pde = normalize_for_display(volume * weight)
+    if show_pde and mask_arr is not None:
+        pde = normalize_for_display(volume * (mask_arr > 0))
         viewer.add_image(pde, name="PDE preview", scale=scale, opacity=0.4, colormap="magma")
-    print(f"MR: {mr_path}\n  shape={volume.shape} spacing_mm={spacing}")
-    if mask_path:
-        print(f"mask: {mask_path}")
+    print(f"MR: {mr_path}  shape={volume.shape}  spacing_mm={spacing}")
     napari.run()
 
 
@@ -186,10 +230,7 @@ def view_slug(slug: str, *, show_pde: bool = False) -> None:
 
     seg_path = resolve_segmentation_path(meta, slug)
     if seg_path is None:
-        raise FileNotFoundError(
-            f"No segmentation for {slug!r}. Set segmentation_path in {json_path} "
-            f"or place mask under data/processed/segmentations/"
-        )
+        raise FileNotFoundError(f"No segmentation for {slug!r} (see {json_path})")
     labels = load_segmentation(seg_path, volume.shape)
 
     viewer = napari.Viewer(title=f"{slug} — brain MR + seg")
@@ -199,47 +240,35 @@ def view_slug(slug: str, *, show_pde: bool = False) -> None:
                       scale=scale, opacity=0.55)
 
     if show_pde:
-        pde_spec = pde_input_spec()
-        pde_path = _repo_path(pde_spec["output_dir"]) / f"{slug}.npy"
+        pde_path = _repo_path(pde_input_spec()["output_dir"]) / f"{slug}.npy"
         if pde_path.exists():
             pde = np.load(pde_path).astype(np.float32)
             viewer.add_image(pde, name="PDE input", scale=scale, opacity=0.45,
                              colormap="magma", contrast_limits=(0.0, 1.0))
-        else:
-            print(f"  (no PDE input at {pde_path})")
 
-    print(
-        f"{slug}\n"
-        f"  dataset:  {meta.get('dataset', '?')}\n"
-        f"  patient:  {meta.get('patient_id', '?')}\n"
-        f"  MR:       shape={volume.shape} spacing_mm={spacing}\n"
-        f"  seg:      {seg_path} voxels={int(labels.sum()):,}"
-    )
+    print(f"{slug}  shape={volume.shape}  seg_voxels={int(labels.sum()):,}")
     napari.run()
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="View brain MR with expert segmentation overlay in napari.",
-    )
-    parser.add_argument("--slug", help="Raw extract slug under data/processed/raw-extract-imaging/")
-    parser.add_argument("--mr", type=Path, help="MR NIfTI path (.nii / .nii.gz)")
-    parser.add_argument("--mask", type=Path, help="Segmentation NIfTI path")
-    parser.add_argument("--pde-input", action="store_true", help="Overlay PDE-ready volume if present")
-    parser.add_argument("--demo", action="store_true", help="Synthetic MR + mask (default when no data)")
-    parser.add_argument("--list", action="store_true", help="List slugs with paired segmentations")
+    parser = argparse.ArgumentParser(description="Brain MR + segmentation napari viewer.")
+    parser.add_argument("--slug")
+    parser.add_argument("--mr", type=Path)
+    parser.add_argument("--mask", type=Path)
+    parser.add_argument("--pde-input", action="store_true")
+    parser.add_argument("--demo", action="store_true", help="Synthetic demo (also the default with no data)")
+    parser.add_argument("--list", action="store_true")
     args = parser.parse_args()
 
-    _ = load_handoff_contract()
-
     if args.list:
-        for slug in list_slugs():
+        slugs = list_slugs()
+        for slug in slugs:
             print(slug)
-        if not list_slugs():
-            print("(none yet — use --demo or export to data/processed/raw-extract-imaging/)")
+        if not slugs:
+            print("(none yet — use --demo or pull brain-cancer-sim data when ready)")
         return
 
-    if args.demo:
+    if args.demo or (not args.slug and not args.mr):
         view_demo()
         return
 
@@ -252,12 +281,8 @@ def main() -> None:
         available = list_slugs()
         if len(available) == 1:
             slug = available[0]
-        elif available:
-            parser.error("Provide --slug. Available: " + ", ".join(available))
         else:
-            print("No brain data on disk — opening synthetic demo.")
-            view_demo()
-            return
+            parser.error("Provide --slug or use --demo. Available: " + ", ".join(available))
 
     view_slug(slug, show_pde=args.pde_input)
 
