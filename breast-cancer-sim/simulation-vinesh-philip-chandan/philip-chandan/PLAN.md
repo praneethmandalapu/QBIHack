@@ -6,15 +6,34 @@ Philip and Chandan work as **one unit** — same deliverables, same schedule, sa
 
 ---
 
+## Current spike — Option B (active)
+
+**Work from this section first.** The Day 1/Day 2 schedule below is the full sprint; the spike narrows scope to one patient/timepoint with parallel Vinesh ownership of PDE prep.
+
+| Doc | Purpose |
+|-----|---------|
+| [`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md) | Shared Option B plan (Philip-Chandan + Vinesh) |
+| [`../handoff_contract.json`](../handoff_contract.json) | Versioned contract (`1.0.0`) — shape, spacing, solver defaults |
+| [`SPIKE_CHECKLIST.md`](SPIKE_CHECKLIST.md) | Your steps 1–4 for the spike |
+
+**Spike case:** `TCGA-AR-A1AX` · Luminal A · baseline `2002-09-12`
+
+**Split:** You deliver **raw** DICOM extract + spacing to `data/processed/raw-extract-philip-chandan/`. Vinesh owns resample/crop/normalize → `data/processed/pde-input-vinesh/` and `solve_growth()`. Do not duplicate his processing in `tcia_extractor.py`.
+
+**Scale-up order:** (1) one baseline spike green → (2) `TCGA-AR-A1AQ` baseline → (3) full two-subtype demo + `manifest.json`.
+
+---
+
 ## Mission & Success Criteria
 
 | Deliverable | Done when |
 |-------------|-----------|
 | **2 DICOM series downloaded** | One Luminal A + one Basal-like TCGA-BRCA case with usable MRI |
 | **`tcia_extractor.py` implemented** | `extract_volume(dicom_dir) → np.ndarray` works on local files |
-| **2 processed `.npy` files** | Saved under `data/processed/volumes/` with documented shape/dtype/spacing |
-| **`manifest.json`** | Maps subtype → file path → TCGA ID → array metadata |
-| **Handoff to Vinesh (Day 2 AM)** | Vinesh loads your arrays into `solve_growth()` without reformatting |
+| **Spike raw extract (Option B)** | Raw `.npy` + `.json` in `data/processed/raw-extract-philip-chandan/` for one baseline timepoint |
+| **2 PDE-ready volumes (via Vinesh)** | Vinesh writes `data/processed/pde-input-vinesh/` after your raw handoff |
+| **`manifest.json`** | Maps subtype → file path → TCGA ID → array metadata (after spike) |
+| **Handoff to Vinesh** | `solve_growth()` runs on real data without you reformatting on Vinesh's side |
 
 **Out of scope for the 2-day sprint:** full PyRadiomics feature extraction (Phase 2 stretch). Focus on **DICOM → single 3D volume** that Vinesh can simulate.
 
@@ -25,9 +44,10 @@ Philip and Chandan work as **one unit** — same deliverables, same schedule, sa
 | Area | What you do |
 |------|-------------|
 | **Discovery & coordination** | Message Praneeth for TCGA barcodes; pick cases; query TCIA; keep backup IDs |
-| **Download & QC** | Pull DICOM into `data/raw/tcia/`; visual slice checks; document bad series |
-| **Extraction & processing** | Implement `tcia_extractor.py`; stack, normalize, resample, segment, export `.npy` |
-| **Manifest & handoff** | Maintain `manifest.json`; deliver arrays to Vinesh; fix integration bugs |
+| **Download & QC** | Pull DICOM into `data/raw/tcia/`; `validate_series`; visual slice checks |
+| **Extraction (your scope)** | Raw DICOM → 3D stack via `tcia_extractor.py`; export via `export_raw_extract.py` |
+| **PDE prep (Vinesh scope)** | Resample, normalize, segment — `vinesh/prepare_pde_input.py` (see contract) |
+| **Manifest & handoff** | `handoff_contract.json` now; full `manifest.json` after spike; fix integration bugs |
 
 ---
 
@@ -37,21 +57,31 @@ Philip and Chandan work as **one unit** — same deliverables, same schedule, sa
 breast-cancer-sim/
 ├── data/                          # gitignored — local only
 │   ├── raw/tcia/
-│   │   ├── luminal_a/TCGA-XX-XXXX/   # DICOM slices per series
-│   │   └── basal/TCGA-YY-YYYY/
-│   └── processed/volumes/
-│       ├── luminal_a_TCGA-XX-XXXX.npy
-│       ├── basal_TCGA-YY-YYYY.npy
-│       └── manifest.json
-└── simulation-vinesh-philip-chandan/philip-chandan/
-    ├── PLAN.md                    # this file
-    ├── tcia_extractor.py          # DICOM → volume extraction
-    ├── download_tcia.py           # TCIA DICOM downloader
-    └── cohort/                    # patient IDs + discovery CLI
-        ├── cohort.json            # machine-readable rev2 roster (source of truth)
-        ├── COHORT.md              # human-readable roster + backup notes
-        ├── cohort_discovery.py    # audit TCIA MRI + cBioPortal PAM50
-        └── tests/                 # mocked API tests for discovery CLI
+│   │   └── luminal_a/TCGA-AR-A1AX/
+│   │       ├── 2002-09-12/        # spike baseline DICOM
+│   │       └── 2003-09-24/        # follow-up (optional until spike green)
+│   ├── processed/
+│   │   ├── raw-extract-philip-chandan/   # your raw .npy + .json handoff
+│   │   └── pde-input-vinesh/             # Vinesh PDE-ready .npy + .json
+│   └── qc/
+│       ├── slice-plots-philip-chandan/
+│       └── solver-runs-vinesh/
+└── simulation-vinesh-philip-chandan/
+    ├── handoff_contract.json      # versioned Philip-Chandan ↔ Vinesh contract
+    ├── HANDOFF_SPIKE.md
+    ├── spike_paths.py
+    ├── philip-chandan/            # this folder
+    │   ├── PLAN.md
+    │   ├── SPIKE_CHECKLIST.md
+    │   ├── export_raw_extract.py
+    │   ├── qc_slice_plot.py
+    │   ├── tcia_extractor.py
+    │   ├── download_tcia.py
+    │   └── cohort/
+    └── vinesh/
+        ├── SPIKE_CHECKLIST.md
+        ├── prepare_pde_input.py
+        └── tumor_pde_solver.py
 ```
 
 **Cohort subfolder:** Shared TCGA barcodes for imaging (Philip-Chandan) and genomics (Praneeth) live under `cohort/`. Use `cohort/cohort_discovery.py` to validate or refresh picks before editing `cohort.json`. Extraction and download scripts still import patient IDs via `tcia_extractor.load_cohort()`.
@@ -228,16 +258,17 @@ Use **`scipy.ndimage.zoom`** for resampling (already in requirements).
 2. Cross-check imaging availability on TCIA (not every TCGA case has MRI).
 3. Keep **2 backup cases per subtype** in a spreadsheet.
 
-### Handoff contract (lock with Vinesh Day 1 lunch)
+### Handoff contract
 
-| Property | Recommendation |
+**Locked in** [`../handoff_contract.json`](../handoff_contract.json) (`version` **1.0.0**). Bump `"version"` when shape/spacing/solver defaults change; both sides pull before re-running export or `prepare_pde_input`.
+
+| Property | Agreed value |
 |----------|----------------|
-| **Shape** | `(Z, Y, X)` — depth first |
-| **Dtype** | `float32` |
-| **Values** | `[0, 1]` — 0 background, >0 initial tumor burden |
-| **Max shape** | ≤ `128×128×128` (64³ if PDE is slow) |
-| **Spacing** | Isotropic 1 mm (document in manifest) |
-| **Single array** | One volume per case — no multi-channel unless Vinesh asks |
+| **Raw extract (you)** | `(Z, Y, X)` float32, not normalized; spacing in sidecar JSON |
+| **PDE input (Vinesh)** | max `[64, 64, 64]`, spacing `[1, 1, 1]` mm, values `[0, 1]`, tumor **> 0** |
+| **Solver defaults** | `timesteps=50`, `dt=0.1`, `risk_multiplier=1.2` |
+
+Legacy Day 2 `manifest.json` schema below still applies when scaling to two subtypes after the spike.
 
 ---
 
@@ -276,14 +307,24 @@ flowchart LR
 
 ## Day 1 / Day 2 Checklists
 
-**Day 1 EOD**
+**Spike (Option B — do first)**
+
+- [x] Cohort rev2 locked; `handoff_contract.json` agreed with Vinesh
+- [x] `tcia_extractor.py` + unit tests
+- [x] Spike baseline DICOM on disk (`TCGA-AR-A1AX` / `2002-09-12`)
+- [ ] `validate_series` passes on spike folder
+- [ ] Raw extract exported to `raw-extract-philip-chandan/`
+- [ ] Slice QC PNG saved
+- [ ] Vinesh runs `prepare_pde_input.py` + `solve_growth()` on real raw extract
+
+**Day 1 EOD (full sprint)**
 
 - [ ] Venv works; `pydicom` imports
 - [ ] ≥1 TCGA-BRCA DICOM series downloaded
-- [ ] `extract_volume()` returns 3D array
-- [ ] ≥1 `.npy` in `data/processed/volumes/`
-- [ ] `manifest.json` drafted
-- [ ] Handoff contract agreed with Vinesh
+- [ ] `extract_volume()` returns 3D array on real data
+- [ ] Spike raw handoff complete (see above)
+- [ ] `manifest.json` drafted (after spike)
+- [x] Handoff contract agreed with Vinesh
 
 **Day 2 EOD (demo-ready)**
 
@@ -297,8 +338,11 @@ flowchart LR
 
 ## Immediate next steps (start here)
 
-1. Message Praneeth for 2 TCGA-BRCA barcodes (Luminal A + Basal).
-2. Run `python cohort/cohort_discovery.py audit` to confirm MRI + PAM50 on TCIA before locking IDs.
-3. Implement `extract_volume()` skeleton + unit test with any DICOM folder.
-4. Post handoff contract in team chat before lunch.
-5. Start first TCIA download by 10:15 — this is the critical path for the whole simulation stack.
+Follow [`SPIKE_CHECKLIST.md`](SPIKE_CHECKLIST.md). You are past download for the spike baseline.
+
+1. **Download QC** — `validate_series` on `.../TCGA-AR-A1AX/2002-09-12/` (352 DICOM slices on disk).
+2. **Export raw handoff** — `python export_raw_extract.py` → `raw-extract-philip-chandan/`.
+3. **Visual QC** — `python qc_slice_plot.py` → check PNG in `slice-plots-philip-chandan/`.
+4. **Ping Vinesh** — raw `.npy` + `.json` ready; he runs `prepare_pde_input.py`.
+
+After spike is green: export `TCGA-AR-A1AQ` baseline, then full two-subtype `manifest.json`.
