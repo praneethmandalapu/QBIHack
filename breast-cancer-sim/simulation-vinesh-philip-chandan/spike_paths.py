@@ -19,6 +19,7 @@ PDE_INPUT_VINESH = REPO_ROOT / "data" / "processed" / "pde-input-vinesh"
 
 # QC artifacts
 QC_SLICE_PLOTS_PHILIP_CHANDAN = REPO_ROOT / "data" / "qc" / "slice-plots-philip-chandan"
+QC_OTSU_PLOTS_VINESH = REPO_ROOT / "data" / "qc" / "otsu-segmentation-vinesh"
 QC_SOLVER_RUNS_VINESH = REPO_ROOT / "data" / "qc" / "solver-runs-vinesh"
 
 SPIKE_PATIENT = spike_patient()
@@ -30,6 +31,7 @@ def ensure_spike_dirs() -> None:
         RAW_EXTRACT_PHILIP_CHANDAN,
         PDE_INPUT_VINESH,
         QC_SLICE_PLOTS_PHILIP_CHANDAN,
+        QC_OTSU_PLOTS_VINESH,
         QC_SOLVER_RUNS_VINESH,
     ):
         path.mkdir(parents=True, exist_ok=True)
@@ -63,6 +65,7 @@ if __name__ == "__main__":
         ("raw extract (Philip-Chandan → Vinesh)", RAW_EXTRACT_PHILIP_CHANDAN),
         ("PDE input (Vinesh → solve_growth)", PDE_INPUT_VINESH),
         ("slice QC (Philip-Chandan)", QC_SLICE_PLOTS_PHILIP_CHANDAN),
+        ("Otsu segmentation QC (Vinesh)", QC_OTSU_PLOTS_VINESH),
         ("solver QC (Vinesh)", QC_SOLVER_RUNS_VINESH),
     ):
         print(f"  {label}: {path}")

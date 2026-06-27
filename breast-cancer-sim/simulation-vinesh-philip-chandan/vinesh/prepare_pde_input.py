@@ -74,6 +74,57 @@ def _crop_or_pad_centered(
     return out
 
 
+def prepare_pde_stages(
+    volume: np.ndarray,
+    spacing_mm: list[float],
+    *,
+    max_shape_xyz: tuple[int, int, int] | None = None,
+    target_spacing: list[float] | None = None,
+) -> dict[str, np.ndarray | list[float] | float | None]:
+    """Run the full PDE prep pipeline and return intermediate arrays for QC."""
+    pde_spec = pde_input_spec()
+    shape_limit = tuple(max_shape_xyz or max_shape())
+    spacing_target = target_spacing or target_spacing_mm()
+    vmin_out, vmax_out = (float(v) for v in pde_spec["value_range"])
+    background = float(pde_spec["background_value"])
+
+    vol = np.asarray(volume, dtype=np.float32)
+    zoom_factors = [s / t for s, t in zip(spacing_mm, spacing_target)]
+    resampled = zoom(vol, zoom_factors, order=1)
+
+    rmin, rmax = float(resampled.min()), float(resampled.max())
+    if rmax > rmin:
+        norm = (resampled - rmin) / (rmax - rmin)
+    else:
+        norm = np.zeros_like(resampled)
+    norm = norm * (vmax_out - vmin_out) + vmin_out
+
+    finite_vals = norm[np.isfinite(norm)]
+    otsu_threshold: float | None = None
+    if finite_vals.size and finite_vals.max() > finite_vals.min():
+        otsu_threshold = float(threshold_otsu(finite_vals))
+        tumor_mask = norm > otsu_threshold
+    else:
+        tumor_mask = np.zeros_like(norm, dtype=bool)
+    segmented = np.where(tumor_mask, norm, background).astype(np.float32)
+
+    if tumor_mask.any():
+        center = center_of_mass(tumor_mask.astype(np.float32))
+    else:
+        center = tuple(s / 2 for s in segmented.shape)
+    pde_volume = _crop_or_pad_centered(segmented, shape_limit, center, background)
+
+    return {
+        "normalized": norm.astype(np.float32),
+        "tumor_mask": tumor_mask,
+        "otsu_threshold": otsu_threshold,
+        "segmented": segmented,
+        "pde_volume": pde_volume.astype(np.float32),
+        "spacing_mm": list(spacing_target),
+        "background_value": background,
+    }
+
+
 def prepare_pde_input(
     volume: np.ndarray,
     spacing_mm: list[float],
@@ -95,43 +146,13 @@ def prepare_pde_input(
 
     Returns the float32 PDE volume and its new (isotropic) spacing.
     """
-    pde_spec = pde_input_spec()
-    shape_limit = tuple(max_shape_xyz or max_shape())
-    spacing_target = target_spacing or target_spacing_mm()
-    vmin_out, vmax_out = (float(v) for v in pde_spec["value_range"])
-    background = float(pde_spec["background_value"])
-
-    vol = np.asarray(volume, dtype=np.float32)
-
-    # 1. Resample to isotropic target spacing. zoom factor > 1 upsamples.
-    zoom_factors = [s / t for s, t in zip(spacing_mm, spacing_target)]
-    resampled = zoom(vol, zoom_factors, order=1)  # linear interpolation
-
-    # 2. Normalize intensities into the contract value range.
-    rmin, rmax = float(resampled.min()), float(resampled.max())
-    if rmax > rmin:
-        norm = (resampled - rmin) / (rmax - rmin)
-    else:
-        norm = np.zeros_like(resampled)
-    norm = norm * (vmax_out - vmin_out) + vmin_out
-
-    # 3. Otsu segmentation: zero out background, keep continuous tumor density.
-    finite_vals = norm[np.isfinite(norm)]
-    if finite_vals.size and finite_vals.max() > finite_vals.min():
-        thresh = threshold_otsu(finite_vals)
-        tumor_mask = norm > thresh
-    else:
-        tumor_mask = np.zeros_like(norm, dtype=bool)
-    segmented = np.where(tumor_mask, norm, background).astype(np.float32)
-
-    # 4. Crop/pad to max_shape, centered on the tumor (fallback: array center).
-    if tumor_mask.any():
-        center = center_of_mass(tumor_mask.astype(np.float32))
-    else:
-        center = tuple(s / 2 for s in segmented.shape)
-    pde_volume = _crop_or_pad_centered(segmented, shape_limit, center, background)
-
-    return pde_volume, list(spacing_target)
+    stages = prepare_pde_stages(
+        volume,
+        spacing_mm,
+        max_shape_xyz=max_shape_xyz,
+        target_spacing=target_spacing,
+    )
+    return stages["pde_volume"], stages["spacing_mm"]  # type: ignore[return-value]
 
 
 def save_pde_input(
