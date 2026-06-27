@@ -17,3 +17,6 @@ plotly
 streamlit
 langchain
 langchain-openai
+
+# Testing
+pytest

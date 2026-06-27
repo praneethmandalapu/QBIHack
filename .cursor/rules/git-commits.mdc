@@ -1,0 +1,53 @@
+---
+description: Use GitHub noreply email for commits; use gh for GitHub tasks
+alwaysApply: true
+---
+
+# Git commits and GitHub CLI
+
+## GitHub CLI (`gh`)
+
+Install and authenticate once per machine:
+
+```bash
+brew install gh
+gh auth login
+```
+
+Use `gh` for GitHub tasks (PRs, issues, checks) instead of manual web flows when possible.
+
+Resolve your noreply email after login:
+
+```bash
+gh api user --jq '"\(.id)+\(.login)@users.noreply.github.com"'
+```
+
+## Git identity — noreply email
+
+Use the GitHub **noreply** address so pushes are not rejected by GH007 (private email protection).
+
+Set **local** repo config (do not use a personal Gmail):
+
+```bash
+git config user.name "$(gh api user --jq .login)"
+git config user.email "$(gh api user --jq '"\(.id)+\(.login)@users.noreply.github.com"')"
+```
+
+Fallback if `gh` is not logged in: `pvjthomas@users.noreply.github.com`
+
+## When committing
+
+1. Verify: `git config user.email` ends with `@users.noreply.github.com`
+2. If push fails with GH007 on an unpushed commit:
+
+```bash
+git commit --amend --reset-author --no-edit
+git push origin HEAD
+```
+
+3. Only amend commits that have **not** been pushed yet (unless explicitly requested).
+
+## Do not commit
+
+- `breast-cancer-sim/data/` (DICOM, `.npy` — gitignored)
+- Secrets (`.env`, credentials)

@@ -1,0 +1,121 @@
+{
+  "version": "rev2",
+  "description": "Shared TCGA-BRCA patient IDs for imaging (Philip-Chandan) and genomics (Praneeth). Primary pair verified for MRI on TCIA, longitudinal follow-up MR, and PAM50 subtype via cBioPortal pan-cancer atlas.",
+  "primary": [
+    {
+      "subtype": "Luminal A",
+      "tcga_id": "TCGA-AR-A1AX",
+      "notes": "Longitudinal MRI on TCIA; PAM50 Luminal A; ~12-month follow-up (2002-09 to 2003-09)",
+      "imaging": {
+        "tcia_collection": "TCGA-BRCA",
+        "subset": "TCGA-Breast-Radiogenomics",
+        "use_les_mask": true,
+        "longitudinal": true,
+        "modality": "MR",
+        "timepoints": [
+          {
+            "label": "baseline",
+            "study_date": "2002-09-12",
+            "relative_day": 0
+          },
+          {
+            "label": "followup",
+            "study_date": "2003-09-24",
+            "relative_day": 377
+          }
+        ]
+      },
+      "genomics": {
+        "source": "GDC Data Portal",
+        "fields": ["pam50", "er_status", "pr_status", "survival"]
+      }
+    },
+    {
+      "subtype": "Basal-like",
+      "tcga_id": "TCGA-AR-A1AQ",
+      "notes": "Longitudinal MRI on TCIA; PAM50 Basal; ~17-month follow-up (2001-11 to 2003-05)",
+      "imaging": {
+        "tcia_collection": "TCGA-BRCA",
+        "subset": "TCGA-Breast-Radiogenomics",
+        "use_les_mask": true,
+        "longitudinal": true,
+        "modality": "MR",
+        "timepoints": [
+          {
+            "label": "baseline",
+            "study_date": "2001-11-21",
+            "relative_day": 0
+          },
+          {
+            "label": "followup",
+            "study_date": "2003-05-07",
+            "relative_day": 532
+          }
+        ]
+      },
+      "genomics": {
+        "source": "GDC Data Portal",
+        "fields": ["pam50", "er_status", "pr_status", "survival"]
+      }
+    }
+  ],
+  "backups": {
+    "Luminal A": [
+      {
+        "priority": 1,
+        "tcga_id": "TCGA-OL-A66N",
+        "notes": "Longitudinal MRI; PAM50 LumA; ~3-month follow-up"
+      },
+      {
+        "priority": 2,
+        "tcga_id": "TCGA-BH-A0DK",
+        "notes": "Longitudinal MRI; PAM50 LumA; short interval (~10 days)"
+      },
+      {
+        "priority": 3,
+        "tcga_id": "TCGA-BH-A0BQ",
+        "notes": "MRI on TCIA but single timepoint only"
+      },
+      {
+        "priority": 4,
+        "tcga_id": "TCGA-BH-A0BR",
+        "notes": "Original pick; no MRI on TCIA"
+      }
+    ],
+    "Basal-like": [
+      {
+        "priority": 1,
+        "tcga_id": "TCGA-AR-A1AQ",
+        "notes": "Promoted to primary"
+      },
+      {
+        "priority": 2,
+        "tcga_id": "TCGA-A2-A04Q",
+        "notes": "Original backup; verify MRI on TCIA before use"
+      },
+      {
+        "priority": 3,
+        "tcga_id": "TCGA-BH-A0BW",
+        "notes": "Original backup; verify MRI on TCIA before use"
+      },
+      {
+        "priority": 4,
+        "tcga_id": "TCGA-A2-A04P",
+        "notes": "Original pick; no MRI on TCIA"
+      }
+    ]
+  },
+  "later": {
+    "Luminal B": [
+      {"tcga_id": "TCGA-A2-A04R"},
+      {"tcga_id": "TCGA-E2-A15A"},
+      {"tcga_id": "TCGA-AR-A24S", "notes": "Longitudinal MRI; PAM50 LumB"}
+    ]
+  },
+  "pivot_when": [
+    "corrupted DICOM",
+    "missing MRI on TCIA",
+    "missing longitudinal follow-up MR",
+    "missing required clinical variable"
+  ]
+}
