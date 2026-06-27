@@ -12,7 +12,9 @@ STRETCH_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(STRETCH_DIR))
 
 from load_les_mask import (  # noqa: E402
+    cuboid_boundary_mask,
     embed_les_mask,
+    load_les_cuboid_boundary,
     load_les_mask,
     parse_les_filename,
     read_les_cuboid,
@@ -58,6 +60,32 @@ def test_les_round_trip(tmp_path: Path) -> None:
     assert dense_meta["mask_voxels"] == int(cuboid.sum())
     assert dense[8:12, 10:15, 20:27].sum() == int(cuboid.sum())
     assert dense.sum() == int(cuboid.sum())
+
+
+def test_cuboid_boundary_is_hollow_shell(tmp_path: Path) -> None:
+    volume_shape = (40, 64, 64)
+    cuboid = np.zeros((5, 7, 4), dtype=np.uint8)
+    cuboid[1:4, 2:5, 1:3] = 1
+    metadata = {
+        "y_start": 10,
+        "y_end": 14,
+        "x_start": 20,
+        "x_end": 26,
+        "z_start": 8,
+        "z_end": 11,
+    }
+    les_path = tmp_path / "TCGA-AB-C123-S1-1.les"
+    write_synthetic_les(les_path, cuboid_yxz=cuboid, **metadata)
+
+    shell = cuboid_boundary_mask(metadata, volume_shape)
+    region = shell[8:12, 10:15, 20:27]
+    assert region.shape == (4, 5, 7)
+    interior = (4 - 2) * (5 - 2) * (7 - 2)
+    assert int(region.sum()) == int(region.size - interior)
+
+    loaded_shell, loaded_meta = load_les_cuboid_boundary(les_path, volume_shape)
+    np.testing.assert_array_equal(loaded_shell, shell)
+    assert loaded_meta["boundary_voxels"] == int(shell.sum())
 
 
 def test_real_primary_les_files_fit_raw_shapes() -> None:

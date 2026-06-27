@@ -89,6 +89,61 @@ def embed_les_mask(
     return mask
 
 
+def cuboid_boundary_mask(
+    metadata: dict[str, Any],
+    volume_shape: tuple[int, ...],
+) -> np.ndarray:
+    """Return a (Z, Y, X) mask that is 1 on the .les annotation cuboid shell only."""
+    if len(volume_shape) != 3:
+        raise ValueError(f"volume_shape must be (Z, Y, X), got {volume_shape}")
+
+    z_size, y_size, x_size = volume_shape
+    y0, y1 = metadata["y_start"], metadata["y_end"]
+    x0, x1 = metadata["x_start"], metadata["x_end"]
+    z0, z1 = metadata["z_start"], metadata["z_end"]
+
+    if y0 < 0 or x0 < 0 or z0 < 0 or y1 >= y_size or x1 >= x_size or z1 >= z_size:
+        raise ValueError(
+            f"Lesion bounds y[{y0},{y1}] x[{x0},{x1}] z[{z0},{z1}] "
+            f"outside volume shape (Z,Y,X)={volume_shape}"
+        )
+
+    mask = np.zeros(volume_shape, dtype=np.uint8)
+    region = mask[z0 : z1 + 1, y0 : y1 + 1, x0 : x1 + 1]
+    if region.size == 0:
+        return mask
+
+    shell = np.zeros_like(region)
+    shell[0, :, :] = 1
+    shell[-1, :, :] = 1
+    shell[:, 0, :] = 1
+    shell[:, -1, :] = 1
+    shell[:, :, 0] = 1
+    shell[:, :, -1] = 1
+    region[:] = shell
+    return mask
+
+
+def load_les_cuboid_boundary(
+    path: Path | str,
+    volume_shape: tuple[int, ...],
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Parse .les header bounds and return a dense cuboid-shell mask (Z, Y, X)."""
+    _, metadata = read_les_cuboid(path)
+    patient, dce_index, lesion_index = parse_les_filename(Path(path).name)
+    mask = cuboid_boundary_mask(metadata, volume_shape)
+    metadata.update(
+        {
+            "patient_id": patient,
+            "dce_index": dce_index,
+            "lesion_index": lesion_index,
+            "mask_shape_zyx": list(volume_shape),
+            "boundary_voxels": int(mask.sum()),
+        }
+    )
+    return mask, metadata
+
+
 def load_les_mask(
     path: Path | str,
     volume_shape: tuple[int, ...],

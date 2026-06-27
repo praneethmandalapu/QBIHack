@@ -79,7 +79,7 @@ breast-cancer-sim/
     │   ├── qc_slice_plot.py
     │   ├── tcia_extractor.py
     │   ├── download_tcia.py
-    │   ├── VALIDATION.md                 # .les ground-truth validation guide
+    │   ├── validation/                   # .les ground-truth guide + napari viewer
     │   ├── stretch/                      # post-sprint PyRadiomics (isolated)
     │   └── cohort/
     └── vinesh/
@@ -280,7 +280,7 @@ Philip-Chandan **phases 1–2 are done** (downloads + extraction). Public APIs u
 | **DICOM → 3D + validate** | SimpleITK read + pydicom validate | **done** | highdicom / dicom-numpy in `requirements.txt` but unused — only if ITK gaps appear |
 | **Base DICOM I/O** | pydicom | **Keep** | Used for slice metadata and validation checks |
 | **PDE resample/crop** (Vinesh) | `scipy.ndimage.zoom` in `prepare_pde_input.py` | **unchanged** | SimpleITK `Resample` only if Vinesh hits axis/spacing bugs |
-| **Radiomics (Phase 2 stretch)** | PyRadiomics + optional `fastrad` in [`stretch/`](stretch/) | **done** | Canonical handoff: PyRadiomics CSV; fastrad for parity/speed; see [`VALIDATION.md`](VALIDATION.md) for `.les` ground truth |
+| **Radiomics (Phase 2 stretch)** | PyRadiomics + optional `fastrad` in [`stretch/`](stretch/) | **done** | Canonical handoff: PyRadiomics CSV; fastrad for parity/speed; see [`validation/VALIDATION.md`](validation/VALIDATION.md) for `.les` ground truth |
 
 #### Migration rules (still apply for future changes)
 
@@ -434,7 +434,7 @@ Isolated pipeline under [`stretch/`](stretch/). Does **not** modify sprint hando
 
 ### Validation (`.les` ground truth — done)
 
-[`VALIDATION.md`](VALIDATION.md) — TCIA radiologist `.les` masks downloaded; [`stretch/load_les_mask.py`](stretch/load_les_mask.py) + [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) compare Otsu vs expert (Dice **0** on rev2 baselines; Otsu captures orders of magnitude more tissue). See [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) Section 7 / Figure 6.
+[`validation/VALIDATION.md`](validation/VALIDATION.md) — TCIA radiologist `.les` masks downloaded; [`stretch/load_les_mask.py`](stretch/load_les_mask.py) + [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) compare Otsu vs expert (Dice **0** on rev2 baselines; Otsu captures orders of magnitude more tissue). 3D inspection: [`validation/view_les_napari.py`](validation/view_les_napari.py). See [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) Section 7 / Figure 6.
 
 ### Known issue — Luminal A follow-up (stretch blocked)
 
@@ -457,7 +457,7 @@ cd breast-cancer-sim
 
 **Fix needed (pick one or combine):**
 1. Tighten tumor isolation in `stretch/prep_volume.py` (Otsu threshold / connected-component logic) so follow-up ROI is tumor-sized, not breast-sized.
-2. Wire TCIA radiologist `.les` masks (`cohort.json` has `"use_les_mask": true` — loader not implemented; see [`VALIDATION.md`](VALIDATION.md)).
+2. Wire TCIA radiologist `.les` masks (`cohort.json` has `"use_les_mask": true` — loader not implemented; see [`validation/VALIDATION.md`](validation/VALIDATION.md)).
 3. Cap crop bbox max extent or resample to isotropic spacing before PyRadiomics (document if chosen — affects feature comparability).
 
 Sprint handoff (raw extracts + Vinesh PDE inputs) is **unaffected** — this issue is stretch-only.

@@ -1,8 +1,8 @@
 """Prepare full-resolution raw MR + tumor mask for PyRadiomics (stretch-owned).
 
-Mirrors the tumor-isolation idea in vinesh/calibrate.py::isolate_tumor (Otsu on
-nonzero voxels + largest connected component) but runs on percentile-normalized
-raw extracts at native spacing — not on Vinesh's 64³ PDE inputs.
+Default ROI is TCIA radiologist ``*.les`` masks (see ``load_les_mask.py``).
+Otsu + largest connected component remains available via ``mask_source="otsu"``
+for validation comparisons only — not for production radiomics.
 """
 
 from __future__ import annotations
@@ -21,6 +21,7 @@ from skimage.filters import threshold_otsu
 STRETCH_DIR = Path(__file__).resolve().parent
 sys.path.insert(0, str(STRETCH_DIR))
 
+from load_les_mask import find_les_files, load_les_mask  # noqa: E402
 from load_manifest import find_volume  # noqa: E402
 from paths import (  # noqa: E402
     ensure_radiomics_dirs,
@@ -28,6 +29,8 @@ from paths import (  # noqa: E402
     raw_extract_json,
     raw_extract_npy,
 )
+
+MASK_SOURCES = ("les", "otsu")
 
 
 def load_raw_extract(slug: str) -> tuple[np.ndarray, dict[str, Any]]:
@@ -92,6 +95,38 @@ def crop_to_mask_bbox(
         for lo, hi, size in zip(mins, maxs, image.shape)
     )
     return image[slices], mask[slices]
+
+
+def resolve_les_path(tcga_id: str, *, lesions_dir: Path | None = None) -> Path | None:
+    """Return the first local ``*.les`` file for a TCGA patient, or None."""
+    les_files = find_les_files(tcga_id, lesions_dir)
+    return les_files[0] if les_files else None
+
+
+def load_les_mask_for_slug(
+    slug: str,
+    volume_shape: tuple[int, ...],
+    *,
+    lesions_dir: Path | None = None,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Load radiologist ``*.les`` ROI embedded in ``(Z, Y, X)`` volume shape."""
+    entry = find_volume(slug=slug)
+    tcga_id = entry["tcga_id"]
+    les_path = resolve_les_path(tcga_id, lesions_dir=lesions_dir)
+    if les_path is None:
+        raise FileNotFoundError(
+            f"No radiologist .les mask for {tcga_id} ({slug}). "
+            "TCIA Radiogenomics expert annotations cover baseline DCE only — "
+            "follow-up timepoints have no .les file."
+        )
+    mask, les_meta = load_les_mask(les_path, volume_shape)
+    if not mask.any():
+        raise ValueError(f".les mask is empty after embed: {les_path.name}")
+    return mask, {
+        **les_meta,
+        "mask_source": "les",
+        "les_file": les_path.name,
+    }
 
 
 def numpy_to_sitk(

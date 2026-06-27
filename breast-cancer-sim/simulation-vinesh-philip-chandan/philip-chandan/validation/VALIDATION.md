@@ -9,14 +9,14 @@ Living instructions for validating Philip-Chandan segmentation and radiomics aga
 | Longitudinal MR DICOM (4 volumes) | Downloaded and exported to raw `.npy` |
 | Genomic labels (PAM50, ER/PR, survival) | Praneeth / GDC — separate from imaging masks |
 | **Radiologist tumor masks (`.les`)** | Downloaded (~103 KB ZIP, 91 patients) → `data/raw/tcia-radiogenomics/lesions/` |
-| **`.les` loader** | **done** — [`stretch/load_les_mask.py`](stretch/load_les_mask.py) |
-| **Segmentation validation** | **done** — [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) |
-| Our tumor masks | Otsu + largest connected component ([`stretch/prep_volume.py`](stretch/prep_volume.py), mirrored in [`vinesh/calibrate.py`](../vinesh/calibrate.py)) |
+| **`.les` loader** | **done** — [`../stretch/load_les_mask.py`](../stretch/load_les_mask.py) |
+| **Segmentation validation** | **done** — [`../stretch/validate_segmentation.py`](../stretch/validate_segmentation.py) |
+| Our tumor masks | Otsu + largest connected component ([`../stretch/prep_volume.py`](../stretch/prep_volume.py), mirrored in [`../../vinesh/calibrate.py`](../../vinesh/calibrate.py)) |
 | Metrics on disk | `data/processed/validation-philip-chandan/validation_metrics.csv` |
 | QC overlays | `data/qc/validation-philip-chandan/*_{les,otsu}_mid-z.png` |
-| Pipeline report | Section 7 + Figure 6 in [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) |
+| Pipeline report | Section 7 + Figure 6 in [`../PIPELINE_REPORT.pdf`](../PIPELINE_REPORT.pdf) |
 
-[`cohort.json`](cohort/cohort.json) sets `"use_les_mask": true` as **intent** for future radiomics; sprint/PDE handoff still uses Otsu today. [`tcia_extractor.py`](tcia_extractor.py) does not load `.les` in the main export path yet.
+[`../cohort/cohort.json`](../cohort/cohort.json) sets `"use_les_mask": true` as **intent** for future radiomics; sprint/PDE handoff still uses Otsu today. [`../tcia_extractor.py`](../tcia_extractor.py) does not load `.les` in the main export path yet.
 
 **TCIA reference:** [TCGA-Breast-Radiogenomics — Segmented Lesions (`*.les`)](https://www.cancerimagingarchive.net/analysis-result/tcga-breast-radiogenomics/)
 
@@ -46,7 +46,7 @@ Expert masks are small, localized lesions (~1.3k–2.7k voxels). Otsu + largest 
 | Use case | Recommendation |
 |----------|----------------|
 | **PDE demo / relative longitudinal change** | Otsu may still be usable if the team accepts heuristic ROIs (document limitation). |
-| **Radiomics vs literature / TCIA features** | Prefer **`.les` masks** (or tightened ROI logic) — see [`PLAN.md`](PLAN.md) known issue on Luminal A follow-up. |
+| **Radiomics vs literature / TCIA features** | Prefer **`.les` masks** (or tightened ROI logic) — see [`../PLAN.md`](../PLAN.md) known issue on Luminal A follow-up. |
 | **Claiming segmentation quality** | Do **not** — validation shows expert disagreement, not minor tuning error. |
 
 Re-run validation after local `.les` download:
@@ -75,7 +75,7 @@ Download URL (full archive, ~103 KB): [TCGA_Segmented_Lesions_UofC.zip](https://
 
 Local path: `data/raw/tcia-radiogenomics/lesions/TCGA_Segmented_Lesions_UofC/`
 
-Backup patients with `.les` (if pivoting): `TCGA-BH-A0DK`, `TCGA-BH-A0BQ`, `TCGA-AR-A24S` — see [`cohort/COHORT.md`](cohort/COHORT.md).
+Backup patients with `.les` (if pivoting): `TCGA-BH-A0DK`, `TCGA-BH-A0BQ`, `TCGA-AR-A24S` — see [`../cohort/COHORT.md`](../cohort/COHORT.md).
 
 ---
 
@@ -86,9 +86,9 @@ Each file is binary:
 1. Six `uint16` values in **column-major 3×2 order**: `y_start, x_start, z_start, y_end, x_end, z_end` (inclusive bounds relative to the annotated DCE volume).
 2. Remaining bytes: `int8` voxels (0 = background, 1 = lesion) for that cuboid, row-major with shape `(Y, X, Z)`.
 
-Embed into our `(Z, Y, X)` volumes via [`load_les_mask.py`](stretch/load_les_mask.py) (transpose cuboid → dense mask).
+Embed into our `(Z, Y, X)` volumes via [`load_les_mask.py`](../stretch/load_les_mask.py) (transpose cuboid → dense mask).
 
-Naming: `*Sn-m.les` — `n` = DCE-MRI sequence index, `m` = lesion index (e.g. `S2-1.les` = sequence 2, lesion 1). DCE order: ax T1 → VIBRANT → BRAVA (see `pick_dce_series` in [`validate_segmentation.py`](stretch/validate_segmentation.py)).
+Naming: `*Sn-m.les` — `n` = DCE-MRI sequence index, `m` = lesion index (e.g. `S2-1.les` = sequence 2, lesion 1). DCE order: ax T1 → VIBRANT → BRAVA (see `pick_dce_series` in [`validate_segmentation.py`](../stretch/validate_segmentation.py)).
 
 ### Caveats
 
@@ -102,12 +102,46 @@ Naming: `*Sn-m.les` — `n` = DCE-MRI sequence index, `m` = lesion index (e.g. `
 
 | Component | Path |
 |-----------|------|
-| `.les` parser | [`stretch/load_les_mask.py`](stretch/load_les_mask.py) |
-| Dice + volume + area fraction + QC PNGs | [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) |
-| Unit tests | [`stretch/tests/test_load_les_mask.py`](stretch/tests/test_load_les_mask.py) |
-| Paths | [`stretch/paths.py`](stretch/paths.py) (`QC_VALIDATION_DIR`, `validation_metrics_csv`, …) |
+| `.les` parser | [`../stretch/load_les_mask.py`](../stretch/load_les_mask.py) |
+| Dice + volume + area fraction + QC PNGs | [`../stretch/validate_segmentation.py`](../stretch/validate_segmentation.py) |
+| 3D napari viewer | [`view_les_napari.py`](view_les_napari.py) |
+| Unit tests | [`../stretch/tests/test_load_les_mask.py`](../stretch/tests/test_load_les_mask.py) |
+| Paths | [`../stretch/paths.py`](../stretch/paths.py) (`QC_VALIDATION_DIR`, `validation_metrics_csv`, …) |
 
 Metrics written to `data/processed/validation-philip-chandan/validation_metrics.csv`.
+
+---
+
+## 3D inspection (napari)
+
+Load baseline MR from `raw-extract-philip-chandan/` with the matching radiologist `.les` overlay. Only **baseline** slugs have `.les` for rev2 primaries.
+
+```bash
+cd breast-cancer-sim
+
+# List slugs that have a local .les file
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py --list
+
+# Luminal A baseline (VIBRANT S2)
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \
+  --slug luminal_a_TCGA-AR-A1AX_baseline
+
+# Basal-like baseline
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \
+  --slug basal_TCGA-AR-A1AQ_baseline
+
+# Also overlay Otsu for comparison
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \
+  --slug luminal_a_TCGA-AR-A1AX_baseline --otsu
+
+# Cuboid shell only (see MR inside annotation box; no filled lesion blocking view)
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \
+  --slug luminal_a_TCGA-AR-A1AX_baseline --cuboid
+```
+
+Arrays are `(Z, Y, X)` with `scale=(dz, dy, dx)` from the raw extract sidecar. MR is percentile-normalized for display (same as validation QC).
+
+Alternative: export NIfTI via SimpleITK for **ITK-SNAP** / **3D Slicer** / Fiji.
 
 ---
 
@@ -122,19 +156,13 @@ For patients in the 91 with TCIA’s pre-computed feature spreadsheets:
 
 ### Use `.les` in stretch radiomics (not done)
 
-Wire `.les` as ROI in [`stretch/prep_volume.py`](stretch/prep_volume.py) when `cohort.json` `"use_les_mask": true` and a matching file exists — would address oversized Otsu masks (especially Luminal A follow-up; see [`PLAN.md`](PLAN.md)).
-
-### 3D inspection (manual)
-
-No packaged Fiji plugin. Quick options:
-
-- **napari** (in `requirements.txt`) — load MR + `.les` labels interactively; see inline example in prior team notes or export NIfTI via SimpleITK for **ITK-SNAP** / **3D Slicer** / Fiji.
+Wire `.les` as ROI in [`../stretch/prep_volume.py`](../stretch/prep_volume.py) when `cohort.json` `"use_les_mask": true` and a matching file exists — would address oversized Otsu masks (especially Luminal A follow-up; see [`../PLAN.md`](../PLAN.md)).
 
 ---
 
 ## What we are *not* validating with `.les`
 
-- **PDE growth calibration** ([`vinesh/calibrate.py`](../vinesh/calibrate.py)) uses follow-up **burden**, not expert segmentation — longitudinal “validation” there is consistency with observed change, not Dice.
+- **PDE growth calibration** ([`../../vinesh/calibrate.py`](../../vinesh/calibrate.py)) uses follow-up **burden**, not expert segmentation — longitudinal “validation” there is consistency with observed change, not Dice.
 - **Genomic risk models** (Praneeth) use GDC/clinical data, not imaging masks.
 
 ---
@@ -147,6 +175,7 @@ No packaged Fiji plugin. Quick options:
 | **Improve segmentation** | Use `.les` where available, or tighten Otsu / connected-component logic; do not expect Dice improvement without ROI change |
 | **Validate radiomics pipeline** | Compare features on `.les` vs Otsu ROI; optional TCIA XLS cross-check |
 | **Re-run metrics** | `stretch/validate_segmentation.py --all-primary` |
+| **Inspect in 3D** | `validation/view_les_napari.py --slug …` |
 
 ---
 

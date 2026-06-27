@@ -36,6 +36,9 @@ python simulation/run_growth.py
 
 # 3D preview (writes tumor_preview.html)
 python visualization/render_3d.py
+
+# Interactive MR + segmentation (napari — see script header for full options)
+python simulation/imaging/view_volume_napari.py --demo
 ```
 
 ## Run the app

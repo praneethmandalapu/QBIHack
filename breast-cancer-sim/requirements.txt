@@ -25,7 +25,7 @@ fastrad
 matplotlib
 pyvista
 plotly
-napari
+napari[pyqt6]
 
 # App & LLM
 streamlit
