@@ -252,57 +252,50 @@ Use **`scipy.ndimage.zoom`** for resampling (already in requirements).
 | **NBIA Data Retriever** | Bulk DICOM download (GUI or CLI) |
 | **Manual TCIA portal** | API blocked or time-critical fallback |
 
-### Library migration — use established tools (post-spike)
+### Library migration — status
 
-**Do not refactor before the spike is green.** Current custom code in `download_tcia.py` and `tcia_extractor.py` is fine for the hackathon handoff. After step 7 passes (`solve_growth` on real data), migrate in the order below so the **public API stays the same** (`extract_volume`, `validate_series`, cohort paths, `export_raw_extract.py` output).
+Philip-Chandan **phases 1–2 are done** (downloads + extraction). Public APIs unchanged; `tests/test_tcia_extractor.py` passes (25 tests, including regression against saved raw exports).
 
 #### Transition order
 
-| Phase | When | Action |
-|-------|------|--------|
-| **0 — Now (spike)** | Baseline export + Vinesh handoff | Keep custom code; use [`../download_spike_data.ps1`](../download_spike_data.ps1) / [`.sh`](../download_spike_data.sh) for gitignored data |
-| **1 — Scale-up downloads** | Export `TCGA-AR-A1AQ` + Basal baseline | Replace or wrap `download_tcia.py` NBIA `urllib` client |
-| **2 — Extraction hardening** | Orientation/spacing bugs or second subtype | Swap internals of `tcia_extractor.py` only |
-| **3 — Phase 2 stretch** | Day 2 PM idle or post-demo | Add **PyRadiomics** on `.npy`/NIfTI — do not build feature extractors |
+| Phase | Status | Action |
+|-------|--------|--------|
+| **0 — Spike bootstrap** | **done** | [`../download_spike_data.ps1`](../download_spike_data.ps1) / [`.sh`](../download_spike_data.sh) for one-patient handoff |
+| **1 — Scale-up downloads** | **done** | `download_tcia.py` uses **idc-index** (`IDCClient`) primary; **tcia-utils** NBIA fallback |
+| **2 — Extraction hardening** | **done** | `tcia_extractor.py` loads volumes via **SimpleITK** `ImageSeriesReader`; pydicom kept for validation metadata |
+| **3 — Phase 2 stretch** | **deferred** | **PyRadiomics** feature pipeline on `.npy`/NIfTI — dep in `requirements.txt`, no extractor wired yet |
 
 #### What to keep vs replace
 
-| Area | Current (custom) | Better library | Priority | Notes |
-|------|------------------|----------------|----------|-------|
-| **Spike data bootstrap** | `download_spike_data.py` / `.ps1` / `.sh` | — | **Keep** | Thin wrappers; call shared Python |
-| **Raw export handoff** | `export_raw_extract.py` | — | **Keep** | Contract JSON, slug paths, `contract_version` |
-| **Slice QC plot** | `qc_slice_plot.py` + **matplotlib** | napari / SimpleITK.Show | Low | matplotlib is enough for spike sign-off |
-| **TCIA download** | `download_tcia.py` (NBIA REST + zip) | **[idc-index](https://github.com/ImagingDataCommons/idc-index)** | **High** | Preferred for `tcga_brca`; parallel cloud downloads |
-| | same | **[tcia-utils](https://pypi.org/project/tcia-utils/)** `from tcia_utils import nbia` | Medium | Drop-in NBIA helper if IDC missing a series |
-| | same | NBIA Data Retriever CLI | Fallback | GUI/CLI when APIs blocked |
-| **DICOM → 3D + validate** | `tcia_extractor.py` (pydicom sort/stack) | **[SimpleITK](https://simpleitk.readthedocs.io/)** `ImageSeriesReader` | **High** | Series order, spacing, gap warnings; `GetArrayFromImage()` |
-| | same | **[highdicom](https://highdicom.readthedocs.io/)** `get_volume_from_series()` | Medium | IDC-maintained; correct spatial metadata / affine |
-| | same | **[dicom-numpy](https://dicom-numpy.readthedocs.io/)** `combine_slices()` | Low | Lightweight if ITK install is too heavy |
-| **Base DICOM I/O** | pydicom | pydicom | **Keep** | Foundation; libraries above build on it |
-| **PDE resample/crop** (Vinesh) | `scipy.ndimage.zoom` in `prepare_pde_input.py` | SimpleITK `Resample` | Medium | Only if axis/spacing bugs persist |
-| **Radiomics (Phase 2)** | — | **[PyRadiomics](https://pyradiomics.readthedocs.io/)** | Deferred | Out of spike scope; run on processed volume |
+| Area | Implementation | Status | Notes |
+|------|----------------|--------|-------|
+| **Spike data bootstrap** | `download_spike_data.py` / `.ps1` / `.sh` | **Keep** | Thin wrappers; call shared Python |
+| **Raw export handoff** | `export_raw_extract.py` | **Keep** | Contract JSON, slug paths, `contract_version` |
+| **Slice QC plot** | `qc_slice_plot.py` + matplotlib | **Keep** | Enough for sign-off; napari optional |
+| **TCIA download** | `download_tcia.py` + idc-index + tcia-utils | **done** | NBIA Data Retriever CLI still valid fallback |
+| **DICOM → 3D + validate** | SimpleITK read + pydicom validate | **done** | highdicom / dicom-numpy in `requirements.txt` but unused — only if ITK gaps appear |
+| **Base DICOM I/O** | pydicom | **Keep** | Used for slice metadata and validation checks |
+| **PDE resample/crop** (Vinesh) | `scipy.ndimage.zoom` in `prepare_pde_input.py` | **unchanged** | SimpleITK `Resample` only if Vinesh hits axis/spacing bugs |
+| **Radiomics (Phase 2)** | PyRadiomics | **deferred** | Out of spike scope |
 
-#### Migration rules
+#### Migration rules (still apply for future changes)
 
 1. **Preserve the handoff contract** — `(Z, Y, X)` float32 raw extract, `spacing_mm` in sidecar JSON; bump [`../handoff_contract.json`](../handoff_contract.json) `version` if outputs change.
-2. **Swap internals, not filenames** — keep `validate_series()`, `extract_volume()`, `extract_volume_with_spacing()` signatures; existing tests in `tests/test_tcia_extractor.py` must still pass.
-3. **Add deps to `requirements.txt`** when migrating (e.g. `SimpleITK`, `idc-index`); install into `breast-cancer-sim/.venv` per project venv rule.
-4. **Tell Vinesh** if raw extract shape/spacing or download layout changes.
+2. **Swap internals, not filenames** — keep `validate_series()`, `extract_volume()`, `extract_volume_with_spacing()` signatures; tests must still pass.
+3. **Tell Vinesh** if raw extract shape/spacing or download layout changes.
 
-#### Example targets after migration
+#### Current implementation (reference)
 
 ```python
-# download — idc-index (scale-up)
+# download_tcia.py — idc-index primary
 from idc_index import IDCClient
-client = IDCClient.client()
-client.download_from_selection(collection_id="tcga_brca", patientId="TCGA-AR-A1AX", downloadDir="./data/raw/tcia")
+client = IDCClient()
 
-# extract — SimpleITK (inside tcia_extractor.py)
+# tcia_extractor.py — SimpleITK read
 import SimpleITK as sitk
 reader = sitk.ImageSeriesReader()
 reader.SetFileNames(sitk.ImageSeriesReader.GetGDCMSeriesFileNames(str(dicom_dir)))
-image = reader.Execute()
-volume = sitk.GetArrayFromImage(image)  # (Z, Y, X); map spacing to [dz, dy, dx] for contract
+volume = sitk.GetArrayFromImage(reader.Execute()).astype(np.float32)  # (Z, Y, X)
 ```
 
 
@@ -362,7 +355,7 @@ flowchart LR
 **Spike (Option B — do first)**
 
 - [x] Cohort rev2 locked; `handoff_contract.json` agreed with Vinesh
-- [x] `tcia_extractor.py` + unit tests
+- [x] `tcia_extractor.py` + unit tests (SimpleITK extraction; idc-index downloads)
 - [x] Spike baseline DICOM on disk (`TCGA-AR-A1AX` / `2002-09-12`)
 - [x] `validate_series` passes on spike folder
 - [x] Raw extract exported to `raw-extract-philip-chandan/`
@@ -400,7 +393,7 @@ flowchart LR
 3. **Sync Praneeth** — confirm rev2 TCGA IDs unchanged for genomics alignment.
 4. **Tell Vihari/Jasim** — `data/processed/raw-extract-philip-chandan/manifest.json` maps subtype + timepoint → paths (gitignored; share file or re-export locally).
 
-Optional code cleanup (not blocking): `export_all_raw.py` batch script per scale-up pseudocode below; library migration after spike green.
+Optional code cleanup (not blocking): PyRadiomics pipeline still deferred.
 
 ---
 
@@ -476,31 +469,26 @@ flowchart TD
 
 **Next:** Vinesh integrates spike baseline → remaining three slugs → demo wiring with Vihari/Jasim.
 
-### Batch export (minimal code — later)
+### Batch export — `export_all_raw.py`
 
-Today `export_raw_extract.py` is spike-only in `main()`. For scale-up, loop cohort timepoints without changing the handoff contract:
-
-```python
-# Pseudocode — export_all_raw.py (add when doing task 4+ at scale)
-for patient in iter_cohort_patients():
-    for tp in list_timepoints(patient):
-        if tp.get("study_date") is None:
-            continue
-        slug = f"{subtype_slug(patient['subtype'])}_{patient['tcga_id']}_{tp['label']}"
-        export_raw_extract(
-            patient["tcga_id"],
-            patient["subtype"],
-            tp["study_date"],
-            slug=slug,
-        )
-        save_middle_slice_plot(..., slug=slug)
-```
-
-Or run downloads in one shot:
+Loops `cohort.json` and calls `export_raw_extract()` + QC plot per slug. Patient and timepoint scope mirror `download_tcia.py`.
 
 ```bash
-python download_tcia.py --all-primary --longitudinal
+# All primary patients, every timepoint (default)
+python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary
+
+# Baselines only
+python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary --timepoints baseline
+
+# One patient, follow-up only
+python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py \
+  --tcga-id TCGA-AR-A1AX --subtype "Luminal A" --timepoints followup
+
+# Skip QC PNGs for a faster re-export
+python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary --no-qc
 ```
+
+`--timepoints` accepts `all` (default), a single label (`baseline`, `followup`), or comma-separated labels. Backups without `study_date` in cohort are skipped with a message.
 
 ### `manifest.json` schema (Philip-Chandan source of truth)
 
