@@ -1,0 +1,49 @@
+---
+description: Philip-Chandan team scope — stay in our folder; coordinate before touching others
+alwaysApply: true
+---
+
+# Team scope — Philip & Chandan
+
+We are **Philip-Chandan** on the QBIHack breast-cancer-sim project. Default to work **only** in our owned directory unless the user explicitly asks otherwise or integration requires a minimal handoff.
+
+## Our folder (modify freely)
+
+```
+breast-cancer-sim/simulation-vinesh-philip-chandan/philip-chandan/
+```
+
+Includes: `tcia_extractor.py`, `cohort.json`, `COHORT.md`, `PLAN.md`, `download_tcia.py`, `tests/`, and local imaging docs.
+
+Shared gitignored data layout we own for imaging:
+
+```
+breast-cancer-sim/data/raw/tcia/
+breast-cancer-sim/data/processed/volumes/
+```
+
+## Other folders — check in first
+
+Before editing code outside `philip-chandan/`, **pause and tell the user** to coordinate with the owner. Do not silently refactor or “helpfully” change their modules.
+
+| Directory | Owner | Touch only when… |
+|-----------|-------|------------------|
+| `simulation-vinesh-philip-chandan/vinesh/` | Vinesh | Agreed handoff contract (array shape, spacing, `.npy` path); minimal integration glue |
+| `models-praneeth/` | Praneeth | Same TCGA IDs in `cohort.json`; no duplicate genomics work |
+| `visualization-jasim/` | Jasim | Volume format / axis convention questions only |
+| `app-vihari/` | Vihari | Loading processed volumes in UI — coordinate first |
+| `app/` | Legacy / shared | Avoid unless team agrees |
+
+## Integration without overreach
+
+Allowed without cross-team edits when possible:
+
+- Document handoff in `PLAN.md`, `COHORT.md`, or `manifest.json` schema
+- Export `.npy` + metadata from our pipeline for Vinesh to load
+- Answer questions about our outputs (shape `(Z,Y,X)`, `spacing_mm`, cohort rev2 IDs)
+
+If a fix **must** land in another folder, say so explicitly: *“This needs a change in `vinesh/` — check with Vinesh before committing.”*
+
+## Cohort alignment
+
+Load patient IDs from [`cohort.json`](breast-cancer-sim/simulation-vinesh-philip-chandan/philip-chandan/cohort.json) (currently **rev2**). Tell Praneeth when primary barcodes change; tell Vinesh when processed volume paths or schema change.
