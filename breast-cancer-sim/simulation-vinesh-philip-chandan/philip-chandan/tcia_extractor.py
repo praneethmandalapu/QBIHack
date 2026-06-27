@@ -9,6 +9,7 @@ from typing import Any
 
 import numpy as np
 import pydicom
+import SimpleITK as sitk
 from pydicom.dataset import Dataset
 from pydicom.uid import MRImageStorage
 
@@ -204,6 +205,25 @@ def _series_shape(datasets: list[Dataset]) -> tuple[int, int, int] | None:
     return (len(datasets), rows, cols)
 
 
+def _sitk_series_file_names(dicom_dir: Path) -> list[str]:
+    """Return DICOM file names for the largest series under a directory."""
+    if not dicom_dir.exists():
+        return []
+    return list(sitk.ImageSeriesReader.GetGDCMSeriesFileNames(str(dicom_dir)))
+
+
+def _read_sitk_volume(dicom_dir: Path) -> np.ndarray:
+    """Load the primary DICOM series as a (Z, Y, X) float32 volume via SimpleITK."""
+    file_names = _sitk_series_file_names(dicom_dir)
+    if not file_names:
+        raise ValueError("no DICOM image slices found")
+
+    reader = sitk.ImageSeriesReader()
+    reader.SetFileNames(file_names)
+    image = reader.Execute()
+    return sitk.GetArrayFromImage(image).astype(np.float32)
+
+
 def _series_spacing_mm(datasets: list[Dataset]) -> list[float] | None:
     if not datasets:
         return None
@@ -225,9 +245,10 @@ def _series_spacing_mm(datasets: list[Dataset]) -> list[float] | None:
 def validate_series(dicom_dir: Path) -> dict[str, Any]:
     """Validate a DICOM series for consistent dimensions and slice ordering."""
     errors: list[str] = []
+    file_names = _sitk_series_file_names(dicom_dir)
     datasets = read_series(dicom_dir)
 
-    if not datasets:
+    if not file_names and not datasets:
         return {
             "ok": False,
             "n_slices": 0,
@@ -237,25 +258,35 @@ def validate_series(dicom_dir: Path) -> dict[str, Any]:
         }
 
     sorted_datasets = sort_slices(datasets)
-    rows = int(sorted_datasets[0].Rows)
-    cols = int(sorted_datasets[0].Columns)
+    if sorted_datasets:
+        rows = int(sorted_datasets[0].Rows)
+        cols = int(sorted_datasets[0].Columns)
 
-    instance_numbers = [
-        int(getattr(dataset, "InstanceNumber", index))
-        for index, dataset in enumerate(sorted_datasets, start=1)
-    ]
-    if len(set(instance_numbers)) != len(instance_numbers):
-        errors.append("duplicate InstanceNumber values detected")
+        instance_numbers = [
+            int(getattr(dataset, "InstanceNumber", index))
+            for index, dataset in enumerate(sorted_datasets, start=1)
+        ]
+        if len(set(instance_numbers)) != len(instance_numbers):
+            errors.append("duplicate InstanceNumber values detected")
 
-    for dataset in sorted_datasets:
-        if int(dataset.Rows) != rows or int(dataset.Columns) != cols:
-            errors.append("inconsistent Rows/Columns across slices")
-            break
+        for dataset in sorted_datasets:
+            if int(dataset.Rows) != rows or int(dataset.Columns) != cols:
+                errors.append("inconsistent Rows/Columns across slices")
+                break
 
-    shape = _series_shape(sorted_datasets)
+    shape: tuple[int, int, int] | None = _series_shape(sorted_datasets)
+    n_slices = len(sorted_datasets)
+    if not errors:
+        try:
+            volume = _read_sitk_volume(dicom_dir)
+            shape = tuple(volume.shape)
+            n_slices = int(volume.shape[0])
+        except Exception as exc:
+            errors.append(f"SimpleITK failed to read series: {exc}")
+
     return {
         "ok": not errors,
-        "n_slices": len(sorted_datasets),
+        "n_slices": n_slices,
         "shape": shape,
         "spacing_mm": _series_spacing_mm(sorted_datasets),
         "errors": errors,
@@ -268,12 +299,7 @@ def extract_volume(dicom_dir: Path) -> np.ndarray:
     if not report["ok"]:
         raise ValueError("; ".join(report["errors"]))
 
-    datasets = sort_slices(read_series(dicom_dir))
-    volume = np.stack(
-        [dataset.pixel_array.astype(np.float32) for dataset in datasets],
-        axis=0,
-    )
-    return volume
+    return _read_sitk_volume(dicom_dir)
 
 
 def extract_volume_with_spacing(dicom_dir: Path) -> tuple[np.ndarray, list[float]]:
