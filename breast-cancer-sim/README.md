@@ -8,9 +8,22 @@ Multi-domain pipeline for breast cancer risk prediction, explainability, tumor g
 |-----------|-------|---------|
 | `data/` | — | Raw METABRIC/TCIA inputs and processed features (gitignored) |
 | `models-praneeth/` | Praneeth | Genomics & risk ML (XGBoost, SHAP) |
-| `simulation-vinesh-philip-chandan/` | Vinesh, Philip, Chandan | DICOM extraction, PDE tumor growth, drug interventions |
+| `simulation-vinesh-philip-chandan/` | Vinesh, Philip, Chandan | Tumor growth simulation (see subfolders below) |
+| `simulation-vinesh-philip-chandan/vinesh/` | Vinesh | PDE tumor growth engine and drug interventions |
+| `simulation-vinesh-philip-chandan/philip-chandan/` | Philip, Chandan | TCIA DICOM → 3D volume extraction |
 | `visualization-jasim/` | Jasim | 3D rendering and tissue color maps |
 | `app-vihari/` | Vihari | Streamlit frontend and LLM narrative |
+
+### Simulation layout
+
+```
+simulation-vinesh-philip-chandan/
+├── vinesh/
+│   ├── tumor_pde_solver.py      # PDE growth engine
+│   └── growth_interventions.py  # Drug logic on volume
+└── philip-chandan/
+    └── tcia_extractor.py        # DICOM → 3D volume
+```
 
 ## Setup
 

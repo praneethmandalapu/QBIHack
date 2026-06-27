@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-RAW_DICOM_DIR = Path(__file__).resolve().parents[1] / "data" / "raw"
+RAW_DICOM_DIR = Path(__file__).resolve().parents[2] / "data" / "raw"
 
 
 def extract_volume(dicom_dir: Path) -> "np.ndarray":
