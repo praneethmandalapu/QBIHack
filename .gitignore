@@ -1,5 +1,8 @@
-# Raw and processed datasets (METABRIC, TCIA DICOM, numpy arrays)
-breast-cancer-sim/data/
+# Raw cohort downloads (~800MB, reproducible via models-praneeth/download_data.py)
+breast-cancer-sim/data/raw/
+# Large pooled training matrix (~11MB, reproducible via build_features.py)
+breast-cancer-sim/data/processed/train_matrix.csv
+# Derived artifacts in data/processed/ ARE tracked -- they are the team handoff.
 
 # Philip-Chandan → Vinesh handoff packages (share via Drive/Slack, not git)
 breast-cancer-sim/pde-handoff*.zip
@@ -12,8 +15,7 @@ __pycache__/
 venv/
 .env
 
-# Model artifacts (optional local training output)
-breast-cancer-sim/models-praneeth/saved/*.pkl
+# Trained model + SHAP artifacts ARE tracked (the deliverable for the team).
 
 # OS
 .DS_Store

@@ -1,0 +1,11 @@
+{
+  "metabric": {
+    "pos": 646,
+    "neg": 773
+  },
+  "tcga": {
+    "pos": 83,
+    "neg": 979
+  },
+  "matrix": "train_matrix.csv"
+}

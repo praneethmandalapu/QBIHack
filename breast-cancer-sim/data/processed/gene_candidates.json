@@ -1,0 +1,307 @@
+{
+  "n_candidates": 50,
+  "genes": [
+    "TROAP",
+    "UBE2C",
+    "CDC20",
+    "CKAP2L",
+    "PKMYT1",
+    "PTTG1",
+    "NCAPG",
+    "RACGAP1",
+    "PLK1",
+    "AURKB",
+    "CCNB2",
+    "KIFC1",
+    "AURKA",
+    "EXO1",
+    "KIF2C",
+    "CENPE",
+    "FOXM1",
+    "CCNB1",
+    "CDCA8",
+    "CEP55",
+    "BUB1",
+    "MELK",
+    "MKI67",
+    "FGFR4",
+    "SHCBP1",
+    "UBE2T",
+    "KIF23",
+    "GTSE1",
+    "PGR",
+    "BCL2",
+    "CENPA",
+    "ANLN",
+    "CDC25A",
+    "DLGAP5",
+    "CDK1",
+    "MAPT",
+    "GREB1",
+    "CCNE1",
+    "IGF1R",
+    "SLC39A6",
+    "RRM2",
+    "BUB1B",
+    "PHGDH",
+    "SCUBE2",
+    "NAT1",
+    "BAG1",
+    "PLAU",
+    "IFNG",
+    "NDC80",
+    "CD8A"
+  ],
+  "concordance": {
+    "TROAP": {
+      "corr_metabric": 0.2434,
+      "corr_tcga": 0.0642,
+      "strength": 0.3075
+    },
+    "UBE2C": {
+      "corr_metabric": 0.2236,
+      "corr_tcga": 0.0779,
+      "strength": 0.3015
+    },
+    "CDC20": {
+      "corr_metabric": 0.2154,
+      "corr_tcga": 0.0604,
+      "strength": 0.2758
+    },
+    "CKAP2L": {
+      "corr_metabric": 0.217,
+      "corr_tcga": 0.0583,
+      "strength": 0.2752
+    },
+    "PKMYT1": {
+      "corr_metabric": 0.2123,
+      "corr_tcga": 0.0585,
+      "strength": 0.2708
+    },
+    "PTTG1": {
+      "corr_metabric": 0.1988,
+      "corr_tcga": 0.0648,
+      "strength": 0.2636
+    },
+    "NCAPG": {
+      "corr_metabric": 0.2007,
+      "corr_tcga": 0.0553,
+      "strength": 0.256
+    },
+    "RACGAP1": {
+      "corr_metabric": 0.2008,
+      "corr_tcga": 0.0517,
+      "strength": 0.2525
+    },
+    "PLK1": {
+      "corr_metabric": 0.1683,
+      "corr_tcga": 0.0826,
+      "strength": 0.2509
+    },
+    "AURKB": {
+      "corr_metabric": 0.1726,
+      "corr_tcga": 0.0747,
+      "strength": 0.2473
+    },
+    "CCNB2": {
+      "corr_metabric": 0.1769,
+      "corr_tcga": 0.0653,
+      "strength": 0.2422
+    },
+    "KIFC1": {
+      "corr_metabric": 0.1799,
+      "corr_tcga": 0.0614,
+      "strength": 0.2412
+    },
+    "AURKA": {
+      "corr_metabric": 0.1893,
+      "corr_tcga": 0.0515,
+      "strength": 0.2408
+    },
+    "EXO1": {
+      "corr_metabric": 0.1814,
+      "corr_tcga": 0.0563,
+      "strength": 0.2376
+    },
+    "KIF2C": {
+      "corr_metabric": 0.1774,
+      "corr_tcga": 0.0566,
+      "strength": 0.2339
+    },
+    "CENPE": {
+      "corr_metabric": 0.1691,
+      "corr_tcga": 0.0625,
+      "strength": 0.2316
+    },
+    "FOXM1": {
+      "corr_metabric": 0.1649,
+      "corr_tcga": 0.0624,
+      "strength": 0.2273
+    },
+    "CCNB1": {
+      "corr_metabric": 0.1676,
+      "corr_tcga": 0.0582,
+      "strength": 0.2258
+    },
+    "CDCA8": {
+      "corr_metabric": 0.1638,
+      "corr_tcga": 0.0617,
+      "strength": 0.2255
+    },
+    "CEP55": {
+      "corr_metabric": 0.1635,
+      "corr_tcga": 0.059,
+      "strength": 0.2224
+    },
+    "BUB1": {
+      "corr_metabric": 0.1603,
+      "corr_tcga": 0.0604,
+      "strength": 0.2207
+    },
+    "MELK": {
+      "corr_metabric": 0.1613,
+      "corr_tcga": 0.0578,
+      "strength": 0.2191
+    },
+    "MKI67": {
+      "corr_metabric": 0.1616,
+      "corr_tcga": 0.0538,
+      "strength": 0.2153
+    },
+    "FGFR4": {
+      "corr_metabric": 0.1535,
+      "corr_tcga": 0.0602,
+      "strength": 0.2137
+    },
+    "SHCBP1": {
+      "corr_metabric": 0.1065,
+      "corr_tcga": 0.1062,
+      "strength": 0.2127
+    },
+    "UBE2T": {
+      "corr_metabric": 0.1381,
+      "corr_tcga": 0.074,
+      "strength": 0.2121
+    },
+    "KIF23": {
+      "corr_metabric": 0.1552,
+      "corr_tcga": 0.0544,
+      "strength": 0.2096
+    },
+    "GTSE1": {
+      "corr_metabric": 0.1507,
+      "corr_tcga": 0.058,
+      "strength": 0.2087
+    },
+    "PGR": {
+      "corr_metabric": -0.1493,
+      "corr_tcga": -0.0581,
+      "strength": 0.2074
+    },
+    "BCL2": {
+      "corr_metabric": -0.1301,
+      "corr_tcga": -0.0761,
+      "strength": 0.2061
+    },
+    "CENPA": {
+      "corr_metabric": 0.1318,
+      "corr_tcga": 0.0729,
+      "strength": 0.2048
+    },
+    "ANLN": {
+      "corr_metabric": 0.1119,
+      "corr_tcga": 0.0808,
+      "strength": 0.1927
+    },
+    "CDC25A": {
+      "corr_metabric": 0.1354,
+      "corr_tcga": 0.0568,
+      "strength": 0.1922
+    },
+    "DLGAP5": {
+      "corr_metabric": 0.1283,
+      "corr_tcga": 0.0629,
+      "strength": 0.1912
+    },
+    "CDK1": {
+      "corr_metabric": 0.1054,
+      "corr_tcga": 0.0748,
+      "strength": 0.1802
+    },
+    "MAPT": {
+      "corr_metabric": -0.1089,
+      "corr_tcga": -0.0681,
+      "strength": 0.177
+    },
+    "GREB1": {
+      "corr_metabric": -0.1114,
+      "corr_tcga": -0.0607,
+      "strength": 0.1721
+    },
+    "CCNE1": {
+      "corr_metabric": 0.1147,
+      "corr_tcga": 0.0567,
+      "strength": 0.1714
+    },
+    "IGF1R": {
+      "corr_metabric": -0.0867,
+      "corr_tcga": -0.0827,
+      "strength": 0.1694
+    },
+    "SLC39A6": {
+      "corr_metabric": -0.0858,
+      "corr_tcga": -0.074,
+      "strength": 0.1598
+    },
+    "RRM2": {
+      "corr_metabric": 0.0864,
+      "corr_tcga": 0.065,
+      "strength": 0.1514
+    },
+    "BUB1B": {
+      "corr_metabric": 0.0758,
+      "corr_tcga": 0.0685,
+      "strength": 0.1442
+    },
+    "PHGDH": {
+      "corr_metabric": 0.0776,
+      "corr_tcga": 0.0634,
+      "strength": 0.141
+    },
+    "SCUBE2": {
+      "corr_metabric": -0.0546,
+      "corr_tcga": -0.086,
+      "strength": 0.1406
+    },
+    "NAT1": {
+      "corr_metabric": -0.0782,
+      "corr_tcga": -0.0574,
+      "strength": 0.1356
+    },
+    "BAG1": {
+      "corr_metabric": -0.0821,
+      "corr_tcga": -0.0532,
+      "strength": 0.1353
+    },
+    "PLAU": {
+      "corr_metabric": 0.0703,
+      "corr_tcga": 0.0544,
+      "strength": 0.1247
+    },
+    "IFNG": {
+      "corr_metabric": -0.058,
+      "corr_tcga": -0.0563,
+      "strength": 0.1142
+    },
+    "NDC80": {
+      "corr_metabric": 0.0603,
+      "corr_tcga": 0.0524,
+      "strength": 0.1127
+    },
+    "CD8A": {
+      "corr_metabric": -0.0554,
+      "corr_tcga": -0.053,
+      "strength": 0.1084
+    }
+  }
+}
