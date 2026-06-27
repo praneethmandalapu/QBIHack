@@ -1,0 +1,70 @@
+{
+  "version": "1.0.0",
+  "description": "Imaging ↔ solver handoff for brain-cancer-sim. Expert segmentation masks (not Otsu) feed the PDE initial condition.",
+  "spike_patient": {
+    "dataset": "UCSF Longitudinal Glioma",
+    "patient_id": "TBD",
+    "disease": "Glioma",
+    "timepoint": "baseline",
+    "slug": "glioma_ucsf_TBD_baseline"
+  },
+  "raw_extract": {
+    "producer": "imaging",
+    "output_dir": "data/processed/raw-extract-imaging",
+    "axis_order": ["Z", "Y", "X"],
+    "dtype": "float32",
+    "normalize": false,
+    "value_semantics": {
+      "description": "Raw MR intensity; paired mask in data/processed/segmentations/"
+    },
+    "required_metadata_fields": [
+      "contract_version",
+      "slug",
+      "patient_id",
+      "dataset",
+      "disease",
+      "timepoint",
+      "study_date",
+      "source_path",
+      "shape",
+      "dtype",
+      "spacing_mm",
+      "segmentation_path"
+    ]
+  },
+  "pde_input": {
+    "producer": "solver",
+    "output_dir": "data/processed/pde-input-solver",
+    "axis_order": ["Z", "Y", "X"],
+    "dtype": "float32",
+    "max_shape": [64, 64, 64],
+    "target_spacing_mm": [1.0, 1.0, 1.0],
+    "value_range": [0.0, 1.0],
+    "background_value": 0.0,
+    "tumor_burden_rule": "values strictly greater than background_value",
+    "segmentation": {
+      "method": "expert_mask",
+      "notes": "Binary or multi-label mask from dataset; resample to target grid. No Otsu fallback in v1."
+    },
+    "required_metadata_fields": [
+      "contract_version",
+      "slug",
+      "source_raw_extract",
+      "source_segmentation",
+      "shape",
+      "dtype",
+      "spacing_mm",
+      "value_semantics"
+    ]
+  },
+  "solver": {
+    "timesteps": 50,
+    "dt": 0.1,
+    "default_params": {
+      "risk_multiplier": 1.0,
+      "D": 0.15,
+      "rho": 0.25,
+      "delta": 0.0
+    }
+  }
+}

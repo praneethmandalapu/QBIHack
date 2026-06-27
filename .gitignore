@@ -1,5 +1,6 @@
 # Raw cohort downloads (~800MB, reproducible via models-praneeth/download_data.py)
 breast-cancer-sim/data/raw/
+brain-cancer-sim/data/raw/
 # Large pooled training matrix (~11MB, reproducible via build_features.py)
 breast-cancer-sim/data/processed/train_matrix.csv
 # Derived artifacts in data/processed/ ARE tracked -- they are the team handoff.
