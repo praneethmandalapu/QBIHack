@@ -1,0 +1,6 @@
+[
+  {"clinicalAttributeId": "ER_STATUS_BY_IHC", "value": "Negative"},
+  {"clinicalAttributeId": "PR_STATUS_BY_IHC", "value": "Negative"},
+  {"clinicalAttributeId": "OS_MONTHS", "value": "120.5"},
+  {"clinicalAttributeId": "OS_STATUS", "value": "0:LIVING"}
+]

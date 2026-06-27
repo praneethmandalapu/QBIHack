@@ -114,7 +114,7 @@ python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.p
 # Include backup roster in the audit table
 python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py audit --include-backups
 
-# List longitudinal LumA patients on TCIA with matching PAM50
+# List longitudinal LumA patients on TCIA with matching PAM50 + ER/PR/survival
 python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py find-longitudinal --subtype "Luminal A"
 
 # Suggest best LumA + Basal pair (longest follow-up, contrast series preferred)

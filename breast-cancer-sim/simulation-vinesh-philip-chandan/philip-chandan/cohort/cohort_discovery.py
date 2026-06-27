@@ -1,8 +1,8 @@
 """TCIA cohort discovery helper for TCGA-BRCA longitudinal MRI selection.
 
-Queries the public TCIA NBIA REST API and cross-checks PAM50 subtypes via
-cBioPortal so we can validate or update patients in cohort.json without
-manual API spelunking.
+Queries the public TCIA NBIA REST API and cross-checks PAM50 + ER/PR/survival on
+cBioPortal so we can validate or update patients in cohort.json without manual API
+spelunking. Genomics fields align with cohort.json ``genomics.fields`` for Praneeth.
 
 Usage (from breast-cancer-sim/):
   python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py audit
@@ -33,9 +33,19 @@ from download_tcia import DEFAULT_COLLECTION, list_mr_series, pick_series
 from tcia_extractor import load_cohort
 
 NBIA_BASE = "https://services.cancerimagingarchive.net/nbia-api/services/v1"
-CBIO_STUDY = "brca_tcga_pan_can_atlas_2018"
+CBIO_PAM50_STUDY = "brca_tcga_pan_can_atlas_2018"
+CBIO_GENOMICS_STUDY = "brca_tcga"
 CBIO_BASE = "https://www.cbioportal.org/api"
 CBIO_DELAY_SECONDS = 0.25
+
+# cBioPortal attribute IDs aligned with cohort.json genomics.fields (Praneeth / GDC handoff).
+GENOMICS_ATTRS = {
+    "er_status": "ER_STATUS_BY_IHC",
+    "pr_status": "PR_STATUS_BY_IHC",
+    "os_months": "OS_MONTHS",
+    "os_status": "OS_STATUS",
+}
+REQUIRED_GENOMICS_FIELDS = ("er_status", "pr_status", "os_status")
 
 PAM50_TO_COHORT: dict[str, str] = {
     "BRCA_LumA": "Luminal A",
@@ -135,6 +145,15 @@ def _is_contrast_series(series: dict[str, Any]) -> bool:
     return any(token in description for token in ("+c", "post", "vibrant", "t1"))
 
 
+def _nbia_patient_id(entry: dict[str, Any]) -> str | None:
+    """NBIA returns ``PatientId``; some fixtures use ``PatientID``."""
+    for key in ("PatientId", "PatientID"):
+        value = entry.get(key)
+        if value:
+            return str(value)
+    return None
+
+
 def list_tcia_patients(
     collection: str = DEFAULT_COLLECTION,
     *,
@@ -145,15 +164,17 @@ def list_tcia_patients(
     if not payload.strip():
         return []
     patients = json.loads(payload)
-    return sorted(str(entry.get("PatientID", "")) for entry in patients if entry.get("PatientID"))
+    ids = [_nbia_patient_id(entry) for entry in patients]
+    return sorted(patient_id for patient_id in ids if patient_id)
 
 
-def fetch_pam50_subtype(
+def _fetch_cbio_clinical_rows(
     tcga_id: str,
+    study_id: str,
     *,
     fetcher: HttpFetcher | None = None,
     delay_seconds: float = CBIO_DELAY_SECONDS,
-) -> dict[str, Any]:
+) -> list[dict[str, Any]]:
     global _last_cbio_call
 
     fetch = fetcher or _default_fetch
@@ -162,23 +183,83 @@ def fetch_pam50_subtype(
         if elapsed < delay_seconds:
             time.sleep(delay_seconds - elapsed)
 
-    url = _cbio_url(f"studies/{CBIO_STUDY}/patients/{tcga_id}/clinical-data")
+    url = _cbio_url(f"studies/{study_id}/patients/{tcga_id}/clinical-data")
     payload = fetch(url)
     _last_cbio_call = time.monotonic()
 
     if not payload.strip():
-        return {"pam50_raw": None, "pam50_label": None}
+        return []
+    return json.loads(payload)
 
-    clinical_rows = json.loads(payload)
-    subtype_value = None
-    for row in clinical_rows:
-        if str(row.get("clinicalAttributeId", "")).upper() == "SUBTYPE":
-            subtype_value = row.get("value")
-            break
 
+def _clinical_attr_map(rows: list[dict[str, Any]]) -> dict[str, Any]:
+    return {
+        str(row.get("clinicalAttributeId", "")).upper(): row.get("value")
+        for row in rows
+    }
+
+
+def fetch_genomics_clinical(
+    tcga_id: str,
+    *,
+    fetcher: HttpFetcher | None = None,
+    delay_seconds: float = CBIO_DELAY_SECONDS,
+) -> dict[str, Any]:
+    """Fetch PAM50 + ER/PR/survival fields Praneeth needs from cBioPortal."""
+    pam50_rows = _fetch_cbio_clinical_rows(
+        tcga_id,
+        CBIO_PAM50_STUDY,
+        fetcher=fetcher,
+        delay_seconds=delay_seconds,
+    )
+    clinical_rows = _fetch_cbio_clinical_rows(
+        tcga_id,
+        CBIO_GENOMICS_STUDY,
+        fetcher=fetcher,
+        delay_seconds=delay_seconds,
+    )
+
+    pam50_attrs = _clinical_attr_map(pam50_rows)
+    clin_attrs = _clinical_attr_map(clinical_rows)
+
+    subtype_value = pam50_attrs.get("SUBTYPE")
     pam50_raw = str(subtype_value) if subtype_value is not None else None
-    pam50_label = PAM50_TO_COHORT.get(pam50_raw or "", None)
-    return {"pam50_raw": pam50_raw, "pam50_label": pam50_label}
+    pam50_label = PAM50_TO_COHORT.get(pam50_raw or "")
+
+    genomics: dict[str, Any] = {
+        "pam50_raw": pam50_raw,
+        "pam50_label": pam50_label,
+    }
+    for field, attr_id in GENOMICS_ATTRS.items():
+        raw_value = clin_attrs.get(attr_id.upper())
+        if raw_value is None and attr_id.upper() in pam50_attrs:
+            raw_value = pam50_attrs.get(attr_id.upper())
+        genomics[field] = str(raw_value) if raw_value is not None else None
+
+    missing = [field for field in REQUIRED_GENOMICS_FIELDS if not genomics.get(field)]
+    if pam50_raw is None:
+        missing.insert(0, "pam50")
+
+    genomics["genomics_missing"] = missing
+    genomics["genomics_ok"] = not missing
+    return genomics
+
+
+def fetch_pam50_subtype(
+    tcga_id: str,
+    *,
+    fetcher: HttpFetcher | None = None,
+    delay_seconds: float = CBIO_DELAY_SECONDS,
+) -> dict[str, Any]:
+    genomics = fetch_genomics_clinical(
+        tcga_id,
+        fetcher=fetcher,
+        delay_seconds=delay_seconds,
+    )
+    return {
+        "pam50_raw": genomics["pam50_raw"],
+        "pam50_label": genomics["pam50_label"],
+    }
 
 
 def analyze_patient_imaging(
@@ -239,23 +320,31 @@ def build_patient_report(
     cohort_subtype: str | None = None,
     collection: str = DEFAULT_COLLECTION,
     series_list: list[dict[str, Any]] | None = None,
+    imaging: dict[str, Any] | None = None,
     pam50: dict[str, Any] | None = None,
+    genomics: dict[str, Any] | None = None,
     fetcher: HttpFetcher | None = None,
     cbio_fetcher: HttpFetcher | None = None,
     skip_cbio: bool = False,
+    require_genomics: bool = True,
 ) -> dict[str, Any]:
-    imaging = analyze_patient_imaging(
-        tcga_id,
-        collection=collection,
-        series_list=series_list,
-        fetcher=fetcher,
-    )
-    pam50_info = pam50 if pam50 is not None else (
-        {} if skip_cbio else fetch_pam50_subtype(tcga_id, fetcher=cbio_fetcher or fetcher)
-    )
+    if imaging is None:
+        imaging = analyze_patient_imaging(
+            tcga_id,
+            collection=collection,
+            series_list=series_list,
+            fetcher=fetcher,
+        )
 
-    pam50_raw = pam50_info.get("pam50_raw")
-    pam50_label = pam50_info.get("pam50_label")
+    if genomics is not None:
+        genomics_info = genomics
+    elif skip_cbio:
+        genomics_info = pam50 or {}
+    else:
+        genomics_info = fetch_genomics_clinical(tcga_id, fetcher=cbio_fetcher or fetcher)
+
+    pam50_raw = genomics_info.get("pam50_raw")
+    pam50_label = genomics_info.get("pam50_label")
     subtype_match = None
     if cohort_subtype and pam50_label:
         subtype_match = pam50_label == cohort_subtype
@@ -271,11 +360,20 @@ def build_patient_report(
         )
     if cohort_subtype and pam50_label is None and pam50_raw is None and not skip_cbio:
         issues.append("PAM50 subtype unavailable on cBioPortal")
+    if require_genomics and not skip_cbio:
+        for field in genomics_info.get("genomics_missing", []):
+            issues.append(f"missing genomics field: {field}")
 
     return {
         **imaging,
         "pam50_raw": pam50_raw,
         "pam50_label": pam50_label,
+        "er_status": genomics_info.get("er_status"),
+        "pr_status": genomics_info.get("pr_status"),
+        "os_months": genomics_info.get("os_months"),
+        "os_status": genomics_info.get("os_status"),
+        "genomics_ok": genomics_info.get("genomics_ok", skip_cbio),
+        "genomics_missing": list(genomics_info.get("genomics_missing", [])),
         "cohort_subtype": cohort_subtype,
         "subtype_match": subtype_match,
         "issues": issues,
@@ -344,6 +442,7 @@ def find_longitudinal_patients(
     collection: str = DEFAULT_COLLECTION,
     fetcher: HttpFetcher | None = None,
     cbio_fetcher: HttpFetcher | None = None,
+    require_genomics: bool = True,
 ) -> list[dict[str, Any]]:
     expected_pam50 = COHORT_TO_PAM50.get(subtype, set())
     matches: list[dict[str, Any]] = []
@@ -353,18 +452,21 @@ def find_longitudinal_patients(
         if not imaging["longitudinal"]:
             continue
 
-        pam50 = fetch_pam50_subtype(tcga_id, fetcher=cbio_fetcher or fetcher)
-        if expected_pam50 and pam50.get("pam50_raw") not in expected_pam50:
+        genomics = fetch_genomics_clinical(tcga_id, fetcher=cbio_fetcher or fetcher)
+        if expected_pam50 and genomics.get("pam50_raw") not in expected_pam50:
+            continue
+        if require_genomics and not genomics.get("genomics_ok"):
             continue
 
         report = build_patient_report(
             tcga_id,
             cohort_subtype=subtype,
-            series_list=None,
-            pam50=pam50,
+            imaging=imaging,
+            genomics=genomics,
             collection=collection,
             fetcher=fetcher,
             skip_cbio=True,
+            require_genomics=require_genomics,
         )
         matches.append(report)
 
@@ -459,6 +561,9 @@ def print_audit_table(result: dict[str, Any]) -> None:
                 study_summary,
                 span,
                 report.get("pam50_label") or report.get("pam50_raw") or "-",
+                report.get("er_status") or "-",
+                report.get("pr_status") or "-",
+                report.get("os_status") or "-",
                 "ok" if report["ok"] else "; ".join(report["issues"]),
             ]
         )
@@ -474,6 +579,9 @@ def print_audit_table(result: dict[str, Any]) -> None:
             "study_dates",
             "span_d",
             "pam50",
+            "er",
+            "pr",
+            "os",
             "status",
         ],
         rows,
@@ -492,6 +600,13 @@ def print_patient_table(report: dict[str, Any]) -> None:
         f"  PAM50: {report.get('pam50_label') or '-'} "
         f"({report.get('pam50_raw') or 'n/a'})"
     )
+    if report.get("er_status") or report.get("pr_status") or report.get("os_status"):
+        print(
+            f"  Genomics: ER={report.get('er_status') or '-'}, "
+            f"PR={report.get('pr_status') or '-'}, "
+            f"OS={report.get('os_status') or '-'} "
+            f"({report.get('os_months') or '-'} mo)"
+        )
     if report.get("cohort_subtype"):
         print(f"  Cohort subtype: {report['cohort_subtype']}")
     print(f"  Total download size: {_format_bytes(report.get('total_download_size_bytes', 0))}")
@@ -511,13 +626,18 @@ def print_longitudinal_table(reports: list[dict[str, Any]]) -> None:
         [
             report["tcga_id"],
             report.get("pam50_label") or report.get("pam50_raw") or "-",
+            report.get("er_status") or "-",
+            report.get("pr_status") or "-",
             ", ".join(report.get("study_dates", [])),
             str(report.get("span_days") if report.get("span_days") is not None else "-"),
             _format_bytes(report.get("total_download_size_bytes", 0)),
         ]
         for report in reports
     ]
-    _print_table(["tcga_id", "pam50", "study_dates", "span_d", "download"], rows)
+    _print_table(
+        ["tcga_id", "pam50", "er", "pr", "study_dates", "span_d", "download"],
+        rows,
+    )
 
 
 def print_recommend_pair(result: dict[str, Any]) -> None:
@@ -580,6 +700,11 @@ def build_arg_parser() -> argparse.ArgumentParser:
         required=True,
         help='Cohort subtype label, e.g. "Luminal A" or "Basal-like"',
     )
+    find_parser.add_argument(
+        "--allow-incomplete-genomics",
+        action="store_true",
+        help="Include patients missing ER/PR/survival on cBioPortal",
+    )
 
     subparsers.add_parser(
         "recommend-pair",
@@ -616,7 +741,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if result["primary_ok"] else 1
 
     if args.command == "find-longitudinal":
-        matches = find_longitudinal_patients(args.subtype)
+        matches = find_longitudinal_patients(
+            args.subtype,
+            require_genomics=not args.allow_incomplete_genomics,
+        )
         if emit_json:
             print(json.dumps(matches, indent=2))
         else:
