@@ -400,7 +400,7 @@ flowchart LR
 - Keep **QC slice PNGs** handy for demo (`data/qc/slice-plots-philip-chandan/`).
 - Optional: `load_volume_for_subtype(subtype, timepoint)` helper in `philip-chandan/` if Vihari wants a one-liner to resolve manifest paths (coordinate first).
 
-Optional code cleanup (not blocking): PyRadiomics pipeline still deferred.
+Optional code cleanup (not blocking): PyRadiomics pipeline — see [`stretch/STRETCH_PLAN.md`](stretch/STRETCH_PLAN.md) (extraction + batch scripts done; Praneeth handoff pending).
 
 ---
 

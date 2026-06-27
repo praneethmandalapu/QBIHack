@@ -1,0 +1,16 @@
+# PyRadiomics settings for Philip-Chandan stretch.
+# prep_volume.py already percentile-normalizes to [0, 1] and crops to mask bbox.
+# Keep normalize/resample disabled here to avoid double preprocessing.
+
+imageType:
+  Original: {}
+
+featureClass:
+  shape:
+  firstorder:
+  glcm:
+
+setting:
+  normalize: false
+  binWidth: 0.05
+  label: 1
