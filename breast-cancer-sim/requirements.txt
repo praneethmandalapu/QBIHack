@@ -18,6 +18,8 @@ tcia-utils
 Cython
 versioneer
 pyradiomics @ git+https://github.com/AIM-Harvard/pyradiomics@v3.1.0
+# FastRadiomics (optional fast backend + parity checks; pulls torch)
+fastrad
 
 # Visualization
 matplotlib
@@ -32,3 +34,6 @@ langchain-openai
 
 # Testing
 pytest
+
+# Philip-Chandan pipeline report PDF
+fpdf2
