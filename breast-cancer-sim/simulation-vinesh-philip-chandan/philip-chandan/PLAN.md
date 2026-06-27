@@ -45,8 +45,16 @@ breast-cancer-sim/
 │       └── manifest.json
 └── simulation-vinesh-philip-chandan/philip-chandan/
     ├── PLAN.md                    # this file
-    └── tcia_extractor.py          # main module
+    ├── tcia_extractor.py          # DICOM → volume extraction
+    ├── download_tcia.py           # TCIA DICOM downloader
+    └── cohort/                    # patient IDs + discovery CLI
+        ├── cohort.json            # machine-readable rev2 roster (source of truth)
+        ├── COHORT.md              # human-readable roster + backup notes
+        ├── cohort_discovery.py    # audit TCIA MRI + cBioPortal PAM50
+        └── tests/                 # mocked API tests for discovery CLI
 ```
+
+**Cohort subfolder:** Shared TCGA barcodes for imaging (Philip-Chandan) and genomics (Praneeth) live under `cohort/`. Use `cohort/cohort_discovery.py` to validate or refresh picks before editing `cohort.json`. Extraction and download scripts still import patient IDs via `tcia_extractor.load_cohort()`.
 
 ---
 
@@ -290,6 +298,7 @@ flowchart LR
 ## Immediate next steps (start here)
 
 1. Message Praneeth for 2 TCGA-BRCA barcodes (Luminal A + Basal).
-2. Implement `extract_volume()` skeleton + unit test with any DICOM folder.
-3. Post handoff contract in team chat before lunch.
-4. Start first TCIA download by 10:15 — this is the critical path for the whole simulation stack.
+2. Run `python cohort/cohort_discovery.py audit` to confirm MRI + PAM50 on TCIA before locking IDs.
+3. Implement `extract_volume()` skeleton + unit test with any DICOM folder.
+4. Post handoff contract in team chat before lunch.
+5. Start first TCIA download by 10:15 — this is the critical path for the whole simulation stack.

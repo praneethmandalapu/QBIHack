@@ -12,8 +12,9 @@ import pydicom
 from pydicom.dataset import Dataset
 from pydicom.uid import MRImageStorage
 
+from cohort import COHORT_PATH
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
-COHORT_PATH = Path(__file__).parent / "cohort.json"
 RAW_TCIA_DIR = REPO_ROOT / "data" / "raw" / "tcia"
 
 IMAGE_STORAGE_SOP_CLASSES = {

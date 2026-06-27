@@ -1,0 +1,16 @@
+[
+  {
+    "SeriesInstanceUID": "1.2.3.ol.a66n.baseline",
+    "SeriesDescription": "T1 +C",
+    "StudyDate": "20100301",
+    "ImageCount": 90,
+    "FileSize": 3500000
+  },
+  {
+    "SeriesInstanceUID": "1.2.3.ol.a66n.followup",
+    "SeriesDescription": "T1 +C",
+    "StudyDate": "20100601",
+    "ImageCount": 88,
+    "FileSize": 3400000
+  }
+]

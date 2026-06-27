@@ -1,0 +1,16 @@
+[
+  {
+    "SeriesInstanceUID": "1.2.3.a04q.baseline",
+    "SeriesDescription": "post contrast",
+    "StudyDate": "20110101",
+    "ImageCount": 70,
+    "FileSize": 2500000
+  },
+  {
+    "SeriesInstanceUID": "1.2.3.a04q.followup",
+    "SeriesDescription": "post contrast",
+    "StudyDate": "20110401",
+    "ImageCount": 72,
+    "FileSize": 2600000
+  }
+]

@@ -101,6 +101,33 @@ Only **19 / 139** TCGA-BRCA patients with MRI on TCIA have multiple MR studies. 
 
 ---
 
+## Cohort discovery helper
+
+[`cohort_discovery.py`](cohort_discovery.py) queries TCIA for MR series and cross-checks PAM50 labels on cBioPortal so we can audit or refresh `cohort.json` without manual API digging.
+
+```bash
+cd breast-cancer-sim
+
+# Validate rev2 primaries (non-zero exit if primary checks fail)
+python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py audit
+
+# Include backup roster in the audit table
+python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py audit --include-backups
+
+# List longitudinal LumA patients on TCIA with matching PAM50
+python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py find-longitudinal --subtype "Luminal A"
+
+# Suggest best LumA + Basal pair (longest follow-up, contrast series preferred)
+python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py recommend-pair
+
+# Detailed report for one barcode (add --json for machine-readable output)
+python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py show TCGA-AR-A1AX --json
+```
+
+Known TCIA facts encoded in tests: 139 TCGA-BRCA patients have imaging; 19 have longitudinal MR. rev1 primaries `TCGA-BH-A0BR` and `TCGA-A2-A04P` have no MRI on TCIA.
+
+---
+
 ## Quick reference
 
 ```

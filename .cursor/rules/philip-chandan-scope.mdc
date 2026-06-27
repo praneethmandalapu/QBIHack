@@ -13,7 +13,7 @@ We are **Philip-Chandan** on the QBIHack breast-cancer-sim project. Default to w
 breast-cancer-sim/simulation-vinesh-philip-chandan/philip-chandan/
 ```
 
-Includes: `tcia_extractor.py`, `cohort.json`, `COHORT.md`, `PLAN.md`, `download_tcia.py`, `tests/`, and local imaging docs.
+Includes: `tcia_extractor.py`, `cohort/` (`cohort.json`, `COHORT.md`, `cohort_discovery.py`), `PLAN.md`, `download_tcia.py`, `tests/`, and local imaging docs.
 
 Shared gitignored data layout we own for imaging:
 
@@ -46,4 +46,4 @@ If a fix **must** land in another folder, say so explicitly: *“This needs a ch
 
 ## Cohort alignment
 
-Load patient IDs from [`cohort.json`](breast-cancer-sim/simulation-vinesh-philip-chandan/philip-chandan/cohort.json) (currently **rev2**). Tell Praneeth when primary barcodes change; tell Vinesh when processed volume paths or schema change.
+Load patient IDs from [`cohort/cohort.json`](breast-cancer-sim/simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort.json) (currently **rev2**). Tell Praneeth when primary barcodes change; tell Vinesh when processed volume paths or schema change.

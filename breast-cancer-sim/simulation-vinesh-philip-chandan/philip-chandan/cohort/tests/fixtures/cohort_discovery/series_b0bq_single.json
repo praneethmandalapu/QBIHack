@@ -1,0 +1,9 @@
+[
+  {
+    "SeriesInstanceUID": "1.2.3.b0bq.single",
+    "SeriesDescription": "T1 pre",
+    "StudyDate": "20100101",
+    "ImageCount": 80,
+    "FileSize": 3000000
+  }
+]

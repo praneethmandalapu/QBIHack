@@ -1,0 +1,23 @@
+[
+  {
+    "SeriesInstanceUID": "1.2.3.a1ax.baseline",
+    "SeriesDescription": "LOC",
+    "StudyDate": "20020912",
+    "ImageCount": 10,
+    "FileSize": 1000000
+  },
+  {
+    "SeriesInstanceUID": "1.2.3.a1ax.baseline.vibrant",
+    "SeriesDescription": "VIBRANT",
+    "StudyDate": "20020912",
+    "ImageCount": 120,
+    "FileSize": 5000000
+  },
+  {
+    "SeriesInstanceUID": "1.2.3.a1ax.followup",
+    "SeriesDescription": "T1 post +C",
+    "StudyDate": "20030924",
+    "ImageCount": 110,
+    "FileSize": 4500000
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "SeriesInstanceUID": "1.2.3.a1aq.baseline",
+    "SeriesDescription": "VIBRANT",
+    "StudyDate": "20011121",
+    "ImageCount": 100,
+    "FileSize": 4000000
+  },
+  {
+    "SeriesInstanceUID": "1.2.3.a1aq.followup",
+    "SeriesDescription": "VIBRANT post",
+    "StudyDate": "20030507",
+    "ImageCount": 95,
+    "FileSize": 3800000
+  }
+]
