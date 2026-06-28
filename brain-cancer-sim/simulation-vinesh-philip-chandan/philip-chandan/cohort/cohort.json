@@ -1,23 +1,215 @@
 {
-  "version": "rev0-stub",
-  "description": "Brain imaging cohort — populate after UCSF/MU-Glioma patient selection.",
+  "version": "rev1-ucsf",
+  "description": "Brain imaging cohort from the UCSF Longitudinal Postoperative Diffuse Glioma dataset (UCSF-LPTDG). Primary pair contrasts an aggressive IDH-WT glioblastoma (grows) vs an indolent IDH-mutant lower-grade glioma (stable/shrinks) \u2014 the genomics->growth seam.",
+  "data_root": "brain-cancer-sim/data/raw/ucsf_glioma/  (gitignored; extract from UCSF zip)",
+  "segmentation_label_scheme": {
+    "1": "NCR (necrotic core)",
+    "2": "SNFH (edema / non-enhancing FLAIR hyperintensity)",
+    "3": "ET (enhancing tumor)",
+    "4": "RC (resection cavity)",
+    "WT": "whole tumor = labels 1+2+3",
+    "TC": "tumor core = labels 1+2"
+  },
+  "available_sequences_per_timepoint": [
+    "t1",
+    "t1ce",
+    "t2",
+    "flair",
+    "seg"
+  ],
+  "genomics_handoff": "Per-patient idh_status/grade/mgmt are the bridge to the brain risk model (see brain-cancer-sim/models-praneeth/). IDH-WT + high grade -> high growth_multiplier; IDH-mut -> low.",
   "patients": [
     {
-      "patient_id": "TBD",
-      "dataset": "UCSF Longitudinal Glioma",
+      "patient_id": "100118",
+      "dataset": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
       "disease": "Glioma",
-      "grade": "TBD",
-      "idh_status": "TBD",
+      "who_2021_diagnosis": "Glioblastoma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt": "positive",
+      "risk_tier": "high",
+      "measured_growth": {
+        "wt_volume_t1_mm3": 10905,
+        "wt_volume_t2_mm3": 77327,
+        "wt_growth_pct": 609.1,
+        "interval_days": 56
+      },
       "timepoints": [
         {
           "label": "baseline",
-          "study_date": "TBD",
-          "mr_path": "data/raw/ucsf_glioma/TBD/baseline/mr.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/TBD/baseline/seg.nii.gz"
+          "relative_day": 0,
+          "mr_path": "data/raw/ucsf_glioma/100118/100118_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100118/100118_time1_seg.nii.gz"
+        },
+        {
+          "label": "followup",
+          "relative_day": 56,
+          "mr_path": "data/raw/ucsf_glioma/100118/100118_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100118/100118_time2_seg.nii.gz"
+        }
+      ],
+      "backup": false,
+      "notes": "IDH-WT grade 4.0; WT volume change +609% over 56d."
+    },
+    {
+      "patient_id": "100192",
+      "dataset": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+      "disease": "Glioma",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "grade": 2.0,
+      "idh_status": "mut",
+      "mgmt": null,
+      "risk_tier": "low",
+      "measured_growth": {
+        "wt_volume_t1_mm3": 16957,
+        "wt_volume_t2_mm3": 10036,
+        "wt_growth_pct": -40.8,
+        "interval_days": 83
+      },
+      "timepoints": [
+        {
+          "label": "baseline",
+          "relative_day": 0,
+          "mr_path": "data/raw/ucsf_glioma/100192/100192_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100192/100192_time1_seg.nii.gz"
+        },
+        {
+          "label": "followup",
+          "relative_day": 83,
+          "mr_path": "data/raw/ucsf_glioma/100192/100192_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100192/100192_time2_seg.nii.gz"
+        }
+      ],
+      "backup": false,
+      "notes": "IDH-mut grade 2.0; WT volume change -41% over 83d."
+    },
+    {
+      "patient_id": "100260",
+      "dataset": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+      "disease": "Glioma",
+      "who_2021_diagnosis": "Glioblastoma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt": "unmethylated",
+      "risk_tier": "high",
+      "measured_growth": {
+        "wt_volume_t1_mm3": 34800,
+        "wt_volume_t2_mm3": 104948,
+        "wt_growth_pct": 201.6,
+        "interval_days": 63
+      },
+      "timepoints": [
+        {
+          "label": "baseline",
+          "relative_day": 0,
+          "mr_path": "data/raw/ucsf_glioma/100260/100260_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100260/100260_time1_seg.nii.gz"
+        },
+        {
+          "label": "followup",
+          "relative_day": 63,
+          "mr_path": "data/raw/ucsf_glioma/100260/100260_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100260/100260_time2_seg.nii.gz"
         }
       ],
       "backup": true,
-      "notes": "Replace TBD after download; sync grade/IDH with Praneeth."
+      "notes": "IDH-WT grade 4.0; WT volume change +202% over 63d."
+    },
+    {
+      "patient_id": "100220",
+      "dataset": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+      "disease": "Glioma",
+      "who_2021_diagnosis": "Glioblastoma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt": "unmethylated",
+      "risk_tier": "high",
+      "measured_growth": {
+        "wt_volume_t1_mm3": 40020,
+        "wt_volume_t2_mm3": 109608,
+        "wt_growth_pct": 173.9,
+        "interval_days": 27
+      },
+      "timepoints": [
+        {
+          "label": "baseline",
+          "relative_day": 0,
+          "mr_path": "data/raw/ucsf_glioma/100220/100220_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100220/100220_time1_seg.nii.gz"
+        },
+        {
+          "label": "followup",
+          "relative_day": 27,
+          "mr_path": "data/raw/ucsf_glioma/100220/100220_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100220/100220_time2_seg.nii.gz"
+        }
+      ],
+      "backup": true,
+      "notes": "IDH-WT grade 4.0; WT volume change +174% over 27d."
+    },
+    {
+      "patient_id": "100134",
+      "dataset": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+      "disease": "Glioma",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "grade": 3.0,
+      "idh_status": "mut",
+      "mgmt": null,
+      "risk_tier": "low",
+      "measured_growth": {
+        "wt_volume_t1_mm3": 66627,
+        "wt_volume_t2_mm3": 38355,
+        "wt_growth_pct": -42.4,
+        "interval_days": 105
+      },
+      "timepoints": [
+        {
+          "label": "baseline",
+          "relative_day": 0,
+          "mr_path": "data/raw/ucsf_glioma/100134/100134_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100134/100134_time1_seg.nii.gz"
+        },
+        {
+          "label": "followup",
+          "relative_day": 105,
+          "mr_path": "data/raw/ucsf_glioma/100134/100134_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100134/100134_time2_seg.nii.gz"
+        }
+      ],
+      "backup": true,
+      "notes": "IDH-mut grade 3.0; WT volume change -42% over 105d."
+    },
+    {
+      "patient_id": "100130",
+      "dataset": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+      "disease": "Glioma",
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "grade": 3.0,
+      "idh_status": "mut",
+      "mgmt": null,
+      "risk_tier": "low",
+      "measured_growth": {
+        "wt_volume_t1_mm3": 11845,
+        "wt_volume_t2_mm3": 8313,
+        "wt_growth_pct": -29.8,
+        "interval_days": 182
+      },
+      "timepoints": [
+        {
+          "label": "baseline",
+          "relative_day": 0,
+          "mr_path": "data/raw/ucsf_glioma/100130/100130_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100130/100130_time1_seg.nii.gz"
+        },
+        {
+          "label": "followup",
+          "relative_day": 182,
+          "mr_path": "data/raw/ucsf_glioma/100130/100130_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_glioma/100130/100130_time2_seg.nii.gz"
+        }
+      ],
+      "backup": true,
+      "notes": "IDH-mut grade 3.0; WT volume change -30% over 182d."
     }
   ]
 }
