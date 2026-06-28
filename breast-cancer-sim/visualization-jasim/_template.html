@@ -224,7 +224,13 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
 
     <div class="split" style="margin-top:1.4rem">
       <div class="panel reveal">
-        <div class="ph"><span class="t">3D glioma · calibrated growth</span></div>
+        <div class="ph"><span class="t">3D glioma · calibrated growth</span>
+          <div class="modes">
+            <button class="mode on" data-bmode="volumetric">Volumetric</button>
+            <button class="mode" data-bmode="isosurface">Isosurface</button>
+            <button class="mode" data-bmode="cutaway">Cutaway</button>
+          </div>
+        </div>
         <div class="selbar">
           <span class="seg-l">Regime</span>
           <button class="mode on" data-regime="aggressive">IDH-wildtype</button>
@@ -360,7 +366,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
 </footer>
 
 <script>
-const GRID={x:__GRID_X__,y:__GRID_Y__,z:__GRID_Z__}, CSCALE=__CSCALE__, BRAIN_CSCALE=__BRAIN_CSCALE__, OPAC=__OPAC__, LAYOUT3D=__LAYOUT3D__;
+const GRID={x:__GRID_X__,y:__GRID_Y__,z:__GRID_Z__}, CSCALE=__CSCALE__, BRAIN_CSCALE=__BRAIN_CSCALE__, BRAIN_VOL_CSCALE=__BRAIN_VOL_CSCALE__, OPAC=__OPAC__, BRAIN_OPAC=__BRAIN_OPAC__, LAYOUT3D=__LAYOUT3D__;
 const BRAIN=__BRAIN__, BRAIN_SLICES=__BRAIN_SLICES__, COHORT=__COHORT__;
 const BR_VOLS=__BR_VOLS__, BR_SLICES=__BR_SLICES__, BR_META=__BR_META__, BR_CASES=__BR_CASES__, BREAST=__BREAST__;
 const CFG={responsive:true,displayModeBar:false};
@@ -374,13 +380,26 @@ function stopSpin(){ clearInterval(spinTimer); }
 const CAPS={x:{show:false},y:{show:false},z:{show:false}};
 function isoTrace(val,isomin,cmin,cmax,colorscale=CSCALE){ return {type:'isosurface',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:isomin,isomax:1.0,cmin:cmin,cmax:cmax,surface:{count:3},colorscale:colorscale,showscale:false,opacity:0.62,caps:CAPS}; }
 function brainIsoTrace(val){ return isoTrace(val,0.2,0.2,1.0,BRAIN_CSCALE); }
+function brainVolTrace(val){ return {type:'volume',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:0.08,isomax:0.75,cmin:0.15,cmax:0.75,colorscale:BRAIN_VOL_CSCALE,opacityscale:BRAIN_OPAC,surface:{count:18},showscale:false,caps:CAPS}; }
 function volTrace(val){ return {type:'volume',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:0.15,isomax:1.0,cmin:0.2,cmax:0.85,colorscale:CSCALE,opacityscale:OPAC,surface:{count:18},showscale:false,caps:CAPS}; }
 
 /* ---------- BRAIN ---------- */
-let bRegime='aggressive', bIdx=0, bPlay=null;
-function bDraw(){ Plotly.react('brain3d',[brainIsoTrace(BRAIN[bRegime].values[bIdx])],LAYOUT3D,CFG).then(()=>{if(activeViz==='brain3d')startSpin();}); }
+let bRegime='aggressive', bMode='volumetric', bIdx=0, bPlay=null;
+function bCutVal(val){ return val.map((d,i)=>GRID.y[i]>=16?0:d); }
+function bTrace(val){
+  if(bMode==='isosurface') return brainIsoTrace(val);
+  if(bMode==='cutaway') return brainVolTrace(bCutVal(val));
+  return brainVolTrace(val);
+}
+function bValForRestyle(val){ return bMode==='cutaway'?bCutVal(val):val; }
+function bReticleLabel(){
+  if(bMode==='volumetric') return 'VOL RENDER';
+  if(bMode==='cutaway') return 'CUT Y≥16';
+  return 'ISO 0.20';
+}
+function bDraw(){ Plotly.react('brain3d',[bTrace(BRAIN[bRegime].values[bIdx])],LAYOUT3D,CFG).then(()=>{if(activeViz==='brain3d')startSpin();}); }
 function bGoto(i){ const reg=BRAIN[bRegime]; bIdx=Math.max(0,Math.min(i,reg.n-1));
-  Plotly.restyle('brain3d',{value:[reg.values[bIdx]]},[0]);
+  Plotly.restyle('brain3d',{value:[bValForRestyle(reg.values[bIdx])]},[0]);
   document.getElementById('brain-tlread').innerHTML=`DAY ${String(reg.days[bIdx]).padStart(3,'0')} · <b>${reg.idx[bIdx].toFixed(0)}</b> burden idx`;
   Plotly.relayout('brainCurve',{shapes:[{type:'line',x0:reg.days[bIdx],x1:reg.days[bIdx],y0:0,y1:reg.peak*1.1,line:{color:'#ff7a45',width:1.6,dash:'dot'}}]});
   document.getElementById('brain-tl').value=bIdx;
@@ -401,7 +420,7 @@ function bKPIs(){ const reg=BRAIN[bRegime];
   document.getElementById('bk-peak').textContent=reg.peak;
   document.getElementById('bk-grew').textContent=reg.grew+'%';
   document.getElementById('bk-risk').textContent=fmtRisk(reg.risk);
-  document.getElementById('brainReticle').innerHTML=`UCSF ${reg.patient_id}<br>GLIOMA<br>ISO 0.20`;
+  document.getElementById('brainReticle').innerHTML=`UCSF ${reg.patient_id}<br>GLIOMA<br>${bReticleLabel()}`;
   document.getElementById('brain-read').innerHTML=`Seeded from a real UCSF glioma (patient <b>${reg.patient_id}</b>), forward-simulated with Vinesh's calibrated reaction–diffusion to match this patient's measured follow-up (<b>${reg.real_growth_pct!=null?((reg.real_growth_pct>=0?'+':'')+reg.real_growth_pct.toFixed(0)+'%'):'—'}</b> WT volume change). Modeled tumor burden reaches <b class="ok">${reg.peak}</b> (baseline=100) over <b>${reg.days[reg.n-1]}</b> days. In the real 298-patient cohort, <b>${reg.grew}%</b> of ${reg.idh==='WT'?'IDH-wildtype':'IDH-mutant'} gliomas grew (median growth ×<b class="ok">${reg.gm.toFixed(2)}</b>). <span style="color:var(--muted)">Calibrated growth model — not an out-of-sample prediction.</span>`;
 }
 function bPlayToggle(){ if(playing){bStop();return;} playing=true; stopSpin();
@@ -413,6 +432,11 @@ function bStop(){ playing=false; clearInterval(bPlay); const pb=document.getElem
 function bSetRegime(reg,btn){ bStop(); bRegime=reg; bIdx=0;
   document.querySelectorAll('[data-regime]').forEach(x=>x.classList.remove('on')); btn.classList.add('on');
   bCurve(); bSlices(); bKPIs(); bDraw(); setTimeout(()=>bGoto(0),80);
+}
+function bSetMode(mode,btn){
+  bStop();
+  document.querySelectorAll('[data-bmode]').forEach(x=>x.classList.remove('on')); btn.classList.add('on');
+  bMode=mode; bKPIs(); bDraw();
 }
 function cohortChart(){
   const tr={type:'bar',x:['IDH-WT','IDH-mutant'],y:[COHORT.wt_gm,COHORT.mut_gm],marker:{color:['#ff3b54','#46e0b0']},
@@ -427,7 +451,7 @@ function cohortChart(){
 let brainReady=false;
 function brainInit(){
   if(!brainReady){ brainReady=true;
-    Plotly.newPlot('brain3d',[brainIsoTrace(BRAIN[bRegime].values[0])],LAYOUT3D,CFG);
+    Plotly.newPlot('brain3d',[bTrace(BRAIN[bRegime].values[0])],LAYOUT3D,CFG);
     document.getElementById('brain-tl').max=BRAIN[bRegime].n-1;
     bCurve(); bSlices(); bKPIs(); cohortChart(); bGoto(0);
     const stage=document.getElementById('brainStage');
@@ -436,6 +460,7 @@ function brainInit(){
     document.getElementById('brain-play').addEventListener('click',bPlayToggle);
     document.getElementById('brain-tl').addEventListener('input',e=>{bStop();bGoto(parseInt(e.target.value,10));});
     document.querySelectorAll('[data-regime]').forEach(b=>b.addEventListener('click',()=>bSetRegime(b.dataset.regime,b)));
+    document.querySelectorAll('[data-bmode]').forEach(b=>b.addEventListener('click',()=>bSetMode(b.dataset.bmode,b)));
   } else { ['brain3d','brainCurve','brainSlices','cohortChart'].forEach(id=>{const g=document.getElementById(id);if(g&&g.data)Plotly.Plots.resize(g);}); }
 }
 

@@ -65,6 +65,39 @@ def orange_intensity_colorscale(steps: int = 6):
     return scale
 
 
+def orange_volumetric_colorscale(steps: int = 6):
+    """Brighter orange ramp for go.Volume on soft PDE glioma fields.
+
+    Isosurface can use a dim rim (orange_intensity_colorscale); volumetric
+    needs a higher brightness floor because solver densities cluster at 0.2–0.5
+    with peak ~0.7 — unlike windowed breast MR which saturates near 1.0.
+    """
+    scale = []
+    for i in range(steps):
+        t = i / (steps - 1)
+        strength = 0.45 + 0.55 * t
+        r, g, b = (int(c * strength) for c in _ORANGE_RGB)
+        scale.append([t, f"#{r:02x}{g:02x}{b:02x}"])
+    return scale
+
+
+def brain_opacityscale():
+    """Opacity transfer for glioma PDE fields (rim 0.2–0.4, peak ~0.7).
+
+    Breast MR uses density_opacityscale() after per-case contrast stretch to
+    ~1.0. Raw PDE densities never reach that range, so the breast ramp leaves
+    glioma tissue at ~2% opacity and it vanishes on a dark scene.
+    """
+    return [
+        [0.00, 0.00],
+        [0.12, 0.12],
+        [0.28, 0.32],
+        [0.50, 0.55],
+        [0.72, 0.78],
+        [1.00, 0.92],
+    ]
+
+
 def density_colorscale():
     """Plotly colorscale mapping density [0,1] -> tissue color.
 
