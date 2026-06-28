@@ -46,6 +46,25 @@ def clinical_palette() -> dict:
     }
 
 
+# Site accent orange (#ff7a45) — single hue for brain isosurface intensity ramp.
+_ORANGE_RGB = (255, 122, 69)
+
+
+def orange_intensity_colorscale(steps: int = 6):
+    """Plotly colorscale: one orange hue, brightness ∝ density on [0.2, 1.0].
+
+    Use with isosurface cmin=0.2, cmax=1.0 so low-density rim is faint orange
+    and the core is full-strength orange — no blue/amber/red tissue palette.
+    """
+    scale = []
+    for i in range(steps):
+        t = i / (steps - 1)
+        strength = 0.2 + 0.8 * t
+        r, g, b = (int(c * strength) for c in _ORANGE_RGB)
+        scale.append([t, f"#{r:02x}{g:02x}{b:02x}"])
+    return scale
+
+
 def density_colorscale():
     """Plotly colorscale mapping density [0,1] -> tissue color.
 

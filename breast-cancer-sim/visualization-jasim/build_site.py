@@ -140,7 +140,9 @@ brain_payload = {k: {kk: vv for kk, vv in v.items()} for k, v in BRAIN.items()}
 
 repl = {
     "__GRID_X__": json.dumps(GRID_X), "__GRID_Y__": json.dumps(GRID_Y), "__GRID_Z__": json.dumps(GRID_Z),
-    "__CSCALE__": json.dumps(cm.density_colorscale()), "__OPAC__": json.dumps(cm.density_opacityscale()),
+    "__CSCALE__": json.dumps(cm.density_colorscale()),
+    "__BRAIN_CSCALE__": json.dumps(cm.orange_intensity_colorscale()),
+    "__OPAC__": json.dumps(cm.density_opacityscale()),
     "__LAYOUT3D__": json.dumps(LAYOUT3D),
     "__BRAIN__": json.dumps(brain_payload), "__BRAIN_SLICES__": slices_brain, "__COHORT__": json.dumps(COHORT),
     "__BR_VOLS__": json.dumps(BR_VOLS), "__BR_SLICES__": slices_breast,

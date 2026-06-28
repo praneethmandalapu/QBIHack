@@ -363,7 +363,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
 </footer>
 
 <script>
-const GRID={x:__GRID_X__,y:__GRID_Y__,z:__GRID_Z__}, CSCALE=__CSCALE__, OPAC=__OPAC__, LAYOUT3D=__LAYOUT3D__;
+const GRID={x:__GRID_X__,y:__GRID_Y__,z:__GRID_Z__}, CSCALE=__CSCALE__, BRAIN_CSCALE=__BRAIN_CSCALE__, OPAC=__OPAC__, LAYOUT3D=__LAYOUT3D__;
 const BRAIN=__BRAIN__, BRAIN_SLICES=__BRAIN_SLICES__, COHORT=__COHORT__;
 const BR_VOLS=__BR_VOLS__, BR_SLICES=__BR_SLICES__, BR_META=__BR_META__, BR_CASES=__BR_CASES__;
 const CFG={responsive:true,displayModeBar:false};
@@ -374,12 +374,13 @@ function startSpin(){ if(reduce||playing)return; clearInterval(spinTimer); const
   spinTimer=setInterval(()=>{angle+=0.0045*Math.PI; const R=1.8; Plotly.relayout(gd,{'scene.camera.eye':{x:R*Math.cos(angle),y:R*Math.sin(angle),z:0.85}});},60); }
 function stopSpin(){ clearInterval(spinTimer); }
 const CAPS={x:{show:false},y:{show:false},z:{show:false}};
-function isoTrace(val,isomin,cmin,cmax){ return {type:'isosurface',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:isomin,isomax:1.0,cmin:cmin,cmax:cmax,surface:{count:3},colorscale:CSCALE,showscale:false,opacity:0.62,caps:CAPS}; }
+function isoTrace(val,isomin,cmin,cmax,colorscale=CSCALE){ return {type:'isosurface',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:isomin,isomax:1.0,cmin:cmin,cmax:cmax,surface:{count:3},colorscale:colorscale,showscale:false,opacity:0.62,caps:CAPS}; }
+function brainIsoTrace(val){ return isoTrace(val,0.2,0.2,1.0,BRAIN_CSCALE); }
 function volTrace(val){ return {type:'volume',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:0.15,isomax:1.0,cmin:0.2,cmax:0.85,colorscale:CSCALE,opacityscale:OPAC,surface:{count:18},showscale:false,caps:CAPS}; }
 
 /* ---------- BRAIN ---------- */
 let bRegime='aggressive', bIdx=0, bPlay=null;
-function bDraw(){ Plotly.react('brain3d',[isoTrace(BRAIN[bRegime].values[bIdx],0.4,0.4,0.95)],LAYOUT3D,CFG).then(()=>{if(activeViz==='brain3d')startSpin();}); }
+function bDraw(){ Plotly.react('brain3d',[brainIsoTrace(BRAIN[bRegime].values[bIdx])],LAYOUT3D,CFG).then(()=>{if(activeViz==='brain3d')startSpin();}); }
 function bGoto(i){ const reg=BRAIN[bRegime]; bIdx=Math.max(0,Math.min(i,reg.n-1));
   Plotly.restyle('brain3d',{value:[reg.values[bIdx]]},[0]);
   document.getElementById('brain-tlread').innerHTML=`DAY ${String(reg.days[bIdx]).padStart(3,'0')} · <b>${reg.idx[bIdx].toFixed(0)}</b> burden idx`;
@@ -425,7 +426,7 @@ function cohortChart(){
 let brainReady=false;
 function brainInit(){
   if(!brainReady){ brainReady=true;
-    Plotly.newPlot('brain3d',[isoTrace(BRAIN[bRegime].values[0],0.4,0.4,0.95)],LAYOUT3D,CFG);
+    Plotly.newPlot('brain3d',[brainIsoTrace(BRAIN[bRegime].values[0])],LAYOUT3D,CFG);
     document.getElementById('brain-tl').max=BRAIN[bRegime].n-1;
     bCurve(); bSlices(); bKPIs(); cohortChart(); bGoto(0);
     const stage=document.getElementById('brainStage');
