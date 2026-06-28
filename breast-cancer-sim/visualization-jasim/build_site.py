@@ -24,11 +24,12 @@ warnings.filterwarnings("ignore")
 import numpy as np  # noqa: E402
 import color_maps as cm  # noqa: E402
 import render_3d as r  # noqa: E402
+import make_brain_frames as bf  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 BREAST = HERE.parent                      # breast-cancer-sim/
 REPO = BREAST.parent                      # qbihack/
-BRAIN_SIM = REPO / "brain-cancer-sim"
+BRAIN = REPO / "brain-cancer-sim"
 FRAMES = BREAST / "data/processed/brain-frames-jasim"
 SITE = HERE / "site"
 SITE.mkdir(exist_ok=True)
@@ -51,25 +52,35 @@ def theme_2d(fig):
 # --------------------------------------------------------------------------- #
 # BRAIN — longitudinal glioma growth (calibrated, seeded from real UCSF 100002)
 # --------------------------------------------------------------------------- #
+BRAIN_META = {
+    "aggressive": {"label": "IDH-wildtype", "tag": "aggressive", "idh": "WT",
+                   "grade": "4", "gm": 1.57, "grew": 70},
+    "indolent": {"label": "IDH-mutant", "tag": "indolent", "idh": "mutant",
+                 "grade": "2–3", "gm": 0.92, "grew": 55},
+}
+bf.ensure_frames(FRAMES)   # regenerate gitignored demo stacks from the real seed
 BRAIN = {}
 BRAIN_SLICES = {}
-for key in ("model", "measured"):           # model first = default (shows growth)
-    meta = json.loads((FRAMES / f"glioma_100002_{key}_frames.json").read_text())
+for key, m in BRAIN_META.items():
     arr = np.load(FRAMES / f"glioma_100002_{key}_frames.npy")   # (T,Z,Y,X)
     T = arr.shape[0]
     disp = [r.downsample(arr[i], 2) for i in range(T)]
+    # Tumor-VOLUME index (voxels at clinical tumor density >=0.5), baseline=100.
+    # Volume — not a low threshold — so the curve tracks the lesion expanding,
+    # not the diffusion halo crossing a floor (which inflated the old >0.3 count).
+    burden = [float((arr[i] > 0.5).sum()) for i in range(T)]
+    b0 = burden[0] or 1.0
     BRAIN[key] = {
+        **m,
         "values": [np.round(d.ravel(), 2).tolist() for d in disp],
-        "idx": meta["mass_index"], "days": meta["days"], "n": T,   # mass index, baseline = 100
-        "kind": meta["kind"], "idh": meta["idh"], "grade": meta["grade"],
-        "growth": meta["growth_pct"], "note": meta["note"],
-        "peak": round(meta["mass_index"][-1]),
+        "idx": [round(100 * b / b0, 1) for b in burden],     # burden index, baseline = 100
+        "days": [round(i * 180 / (T - 1)) for i in range(T)],
+        "n": T, "peak": round(100 * burden[-1] / b0),
     }
     BRAIN_SLICES[key] = theme_2d(r.render_slices(arr[-1], (1.0, 1.0, 1.0)))
 
-# imaging-cohort risk summary (visualization-jasim/risk/patients.csv)
-_brain_risk_csv = BRAIN_SIM / "visualization-jasim" / "risk" / "patients.csv"
-_rows = list(csv.DictReader(open(_brain_risk_csv)))
+# real UCSF cohort summary (298 patients)
+_rows = list(csv.DictReader(open(REPO / "brain-cancer-sim/data/processed/brain_patient_features.csv")))
 _wt = [x for x in _rows if x["idh"] == "WT"]
 _mut = [x for x in _rows if x["idh"] and x["idh"] != "WT"]
 
@@ -142,7 +153,6 @@ for k, v in repl.items():
 out = SITE / "index.html"
 out.write_text(html, encoding="utf-8")
 print(f"wrote {out}  ({out.stat().st_size / 1e6:.1f} MB)")
-print(f"brain: model +{BRAIN['model']['growth']}% mass (peak idx {BRAIN['model']['peak']}) · "
-      f"measured +{BRAIN['measured']['growth']}% (peak idx {BRAIN['measured']['peak']})")
+print(f"brain: aggressive peak {BRAIN['aggressive']['peak']}% · indolent peak {BRAIN['indolent']['peak']}%")
 print(f"cohort: n={COHORT['n']} WT grew {COHORT['wt_grew']}% (GM {COHORT['wt_gm']}) · mut grew {COHORT['mut_grew']}% (GM {COHORT['mut_gm']})")
 print("breast:", ", ".join(f"{BR_META[s]['subtype'][:3]}/{BR_META[s]['study']}={BR_META[s]['frac']}%" for s in BR_SLUGS))

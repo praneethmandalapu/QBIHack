@@ -14,6 +14,14 @@ from scipy.ndimage import center_of_mass, zoom
 VINESH_DIR = Path(__file__).resolve().parent
 SPIKE_ROOT = VINESH_DIR.parent
 sys.path.insert(0, str(SPIKE_ROOT))
+sys.path.insert(0, str(VINESH_DIR))
+
+from mask_seeding import seed_from_mask  # noqa: E402
+
+# Core density assigned to the densest part of the lesion when seeding from the
+# expert mask. Kept just below carrying capacity so the logistic term stays
+# active (growth comes from the invading margin, not from filling headroom).
+DENSITY_PEAK = 0.9
 
 from handoff_contract import (  # noqa: E402
     contract_version,
@@ -138,7 +146,15 @@ def prepare_pde_stages(
         norm = np.zeros_like(resampled)
     norm = norm * (vmax_out - vmin_out) + vmin_out
 
-    segmented = np.where(resampled_mask, norm, background).astype(np.float32)
+    # Seed the PDE density from the expert mask's GEOMETRY (dense core + low-density
+    # infiltrative rim), not from MR intensity. MRI does not measure cell density;
+    # keeping normalized intensity put the whole tumor at a flat ~0.30 plateau, so
+    # the logistic term grew each voxel in place (densified) instead of advancing
+    # the invasive front — the unrealistic growth Philip flagged. seed_from_mask is
+    # the standard glioma reaction-diffusion initialization (see mask_seeding.py).
+    seed = seed_from_mask(resampled_mask.astype(np.float32),
+                          profile="ramp", peak=DENSITY_PEAK)
+    segmented = np.where(resampled_mask, seed, background).astype(np.float32)
 
     if resampled_mask.any():
         center = center_of_mass(resampled_mask.astype(np.float32))
@@ -214,7 +230,8 @@ def save_pde_input(
         "segmentation": pde_spec["segmentation"],
         "value_semantics": {
             str(pde_spec["background_value"]): "background/healthy",
-            ">0": "initial tumor burden (expert mask)",
+            ">0": "modeled initial tumor cell density, seeded from expert-mask "
+                  "geometry (dense core + infiltrative rim); NOT MR intensity",
         },
         "upstream": {
             "patient_id": raw_metadata.get("patient_id"),

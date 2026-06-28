@@ -214,36 +214,36 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
   <!-- ===================== BRAIN ===================== -->
   <section class="tabpanel" data-tab="brain">
     <div class="cluster reveal">
-      <div class="cell c-5"><span class="lab">Scenario</span><span class="val" style="font-size:clamp(1.4rem,3.2vw,2.1rem)" id="bk-scenario">—</span><span class="sub" id="bk-note">—</span></div>
-      <div class="cell c-4"><span class="lab">Mass growth · 183 d</span><span class="val" id="bk-growth">—</span><span class="sub">integrated tumor mass</span></div>
-      <div class="cell c-3"><span class="lab">IDH · grade</span><span class="val" style="font-size:clamp(1.1rem,2.6vw,1.6rem)" id="bk-idh">—</span><span class="sub">WHO 2021</span></div>
-      <div class="cell c-5"><span class="lab">Peak mass index</span><span class="val"><span id="bk-peak">—</span><span class="u">idx</span></span><span class="sub">baseline = 100</span></div>
-      <div class="cell c-4"><span class="lab">Cohort grew</span><span class="val"><span id="bk-grew">—</span></span><span class="sub">real UCSF · n=298</span></div>
-      <div class="cell c-3"><span class="lab">Seed</span><span class="val" style="font-size:clamp(1.2rem,2.8vw,1.7rem)">100002</span><span class="sub">UCSF-LPTDG</span></div>
+      <div class="cell c-5"><span class="lab">IDH regime</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="bk-idh">—</span><span class="sub">UCSF glioma · seed <b>100002</b></span></div>
+      <div class="cell c-4"><span class="lab">Cohort growth rate</span><span class="val" id="bk-gm">—</span><span class="sub">median multiplier</span></div>
+      <div class="cell c-3"><span class="lab">Grade</span><span class="val" style="font-size:clamp(1.3rem,3vw,1.9rem)" id="bk-grade">—</span><span class="sub">WHO 2021</span></div>
+      <div class="cell c-5"><span class="lab">Modeled burden</span><span class="val"><span id="bk-peak">—</span><span class="u">idx</span></span><span class="sub">baseline = 100 · ~180 d</span></div>
+      <div class="cell c-4"><span class="lab">Cohort grew</span><span class="val"><span id="bk-grew">—</span></span><span class="sub">of this subtype (real)</span></div>
+      <div class="cell c-3"><span class="lab">Interval</span><span class="val" style="font-size:clamp(1.3rem,3vw,1.9rem)">180<span class="u">d</span></span><span class="sub">baseline → follow-up</span></div>
     </div>
 
     <div class="split" style="margin-top:1.4rem">
       <div class="panel reveal">
         <div class="ph"><span class="t">3D glioma · calibrated growth</span></div>
         <div class="selbar">
-          <span class="seg-l">Scenario</span>
-          <button class="mode on" data-regime="model">Model · high-grade</button>
-          <button class="mode" data-regime="measured">Measured · IDH-mut</button>
+          <span class="seg-l">Regime</span>
+          <button class="mode on" data-regime="aggressive">IDH-wildtype</button>
+          <button class="mode" data-regime="indolent">IDH-mutant</button>
         </div>
         <div class="stage" id="brainStage">
-          <div class="reticle">UCSF 100002<br>GLIOMA<br>dt 1 day</div>
+          <div class="reticle">UCSF 100002<br>GLIOMA<br>ISO 0.40</div>
           <div class="viz" id="brain3d"></div>
           <div class="scan"></div>
         </div>
         <div class="timeline">
           <button class="play" id="brain-play" aria-label="Play growth">▶</button>
-          <input class="tl" id="brain-tl" type="range" min="0" max="23" value="0" step="1" aria-label="Timestep">
-          <div class="tlread" id="brain-tlread">DAY 000 · <b>100</b> mass idx</div>
+          <input class="tl" id="brain-tl" type="range" min="0" max="20" value="0" step="1" aria-label="Timestep">
+          <div class="tlread" id="brain-tlread">DAY 000 · <b>100</b> burden idx</div>
         </div>
-        <div class="cap">Scrub or play across 183 days · drag to orbit · Fisher–Kolmogorov, dt = 1 day</div>
+        <div class="cap">Scrub or play to grow the lesion · drag to orbit · calibrated reaction–diffusion</div>
       </div>
       <div class="panel reveal">
-        <div class="ph"><span class="t">Tumor mass · 183 days</span><span class="t" style="color:var(--signal)">index / day</span></div>
+        <div class="ph"><span class="t">Modeled tumor burden</span><span class="t" style="color:var(--signal)">index / day</span></div>
         <div class="tele-body"><div class="viz-wide" id="brainCurve"></div></div>
         <div class="read" id="brain-read">—</div>
       </div>
@@ -261,9 +261,9 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
                <b id="ck-wt">96</b> IDH-wildtype gliomas grow at a median multiplier of <b id="ck-wtgm">1.57</b> and
                <b id="ck-wtgrew">70%</b> measurably grew between scans.</p>
             <p>The <b id="ck-mut">123</b> IDH-mutant gliomas are far more indolent — median multiplier
-               <b id="ck-mutgm">0.92</b>, only <b id="ck-mutgrew">55%</b> growing. The 3D scenarios above are
-               seeded from a real baseline; this cohort sets the realistic growth range they span.</p>
-            <p style="color:var(--muted);font-size:.84rem">Measured case = calibrated to real follow-up. Model case = illustrative Fisher–Kolmogorov growth on real anatomy, not an out-of-sample prediction.</p>
+               <b id="ck-mutgm">0.92</b>, only <b id="ck-mutgrew">55%</b> growing. The 3D model above is
+               seeded from a real baseline and driven at these measured rates.</p>
+            <p style="color:var(--muted);font-size:.84rem">Calibrated growth model — reproduces measured behaviour, not an out-of-sample prediction.</p>
           </div></div>
         </div>
       </div>
@@ -354,10 +354,9 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
     <div class="foot-mark reveal">ONCO<b>PULSE</b></div>
     <div class="credits reveal">
       <div><div class="role">P1 · Genomics ML</div><b>Praneeth</b><br>XGBoost · SHAP risk</div>
-      <div><div class="role">P2 · Tumor mechanics</div><b>Vinesh</b><br>3D PDE solver</div>
+      <div><div class="role">P2 · Tumor mechanics · LLM</div><b>Vinesh</b><br>3D PDE solver · narrative</div>
       <div><div class="role">P3 · Visualization</div><b>Jasim</b><br>3D viewer</div>
-      <div><div class="role">P4 · Systems · LLM</div><b>Vihari</b><br>Streamlit · narrative</div>
-      <div><div class="role">P5 · Radiomics</div><b>Philip · Chandan</b><br>imaging pipeline</div>
+      <div><div class="role">P4 · Radiomics · Systems</div><b>Philip · Chandan</b><br>imaging pipeline · Streamlit app</div>
     </div>
     <div class="foot-base"><span>ONCOPULSE · BRAIN &amp; BREAST TUMOR VIEWER</span><span>VISUALIZATION LAYER · PLOTLY + VANILLA JS</span></div>
   </div>
@@ -375,40 +374,33 @@ function startSpin(){ if(reduce||playing)return; clearInterval(spinTimer); const
   spinTimer=setInterval(()=>{angle+=0.0045*Math.PI; const R=1.8; Plotly.relayout(gd,{'scene.camera.eye':{x:R*Math.cos(angle),y:R*Math.sin(angle),z:0.85}});},60); }
 function stopSpin(){ clearInterval(spinTimer); }
 const CAPS={x:{show:false},y:{show:false},z:{show:false}};
-function isoTrace(val,isomin,cmin,cmax,count){ return {type:'isosurface',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:isomin,isomax:1.0,cmin:cmin,cmax:cmax,surface:{count:count||2},colorscale:CSCALE,showscale:false,opacity:0.62,caps:CAPS}; }
+function isoTrace(val,isomin,cmin,cmax){ return {type:'isosurface',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:isomin,isomax:1.0,cmin:cmin,cmax:cmax,surface:{count:3},colorscale:CSCALE,showscale:false,opacity:0.62,caps:CAPS}; }
 function volTrace(val){ return {type:'volume',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:0.15,isomax:1.0,cmin:0.2,cmax:0.85,colorscale:CSCALE,opacityscale:OPAC,surface:{count:18},showscale:false,caps:CAPS}; }
 
 /* ---------- BRAIN ---------- */
-let bRegime='model', bIdx=0, bPlay=null;
-// measured case diffuses (max density falls), so render it as a faint low-threshold
-// volume; the dense growing model renders as a clean isosurface.
-function bVol(val){ return {type:'volume',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:0.06,isomax:0.5,cmin:0.08,cmax:0.42,colorscale:CSCALE,opacityscale:OPAC,surface:{count:14},showscale:false,caps:CAPS}; }
-function bTrace(val){ return bRegime==='measured' ? bVol(val) : isoTrace(val,0.2,0.18,0.62,1); }
-function bDraw(){ Plotly.react('brain3d',[bTrace(BRAIN[bRegime].values[bIdx])],LAYOUT3D,CFG).then(()=>{if(activeViz==='brain3d')startSpin();}); }
+let bRegime='aggressive', bIdx=0, bPlay=null;
+function bDraw(){ Plotly.react('brain3d',[isoTrace(BRAIN[bRegime].values[bIdx],0.4,0.4,0.95)],LAYOUT3D,CFG).then(()=>{if(activeViz==='brain3d')startSpin();}); }
 function bGoto(i){ const reg=BRAIN[bRegime]; bIdx=Math.max(0,Math.min(i,reg.n-1));
   Plotly.restyle('brain3d',{value:[reg.values[bIdx]]},[0]);
-  document.getElementById('brain-tlread').innerHTML=`DAY ${String(reg.days[bIdx]).padStart(3,'0')} · <b>${reg.idx[bIdx].toFixed(0)}</b> mass idx`;
-  Plotly.relayout('brainCurve',{shapes:[{type:'line',x0:reg.days[bIdx],x1:reg.days[bIdx],y0:0,y1:Math.max(reg.peak,110)*1.1,line:{color:'#ff7a45',width:1.6,dash:'dot'}}]});
+  document.getElementById('brain-tlread').innerHTML=`DAY ${String(reg.days[bIdx]).padStart(3,'0')} · <b>${reg.idx[bIdx].toFixed(0)}</b> burden idx`;
+  Plotly.relayout('brainCurve',{shapes:[{type:'line',x0:reg.days[bIdx],x1:reg.days[bIdx],y0:0,y1:reg.peak*1.1,line:{color:'#ff7a45',width:1.6,dash:'dot'}}]});
   document.getElementById('brain-tl').value=bIdx;
 }
 function bCurve(){ const reg=BRAIN[bRegime];
   const tr={x:reg.days,y:reg.idx,mode:'lines',line:{color:'#ff7a45',width:3},fill:'tozeroy',fillcolor:'rgba(255,122,69,0.10)'};
   const ly={paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',height:300,margin:{l:48,r:12,t:18,b:34},font:{color:'#9aa6b6',family:'JetBrains Mono'},
     xaxis:{title:'days',gridcolor:'rgba(236,231,223,0.06)',zerolinecolor:'rgba(236,231,223,0.10)'},
-    yaxis:{title:'tumor mass (baseline=100)',gridcolor:'rgba(236,231,223,0.06)',zerolinecolor:'rgba(236,231,223,0.10)'}};
+    yaxis:{title:'burden index (baseline=100)',gridcolor:'rgba(236,231,223,0.06)',zerolinecolor:'rgba(236,231,223,0.10)'}};
   Plotly.react('brainCurve',[tr],ly,CFG);
 }
 function bSlices(){ const f=BRAIN_SLICES[bRegime]; Plotly.react('brainSlices',f.data,f.layout,CFG); }
-function bKPIs(){ const reg=BRAIN[bRegime]; const isModel=reg.kind==='model';
-  document.getElementById('bk-scenario').textContent=isModel?'Model · high-grade':'Measured';
-  document.getElementById('bk-note').textContent=reg.note;
-  document.getElementById('bk-growth').textContent='+'+reg.growth+'%';
-  document.getElementById('bk-idh').textContent=reg.idh+' · G'+reg.grade;
+function bKPIs(){ const reg=BRAIN[bRegime];
+  document.getElementById('bk-idh').textContent=reg.label;
+  document.getElementById('bk-gm').textContent='×'+reg.gm.toFixed(2);
+  document.getElementById('bk-grade').textContent='Grade '+reg.grade;
   document.getElementById('bk-peak').textContent=reg.peak;
-  document.getElementById('bk-grew').textContent=(isModel?COHORT.wt_grew:COHORT.mut_grew)+'%';
-  document.getElementById('brain-read').innerHTML = isModel
-    ? `<b>Illustrative high-grade model</b> — Fisher–Kolmogorov growth on the real UCSF 100002 geometry, with <code>rho</code> tuned so integrated mass grows <b class="ok">+${reg.growth}%</b> over 183 days — inside the cohort's aggressive IDH-WT range (+182 to +609%). <span style="color:var(--muted)">A model on real anatomy, not patient 100002's measured course.</span>`
-    : `<b>Measured course</b> of the real IDH-mutant glioma (UCSF 100002), the PDE calibrated to its true 183-day follow-up: integrated mass <b class="ok">+${reg.growth}%</b>. Diffusion outpaces proliferation, so the lesion <b>infiltrates and thins</b> rather than balloons — characteristic of indolent low-grade glioma. <span style="color:var(--muted)">Faithful to the real follow-up.</span>`;
+  document.getElementById('bk-grew').textContent=reg.grew+'%';
+  document.getElementById('brain-read').innerHTML=`Seeded from a real UCSF glioma (patient 100002), forward-simulated as an <b>${reg.label}</b> lesion — high-invasion reaction–diffusion for IDH-wildtype, low-invasion + attrition for IDH-mutant. Over ~180 days, modeled tumor volume reaches <b class="ok">${reg.peak}</b> (baseline=100). In the real 298-patient cohort, <b>${reg.grew}%</b> of ${reg.idh==='WT'?'IDH-wildtype':'IDH-mutant'} gliomas grew (median growth ×<b class="ok">${reg.gm.toFixed(2)}</b>). <span style="color:var(--muted)">Calibrated growth model — not an out-of-sample prediction.</span>`;
 }
 function bPlayToggle(){ if(playing){bStop();return;} playing=true; stopSpin();
   const pb=document.getElementById('brain-play'); pb.textContent='❚❚'; pb.classList.add('on');
@@ -433,7 +425,8 @@ function cohortChart(){
 let brainReady=false;
 function brainInit(){
   if(!brainReady){ brainReady=true;
-    Plotly.newPlot('brain3d',[bTrace(BRAIN[bRegime].values[0])],LAYOUT3D,CFG);
+    Plotly.newPlot('brain3d',[isoTrace(BRAIN[bRegime].values[0],0.4,0.4,0.95)],LAYOUT3D,CFG);
+    document.getElementById('brain-tl').max=BRAIN[bRegime].n-1;
     bCurve(); bSlices(); bKPIs(); cohortChart(); bGoto(0);
     const stage=document.getElementById('brainStage');
     stage.addEventListener('mouseenter',()=>{if(activeViz==='brain3d')stopSpin();});
