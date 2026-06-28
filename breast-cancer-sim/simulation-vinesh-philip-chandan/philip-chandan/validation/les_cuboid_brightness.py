@@ -113,6 +113,198 @@ def phase_z_band_slice(
     return slice(z0, z1 + 1)
 
 
+def bbox_yx_slices(les_meta: dict[str, Any]) -> tuple[slice, slice]:
+    """In-plane Y/X slices for the .les bounding box (same indices on every phase slab)."""
+    return (
+        slice(int(les_meta["y_start"]), int(les_meta["y_end"]) + 1),
+        slice(int(les_meta["x_start"]), int(les_meta["x_end"]) + 1),
+    )
+
+
+def expand_les_meta_yx(
+    les_meta: dict[str, Any],
+    margin_yx: int,
+    *,
+    y_size: int,
+    x_size: int,
+) -> dict[str, Any]:
+    """Return a copy of ``les_meta`` with Y/X bounds expanded by ``margin_yx`` voxels."""
+    margin = max(0, int(margin_yx))
+    return {
+        **les_meta,
+        "y_start": max(0, int(les_meta["y_start"]) - margin),
+        "y_end": min(y_size - 1, int(les_meta["y_end"]) + margin),
+        "x_start": max(0, int(les_meta["x_start"]) - margin),
+        "x_end": min(x_size - 1, int(les_meta["x_end"]) + margin),
+    }
+
+
+def bbox_boundary_slab(
+    slab_shape: tuple[int, int, int],
+    y_sl: slice,
+    x_sl: slice,
+) -> np.ndarray:
+    """Cuboid shell mask on a z-band slab (same pattern as ``cuboid_boundary_mask``)."""
+    mask = np.zeros(slab_shape, dtype=np.uint8)
+    region = mask[:, y_sl, x_sl]
+    if region.size == 0:
+        return mask
+    shell = np.zeros_like(region)
+    shell[0, :, :] = 1
+    shell[-1, :, :] = 1
+    shell[:, 0, :] = 1
+    shell[:, -1, :] = 1
+    shell[:, :, 0] = 1
+    shell[:, :, -1] = 1
+    region[:] = shell
+    return mask
+
+
+def normalized_bbox_in_slab(
+    slab: np.ndarray,
+    les_meta: dict[str, Any],
+) -> tuple[np.ndarray, slice, slice]:
+    """1–99% normalized intensities inside bbox, shaped like ``slab[:, y, x]``."""
+    y_sl, x_sl = bbox_yx_slices(les_meta)
+    roi = slab[:, y_sl, x_sl].astype(np.float32, copy=False)
+    flat = roi.ravel()
+    if flat.size:
+        norm = _normalize_roi(flat).reshape(roi.shape)
+    else:
+        norm = np.zeros_like(roi, dtype=np.float32)
+    return norm, y_sl, x_sl
+
+
+def threshold_mask_in_slab(
+    slab: np.ndarray,
+    les_meta: dict[str, Any],
+    threshold: float,
+) -> np.ndarray:
+    """Binary mask on slab grid: voxels inside bbox with normalized intensity ≥ threshold."""
+    norm, y_sl, x_sl = normalized_bbox_in_slab(slab, les_meta)
+    mask = np.zeros(slab.shape, dtype=np.uint8)
+    mask[:, y_sl, x_sl] = (norm >= float(threshold)).astype(np.uint8)
+    return mask
+
+
+def bright_fraction_at_threshold(values: np.ndarray, threshold: float) -> float:
+    if values.size == 0:
+        return 0.0
+    return float((values >= threshold).sum() / values.size)
+
+
+def steepest_dropout_threshold(
+    thresholds: np.ndarray,
+    fractions: np.ndarray,
+) -> tuple[float, float]:
+    """Threshold at steepest negative slope on the bright-fraction curve.
+
+    Returns ``(threshold, slope)`` where slope is Δfraction/Δthreshold (negative = drop).
+    """
+    if thresholds.size < 2:
+        t = float(thresholds[0]) if thresholds.size else 0.5
+        return t, 0.0
+
+    dt = np.diff(thresholds.astype(np.float64))
+    df = np.diff(fractions.astype(np.float64))
+    with np.errstate(divide="ignore", invalid="ignore"):
+        slope = df / dt
+    knee_index = int(np.nanargmin(slope))
+    knee_t = float((thresholds[knee_index] + thresholds[knee_index + 1]) / 2.0)
+    knee_slope = float(slope[knee_index])
+    return knee_t, knee_slope
+
+
+def fraction_curve_for_slab(
+    slab: np.ndarray,
+    les_meta: dict[str, Any],
+    *,
+    threshold_step: float = 0.01,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Fine (threshold, fraction) curve and flattened normalized bbox values."""
+    norm, _y, _x = normalized_bbox_in_slab(slab, les_meta)
+    values = norm.ravel()
+    thresholds = default_thresholds(step=threshold_step)
+    fractions, _counts = bright_fraction_sweep(values, thresholds)
+    return thresholds, fractions, values
+
+
+def extract_bbox_from_slab(slab: np.ndarray, les_meta: dict[str, Any]) -> np.ndarray:
+    """Crop the tight .les Y/X bbox from a P1 z-band slab (all local z in ``slab``)."""
+    y_sl, x_sl = bbox_yx_slices(les_meta)
+    return np.ascontiguousarray(slab[:, y_sl, x_sl].astype(np.float32))
+
+
+def values_in_aligned_bbox(
+    slab: np.ndarray,
+    les_meta: dict[str, Any],
+    *,
+    normalize: bool = True,
+) -> tuple[np.ndarray, int]:
+    """Flattened bbox voxels from an aligned (or raw) z-band slab."""
+    roi = extract_bbox_from_slab(slab, les_meta)
+    flat = roi.ravel()
+    if normalize and flat.size:
+        flat = _normalize_roi(flat)
+    return flat, int(flat.size)
+
+
+def les_fraction_in_bbox_slab(
+    expert_slab: np.ndarray,
+    les_meta: dict[str, Any],
+) -> tuple[float, int, int]:
+    """Expert .les fill fraction inside the bbox on a P1 z-band expert overlay."""
+    y_sl, x_sl = bbox_yx_slices(les_meta)
+    expert = expert_slab[:, y_sl, x_sl].astype(bool)
+    cuboid_voxels = int(expert.size)
+    les_voxels = int(expert.sum())
+    if cuboid_voxels == 0:
+        return 0.0, 0, 0
+    return les_voxels / cuboid_voxels, les_voxels, cuboid_voxels
+
+
+def compute_aligned_bbox_brightness_table(
+    slabs_aligned: dict[int, np.ndarray],
+    phases: list[DcePhase],
+    les_meta: dict[str, Any],
+    expert_slab: np.ndarray,
+    *,
+    thresholds: np.ndarray | None = None,
+    threshold_step: float = 0.05,
+    normalize: bool = True,
+) -> list[CuboidBrightnessRow]:
+    """Bright fraction inside .les bbox on post-alignment z-band slabs (P1–P4)."""
+    cutoffs = thresholds if thresholds is not None else default_thresholds(step=threshold_step)
+    les_frac, les_voxels, cuboid_voxels = les_fraction_in_bbox_slab(expert_slab, les_meta)
+    rows: list[CuboidBrightnessRow] = []
+
+    for phase in phases:
+        slab = slabs_aligned[phase.index]
+        values, count = values_in_aligned_bbox(slab, les_meta, normalize=normalize)
+        if count == 0:
+            count = cuboid_voxels
+
+        fractions, counts = bright_fraction_sweep(values, cutoffs)
+        for threshold, bright_fraction, bright_voxels in zip(
+            cutoffs,
+            fractions,
+            counts,
+            strict=True,
+        ):
+            rows.append(
+                CuboidBrightnessRow(
+                    phase_index=phase.index,
+                    threshold=float(threshold),
+                    bright_fraction=float(bright_fraction),
+                    bright_voxels=int(bright_voxels),
+                    cuboid_voxels=int(count),
+                    les_fraction=float(les_frac),
+                    les_voxels=int(les_voxels),
+                )
+            )
+    return rows
+
+
 def extract_phase_z_band_full_xy(
     volume: np.ndarray,
     les_meta: dict[str, Any],
@@ -436,6 +628,176 @@ def plot_cuboid_bright_fraction_vs_threshold(
                 linewidth=1.0,
                 alpha=0.7,
             )
+
+    ax.legend(loc="upper right", fontsize=9)
+    fig.tight_layout()
+
+    saved: Path | None = None
+    if output_path is not None:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(output_path, dpi=150, bbox_inches="tight")
+        saved = output_path
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+
+    return saved
+
+
+def plot_aligned_bbox_bright_fraction_grid(
+    slabs_aligned: dict[int, np.ndarray],
+    phases: list[DcePhase],
+    les_meta: dict[str, Any],
+    expert_slab: np.ndarray,
+    *,
+    slug: str = "",
+    threshold_step: float = 0.05,
+    normalize: bool = True,
+    output_path: Path | None = None,
+    show: bool = True,
+) -> Path | None:
+    """2×2 grid: one bright-fraction vs threshold panel per phase (post alignment)."""
+    import matplotlib.pyplot as plt
+
+    rows = compute_aligned_bbox_brightness_table(
+        slabs_aligned,
+        phases,
+        les_meta,
+        expert_slab,
+        threshold_step=threshold_step,
+        normalize=normalize,
+    )
+    curves = bright_fraction_curves_by_phase(rows)
+    les_frac, les_voxels, cuboid_voxels = les_fraction_in_bbox_slab(expert_slab, les_meta)
+
+    fig, axes = plt.subplots(2, 2, figsize=(10, 8), sharex=True, sharey=True)
+    title = (
+        f"{slug} — bbox bright fraction vs threshold (post alignment, per phase)"
+        if slug
+        else "Bbox bright fraction vs threshold (post alignment, per phase)"
+    )
+    fig.suptitle(title, fontsize=12)
+
+    colors = ["#4C72B0", "#55A868", "#C44E52", "#8172B3"]
+    for phase, ax, color in zip(phases, axes.ravel(), colors, strict=True):
+        thresholds, fractions = curves.get(phase.index, (np.array([]), np.array([])))
+        panel_title = f"P{phase.index}"
+        if phase.acquisition_time:
+            panel_title += f"\n{phase.acquisition_time}"
+
+        if thresholds.size:
+            pct = fractions * 100.0
+            ax.plot(
+                thresholds,
+                pct,
+                marker="o",
+                markersize=3,
+                linewidth=1.8,
+                color=color,
+                label="≥ threshold",
+            )
+
+        if les_frac > 0:
+            ax.axhline(
+                les_frac * 100.0,
+                color="#333333",
+                linestyle="--",
+                linewidth=1.2,
+                label=f".les fill {les_frac:.1%}",
+            )
+
+        ax.set_title(panel_title, fontsize=10)
+        ax.set_xlabel("Normalized intensity threshold")
+        ax.set_ylabel("% bbox voxels ≥ threshold")
+        ax.set_xlim(0.0, 1.0)
+        ax.set_ylim(0.0, 100.0)
+        ax.grid(True, alpha=0.3)
+        ax.legend(loc="upper right", fontsize=8)
+        ax.text(
+            0.02,
+            0.02,
+            f"les={les_voxels:,} / bbox={cuboid_voxels:,}",
+            transform=ax.transAxes,
+            va="bottom",
+            fontsize=8,
+        )
+
+    fig.tight_layout()
+
+    saved: Path | None = None
+    if output_path is not None:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        fig.savefig(output_path, dpi=150, bbox_inches="tight")
+        saved = output_path
+
+    if show:
+        plt.show()
+    else:
+        plt.close(fig)
+
+    return saved
+
+
+def plot_aligned_bbox_bright_fraction_vs_threshold(
+    slabs_aligned: dict[int, np.ndarray],
+    phases: list[DcePhase],
+    les_meta: dict[str, Any],
+    expert_slab: np.ndarray,
+    *,
+    slug: str = "",
+    threshold_step: float = 0.05,
+    normalize: bool = True,
+    output_path: Path | None = None,
+    show: bool = True,
+) -> Path | None:
+    """Plot % bbox voxels ≥ threshold vs threshold for P1–P4 on post-alignment slabs."""
+    import matplotlib.pyplot as plt
+
+    rows = compute_aligned_bbox_brightness_table(
+        slabs_aligned,
+        phases,
+        les_meta,
+        expert_slab,
+        threshold_step=threshold_step,
+        normalize=normalize,
+    )
+    curves = bright_fraction_curves_by_phase(rows)
+    les_frac, les_voxels, cuboid_voxels = les_fraction_in_bbox_slab(expert_slab, les_meta)
+
+    fig, ax = plt.subplots(figsize=(8, 5))
+    title = (
+        f"{slug} — % bbox bright vs threshold (post P1 z-band alignment)"
+        if slug
+        else "% bbox bright vs threshold (post alignment)"
+    )
+    ax.set_title(title, fontsize=11)
+    ax.set_xlabel("Normalized intensity threshold")
+    ax.set_ylabel("% bbox voxels ≥ threshold")
+    ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(0.0, 100.0)
+    ax.grid(True, alpha=0.3)
+
+    colors = ["#4C72B0", "#55A868", "#C44E52", "#8172B3"]
+    for phase, color in zip(phases, colors, strict=True):
+        thresholds, fractions = curves.get(phase.index, (np.array([]), np.array([])))
+        if thresholds.size == 0:
+            continue
+        pct = fractions * 100.0
+        label = f"P{phase.index}"
+        if phase.acquisition_time:
+            label += f" ({phase.acquisition_time})"
+        ax.plot(thresholds, pct, marker="o", markersize=3, linewidth=1.8, color=color, label=label)
+
+    if les_frac > 0:
+        ax.axhline(
+            les_frac * 100.0,
+            color="#333333",
+            linestyle="--",
+            linewidth=1.2,
+            label=f".les fill {les_frac:.1%} ({les_voxels:,}/{cuboid_voxels:,})",
+        )
 
     ax.legend(loc="upper right", fontsize=9)
     fig.tight_layout()

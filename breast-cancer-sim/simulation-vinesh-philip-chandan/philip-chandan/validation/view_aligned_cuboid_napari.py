@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import math
 import sys
 from pathlib import Path
 from typing import Any
@@ -17,10 +16,11 @@ sys.path.insert(0, str(STRETCH_DIR))
 sys.path.insert(0, str(PHILIP_CHANDAN_DIR))
 
 import napari  # noqa: E402
+import numpy as np  # noqa: E402
 
+from aligned_bbox_threshold_dock import add_bbox_threshold_dock  # noqa: E402
 from clinical_layout import link_viewers  # noqa: E402
 from cuboid_phase_registration import (  # noqa: E402
-    CuboidAlignmentMetrics,
     align_phase_z_bands_to_p1,
     attach_les_overlays_on_z_band,
     display_slab_for_napari,
@@ -31,56 +31,55 @@ from dce_phases import (  # noqa: E402
     resolve_phase_ranges,
     split_dce_phases,
 )
+from les_cuboid_brightness import (  # noqa: E402
+    plot_aligned_bbox_bright_fraction_grid,
+    plot_aligned_bbox_bright_fraction_vs_threshold,
+)
 from load_les_mask import find_les_files, load_les_mask  # noqa: E402
 from load_manifest import find_volume  # noqa: E402
 from prep_volume import load_raw_extract  # noqa: E402
 from validate_segmentation import load_annotation_volume  # noqa: E402
 from view_les_napari import slugs_with_les  # noqa: E402
 
+QC_DIR = PHILIP_CHANDAN_DIR.parents[1] / "data" / "qc" / "segmentation-philip-chandan"
 
-def add_alignment_metrics_dock(viewer: napari.Viewer, metrics: list[CuboidAlignmentMetrics]) -> None:
-    from qtpy.QtWidgets import (
-        QHeaderView,
-        QLabel,
-        QTableWidget,
-        QTableWidgetItem,
-        QVBoxLayout,
-        QWidget,
-    )
 
-    widget = QWidget()
-    layout = QVBoxLayout(widget)
-    layout.addWidget(
-        QLabel(
-            "Rigid registration on P1 .les z-band slabs (full breast Y/X). "
-            "Each P2–P4 volume is aligned to the P1 slab grid."
-        )
-    )
-
-    table = QTableWidget(len(metrics), 8)
-    table.setHorizontalHeaderLabels(
-        ["Phase", "|T| mm", "|R| deg", "NCC pre", "NCC post", "MSE pre", "MSE post", "MI final"]
-    )
-    table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-
-    for row_index, row in enumerate(metrics):
-        trans = math.sqrt(sum(v * v for v in row.translation_mm))
-        values = [
-            f"P{row.moving_phase}",
-            f"{trans:.3f}",
-            f"{row.rotation_magnitude_deg:.3f}",
-            f"{row.ncc_before:.4f}",
-            f"{row.ncc_after:.4f}",
-            f"{row.mse_before:.2f}",
-            f"{row.mse_after:.2f}",
-            f"{row.optimizer_metric_value:.4f}",
-        ]
-        for col_index, text in enumerate(values):
-            table.setItem(row_index, col_index, QTableWidgetItem(text))
-
-    table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-    layout.addWidget(table)
-    viewer.window.add_dock_widget(widget, area="bottom", name="Alignment metrics")
+def save_aligned_bbox_plot_pngs(
+    slug: str,
+    *,
+    slabs_aligned: dict[int, Any],
+    phases: list,
+    les_meta: dict[str, Any],
+    expert_slab: Any,
+    threshold_step: float = 0.05,
+) -> list[Path]:
+    """Write overlay + 2×2 grid bright-fraction PNGs (same paths as run_aligned_bbox_workflow)."""
+    saved: list[Path] = []
+    overlay_path = QC_DIR / f"{slug}_aligned_bbox_bright_vs_threshold.png"
+    if plot_aligned_bbox_bright_fraction_vs_threshold(
+        slabs_aligned,
+        phases,
+        les_meta,
+        expert_slab,
+        slug=slug,
+        threshold_step=threshold_step,
+        output_path=overlay_path,
+        show=False,
+    ):
+        saved.append(overlay_path)
+    grid_path = QC_DIR / f"{slug}_aligned_bbox_bright_vs_threshold_grid.png"
+    if plot_aligned_bbox_bright_fraction_grid(
+        slabs_aligned,
+        phases,
+        les_meta,
+        expert_slab,
+        slug=slug,
+        threshold_step=threshold_step,
+        output_path=grid_path,
+        show=False,
+    ):
+        saved.append(grid_path)
+    return saved
 
 
 def setup_aligned_slab_grid(
@@ -94,17 +93,20 @@ def setup_aligned_slab_grid(
     spacing_mm: tuple[float, float, float],
     z_band_local: tuple[int, int],
     show_raw: bool = False,
-) -> None:
+) -> tuple[list[Any], dict[int, Any], dict[int, Any]]:
     from napari._qt.qt_viewer import QtViewer
     from napari.components.viewer_model import ViewerModel
     from qtpy.QtWidgets import QGridLayout, QLabel, QWidget
 
     scale = spacing_mm
     phase_viewers: list[Any] = []
+    threshold_layers: dict[int, Any] = {}
+    boundary_layers: dict[int, Any] = {}
 
     grid = QGridLayout()
     grid.setSpacing(4)
     z0, z1 = z_band_local
+    slab_shape = next(iter(slabs_aligned.values())).shape
 
     for column, phase in enumerate(phases):
         volume = slabs_raw[phase.index] if show_raw else slabs_aligned[phase.index]
@@ -118,10 +120,24 @@ def setup_aligned_slab_grid(
             colormap="gray",
             contrast_limits=(0.0, 1.0),
         )
-        if expert_slab.any():
-            phase_model.add_labels(expert_slab, name=".les expert", scale=scale, opacity=0.55)
-        if boundary_slab.any():
-            phase_model.add_labels(boundary_slab, name=".les bbox", scale=scale, opacity=0.85)
+        # Overlays on P1 only — threshold/bbox on P2–P4 block the aligned tissue view.
+        if phase.index == 1:
+            if expert_slab.any():
+                phase_model.add_labels(expert_slab, name=".les expert", scale=scale, opacity=0.55)
+            boundary_layer = phase_model.add_labels(
+                boundary_slab if boundary_slab.any() else np.zeros(slab_shape, dtype=np.uint8),
+                name="bbox shell",
+                scale=scale,
+                opacity=0.85,
+            )
+            boundary_layers[phase.index] = boundary_layer
+            threshold_layer = phase_model.add_labels(
+                np.zeros(slab_shape, dtype=np.uint8),
+                name="threshold mask",
+                scale=scale,
+                opacity=0.5,
+            )
+            threshold_layers[phase.index] = threshold_layer
         phase_viewers.append(phase_model)
 
         header = QLabel(title)
@@ -135,6 +151,7 @@ def setup_aligned_slab_grid(
     grid_widget = QWidget()
     grid_widget.setLayout(grid)
     viewer.window._qt_window.setCentralWidget(grid_widget)
+    return phase_viewers, threshold_layers, boundary_layers
 
 
 def view_aligned_cuboids(
@@ -142,6 +159,8 @@ def view_aligned_cuboids(
     *,
     show_raw: bool = False,
     registration_iterations: int = 200,
+    save_plots: bool = True,
+    threshold_step: float = 0.05,
 ) -> None:
     entry = find_volume(slug=slug)
     tcga_id = entry["tcga_id"]
@@ -205,8 +224,20 @@ def view_aligned_cuboids(
     )
     print(format_alignment_metrics(result.metrics))
 
+    if save_plots and not show_raw:
+        plot_paths = save_aligned_bbox_plot_pngs(
+            slug,
+            slabs_aligned=result.slabs_aligned,
+            phases=phases,
+            les_meta=les_meta,
+            expert_slab=result.expert_slab,
+            threshold_step=threshold_step,
+        )
+        for path in plot_paths:
+            print(f"  saved plot: {path}")
+
     viewer = napari.Viewer(title=f"{slug} — aligned P1 z-band slabs")
-    setup_aligned_slab_grid(
+    _phase_viewers, threshold_layers, boundary_layers = setup_aligned_slab_grid(
         viewer,
         phases=phases,
         slabs_aligned=result.slabs_aligned,
@@ -217,7 +248,18 @@ def view_aligned_cuboids(
         z_band_local=result.z_band_local,
         show_raw=show_raw,
     )
-    add_alignment_metrics_dock(viewer, result.metrics)
+    if not show_raw:
+        add_bbox_threshold_dock(
+            viewer,
+            phases=phases,
+            slabs_aligned=result.slabs_aligned,
+            expert_slab=result.expert_slab,
+            les_meta=les_meta,
+            phase_viewers=_phase_viewers,
+            threshold_layers=threshold_layers,
+            boundary_layers=boundary_layers,
+            initial_phase=2,
+        )
     napari.run()
 
 
@@ -228,6 +270,17 @@ def main() -> None:
     parser.add_argument("--slug", help="Baseline manifest slug")
     parser.add_argument("--raw", action="store_true", help="Show unregistered slabs")
     parser.add_argument("--registration-iterations", type=int, default=200)
+    parser.add_argument(
+        "--no-plots",
+        action="store_true",
+        help="Skip regenerating bright-fraction PNGs on launch",
+    )
+    parser.add_argument(
+        "--threshold-step",
+        type=float,
+        default=0.05,
+        help="Threshold step for saved PNG curves (default 0.05)",
+    )
     parser.add_argument("--list", action="store_true", help="List slugs with .les")
     args = parser.parse_args()
 
@@ -250,6 +303,8 @@ def main() -> None:
         slug,
         show_raw=args.raw,
         registration_iterations=args.registration_iterations,
+        save_plots=not args.no_plots,
+        threshold_step=args.threshold_step,
     )
 
 

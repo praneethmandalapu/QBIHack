@@ -16,8 +16,8 @@ Run (macOS/Linux):
         --slug luminal_a_TCGA-AR-A1AX_baseline --wide --collapse-controls
 
 Optional: add --mip for the bottom maximum-intensity-projection row beneath P1–P4.
-Phases-only mode shows .les expert voxels + cuboid bounding box and a docked table of
-bright-voxel fraction inside the bbox for each normalized threshold (default step 0.05).
+Phases-only mode shows .les expert voxels + cuboid bounding box. Bright-fraction
+table is printed to the terminal when the viewer starts (not docked in napari).
 
 Run (Windows):
     cd breast-cancer-sim
@@ -65,7 +65,6 @@ from dce_phases import (  # noqa: E402
     split_dce_phases,
 )
 from les_cuboid_brightness import (  # noqa: E402
-    CuboidBrightnessRow,
     compute_cuboid_brightness_table,
     format_brightness_table,
 )
@@ -181,65 +180,6 @@ def add_overlay_toggle_button(
 
     button.clicked.connect(toggle)
     viewer.window.add_dock_widget(button, area="right", name=button_label)
-
-
-def add_brightness_fraction_dock(
-    viewer: napari.Viewer,
-    rows: list[CuboidBrightnessRow],
-    *,
-    threshold_step: float,
-) -> None:
-    """Docked table: bright fraction inside .les cuboid for each phase × threshold."""
-    from qtpy.QtWidgets import (
-        QHeaderView,
-        QLabel,
-        QTableWidget,
-        QTableWidgetItem,
-        QVBoxLayout,
-        QWidget,
-    )
-
-    widget = QWidget()
-    layout = QVBoxLayout(widget)
-    layout.addWidget(
-        QLabel(
-            "Bright fraction = voxels ≥ threshold inside .les cuboid "
-            f"(1–99% normalized per phase; step={threshold_step:.2f}). "
-            "Les frac = expert .les voxels / cuboid voxels."
-        )
-    )
-
-    table = QTableWidget(len(rows), 7)
-    table.setHorizontalHeaderLabels(
-        [
-            "Phase",
-            "Threshold",
-            "Bright frac",
-            "Bright vox",
-            "Cuboid vox",
-            "Les frac",
-            "Les vox",
-        ]
-    )
-    header = table.horizontalHeader()
-    header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
-
-    for row_index, row in enumerate(rows):
-        values = [
-            f"P{row.phase_index}",
-            f"{row.threshold:.2f}",
-            f"{row.bright_fraction:.3f}",
-            str(row.bright_voxels),
-            str(row.cuboid_voxels),
-            f"{row.les_fraction:.3f}",
-            str(row.les_voxels),
-        ]
-        for col_index, text in enumerate(values):
-            table.setItem(row_index, col_index, QTableWidgetItem(text))
-
-    table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
-    layout.addWidget(table)
-    viewer.window.add_dock_widget(widget, area="bottom", name="Cuboid brightness")
 
 
 def _phase_label(phase: DcePhase) -> str:
@@ -565,7 +505,6 @@ def view_slug(
             add_overlay_toggle_button(viewer, "Expert .les", *hanging["expert_layers"])
         if hanging.get("boundary_layers"):
             add_overlay_toggle_button(viewer, "Cuboid bbox", *hanging["boundary_layers"])
-        add_brightness_fraction_dock(viewer, brightness_rows, threshold_step=threshold_step)
         if lesion_z is not None:
             point = [0.0, 0.0, 0.0]
             point[0] = float(lesion_z)
@@ -700,8 +639,6 @@ def view_slug(
         )
     if show_cuboid_enhancement and state.prediction_layer is not None:
         add_overlay_toggle_button(viewer, "cuboid_enhancement", state.prediction_layer)
-
-    add_brightness_fraction_dock(viewer, brightness_rows, threshold_step=threshold_step)
 
     add_breast_display_controls(viewer, state, collapse_controls=collapse_controls)
     _jump_to_lesion(viewer, state)
