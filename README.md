@@ -27,13 +27,11 @@ TCGA pair). Large `.npy` frame stacks are gitignored; regenerate them locally.
 ```bash
 cd breast-cancer-sim/visualization-jasim
 
-# 1) Brain growth frame stacks (solver output → JSON sidecars + gitignored .npy)
-../.venv/bin/python gen_brain_frames.py
-
-# 2) Bake breast + brain into a single self-contained page
+# 1) Bake breast + brain into a single self-contained page
+#    (auto-regenerates brain frame stacks via make_brain_frames if missing)
 ../.venv/bin/python build_site.py
 
-# 3) Serve locally
+# 2) Serve locally
 ../.venv/bin/python -m http.server 8080 --directory site
 ```
 
@@ -42,8 +40,8 @@ Open **http://localhost:8080**
 **Windows (Vinesh):** replace `../.venv/bin/python` with
 `..\.venv\Scripts\python.exe`.
 
-After changing imaging data or risk scores, re-run steps 1–2 before refreshing
-the browser. Risk handoff CSVs for the viewer cohort live in
+After changing imaging data or risk scores, re-run `build_site.py` before refreshing
+the browser. Risk handoff CSVs for the imaging cohort live in
 `*/visualization-jasim/risk/` (regenerate with each folder's `export_risk.py`).
 
 ### Other visualization entry points
