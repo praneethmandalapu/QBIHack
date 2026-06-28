@@ -496,22 +496,20 @@ P1 anchors local z (e.g. 19–26 on A1AX); P2–P4 use the same slice indices ev
 load VIBRANT + .les
   → extract P1 z-band slab (full Y/X) per phase
   → rigid register P2–P4 slabs → P1 grid
-  → inside .les bbox on aligned slabs: sweep threshold (0.05 step)
-  → plot % bbox voxels ≥ threshold for P1–P4 (horizontal line = .les fill ~34%)
-  → pick post-contrast phase (P2–P4) + threshold where curve crosses .les fill
-  → connected component inside bbox, seeded by expert Y/X footprint
-  → embed mask in full `(Z,Y,X)` stack at global .les indices
+  → inside .les bbox on aligned P2–P3 slabs: center-connected fraction vs threshold
+  → elbow on connected curve (not raw bright fraction); optional gap stub (0–10 voxels)
+  → embed singly-connected center region in full `(Z,Y,X)` stack at global .les indices
 ```
 
-**Commands** (from `breast-cancer-sim/`, shared venv):
+**Optional manual QC:** `napari-segment-blobs-and-things-with-membranes` (in `requirements.txt`, replace later) adds **Tools → Segmentation** threshold/CC/watershed on a single layer — use on a cropped phase slab if you want to compare with our dock.
 
 ```bash
-# Napari QC — aligned z-band slabs + registration metrics + bbox threshold slider
+# Napari QC — aligned z-band slabs + bbox threshold slider + export
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_aligned_cuboid_napari.py \
-  --slug luminal_a_TCGA-AR-A1AX_baseline
+  --slug luminal_a_TCGA-AR-A1AX_baseline --show-postcontrast-bright
 ```
 
-Right dock **Bbox threshold**: one slider (0–1) thresholds voxels inside the bbox on the selected phase; overlay shown on **P1 only** (P2–P4 are clean aligned tissue). **Bbox margin** expands Y/X; **Jump to steepest drop** snaps to the knee of the bright-fraction curve. Launch also **regenerates** the overlay + 2×2 grid PNGs under `data/qc/segmentation-philip-chandan/` (use `--no-plots` to skip).
+Right dock: **P2/P3 only** (P4 excluded). Center-connected region from bbox center; **Connectivity gap** stub (0=strict). **Jump to elbow** on connected curve. **Export mask → .npy** writes full-stack mask locally. P1 shows selected-phase mask; optional red overlay on P2–P3.
 
 ```bash
 # Full workflow: align → threshold curves PNG → aligned_bbox_tumor mask (.npy local)
@@ -532,6 +530,8 @@ Right dock **Bbox threshold**: one slider (0–1) thresholds voxels inside the b
 | Mask sidecar | `data/processed/segmentation-philip-chandan/{slug}_aligned_bbox_tumor_mask.json` |
 
 **Modules:** [`validation/cuboid_phase_registration.py`](validation/cuboid_phase_registration.py), [`validation/les_cuboid_brightness.py`](validation/les_cuboid_brightness.py), [`validation/aligned_bbox_tumor.py`](validation/aligned_bbox_tumor.py), [`validation/run_aligned_bbox_workflow.py`](validation/run_aligned_bbox_workflow.py).
+
+**Status (2026-06-28):** Center-connected segmentation replaces the prior bright-fraction + expert-footprint CC pick. **`luminal_a_TCGA-AR-A1AX_baseline`** mask sidecar + QC PNGs committed (P2 @ threshold 0.35, gap=0, ~1.8k bbox voxels); `.npy` stays local. Napari dock supports elbow pick, gap stub, P2/P3 overlay, and **Export mask → .npy**. Next: run same workflow on **`basal_TCGA-AR-A1AQ_baseline`**; wire aligned mask into stretch `prep_volume.py` for Luminal A radiomics unblock.
 
 Pre-alignment cuboid curves (no registration) remain in [`validation/view_les_napari.py`](validation/view_les_napari.py) brightness dock and [`validation/plot_les_cuboid_histograms.py`](validation/plot_les_cuboid_histograms.py).
 

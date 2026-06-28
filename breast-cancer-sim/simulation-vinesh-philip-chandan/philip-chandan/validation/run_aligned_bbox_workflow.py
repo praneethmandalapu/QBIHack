@@ -27,7 +27,7 @@ from dce_phases import (  # noqa: E402
     split_dce_phases,
 )
 from les_cuboid_brightness import (  # noqa: E402
-    compute_aligned_bbox_brightness_table,
+    compute_aligned_bbox_connected_table,
     format_brightness_table,
     plot_aligned_bbox_bright_fraction_grid,
     plot_aligned_bbox_bright_fraction_vs_threshold,
@@ -44,6 +44,7 @@ def run_workflow(
     *,
     registration_iterations: int = 200,
     threshold_step: float = 0.05,
+    gap_voxels: int = 0,
     output_path: Path | None = None,
     plot_layout: str = "both",
     show_plot: bool = False,
@@ -100,12 +101,13 @@ def run_workflow(
         reference_phase=phases[0],
     )
 
-    rows = compute_aligned_bbox_brightness_table(
+    rows = compute_aligned_bbox_connected_table(
         result.slabs_aligned,
         phases,
         les_meta,
         result.expert_slab,
         threshold_step=threshold_step,
+        gap_voxels=gap_voxels,
     )
 
     print(
@@ -117,7 +119,7 @@ def run_workflow(
     )
     print(format_alignment_metrics(result.metrics))
     print()
-    print("Post-alignment bbox bright fraction vs threshold:")
+    print("Post-alignment center-connected bbox fraction vs threshold (P2–P3):")
     print(format_brightness_table(rows))
 
     if plot_layout in ("overlay", "both"):
@@ -129,6 +131,7 @@ def run_workflow(
             result.expert_slab,
             slug=slug,
             threshold_step=threshold_step,
+            gap_voxels=gap_voxels,
             output_path=png_path,
             show=show_plot and plot_layout == "overlay",
         )
@@ -144,6 +147,7 @@ def run_workflow(
             result.expert_slab,
             slug=slug,
             threshold_step=threshold_step,
+            gap_voxels=gap_voxels,
             output_path=grid_path,
             show=show_plot and plot_layout == "grid",
         )
@@ -157,6 +161,7 @@ def run_workflow(
             phases,
             les_meta,
             volume.shape,
+            gap_voxels=gap_voxels,
             extra_metadata={
                 "tcga_id": tcga_id,
                 "study_date": study_date,
@@ -166,6 +171,7 @@ def run_workflow(
         )
         print(
             f"\nTumor mask: P{meta['selected_phase']} @ threshold={meta['threshold']:.3f} "
+            f"(gap={meta.get('gap_voxels', 0)}) "
             f"→ {meta['mask_voxels']:,} voxels in bbox "
             f"({int(mask.sum()):,} in full volume)\n"
             f"  {meta['mask_npy']}"
@@ -182,6 +188,12 @@ def main() -> None:
     parser.add_argument("--slug", help="Baseline manifest slug")
     parser.add_argument("--registration-iterations", type=int, default=200)
     parser.add_argument("--threshold-step", type=float, default=0.05)
+    parser.add_argument(
+        "--gap-voxels",
+        type=int,
+        default=0,
+        help="Morphological closing radius before center CC (0=strict, 1–10 bridges gaps)",
+    )
     parser.add_argument(
         "--output",
         type=Path,
@@ -217,6 +229,7 @@ def main() -> None:
         slug,
         registration_iterations=args.registration_iterations,
         threshold_step=args.threshold_step,
+        gap_voxels=args.gap_voxels,
         output_path=args.output,
         plot_layout=args.plot_layout,
         show_plot=args.show,

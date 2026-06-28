@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,10 @@ import numpy as np
 
 from dce_phases import DcePhase, mask_for_phase
 from prep_volume import normalize_volume
+
+# Post-contrast phases used for aligned-bbox threshold analysis (P4 excluded).
+POSTCONTRAST_ANALYSIS_PHASES = (2, 3)
+MAX_CONNECTIVITY_GAP_VOXELS = 10
 
 
 @dataclass(frozen=True)
@@ -227,6 +232,184 @@ def fraction_curve_for_slab(
     thresholds = default_thresholds(step=threshold_step)
     fractions, _counts = bright_fraction_sweep(values, thresholds)
     return thresholds, fractions, values
+
+
+def connectivity_structure(*, gap_voxels: int = 0) -> np.ndarray:
+    """3D structuring element; ``gap_voxels>0`` expands before CC (bridge up to x voxels)."""
+    gap = max(0, min(int(gap_voxels), MAX_CONNECTIVITY_GAP_VOXELS))
+    if gap == 0:
+        return np.ones((3, 3, 3), dtype=bool)
+    size = 2 * gap + 1
+    return np.ones((size, size, size), dtype=bool)
+
+
+def _bbox_center_zyx(shape: tuple[int, ...]) -> tuple[int, int, int]:
+    return shape[0] // 2, shape[1] // 2, shape[2] // 2
+
+
+def connected_component_from_center(
+    candidate: np.ndarray,
+    *,
+    gap_voxels: int = 0,
+) -> np.ndarray:
+    """Single connected component containing the bbox center (optional gap closing stub)."""
+    from scipy.ndimage import binary_closing, label
+
+    binary = candidate.astype(bool)
+    if gap_voxels > 0:
+        binary = binary_closing(binary, structure=connectivity_structure(gap_voxels=gap_voxels))
+
+    labels, n = label(binary, structure=np.ones((3, 3, 3), dtype=bool))
+    if n == 0:
+        return np.zeros(candidate.shape, dtype=np.uint8)
+
+    cz, cy, cx = _bbox_center_zyx(candidate.shape)
+    seed_label = int(labels[cz, cy, cx])
+    if seed_label == 0:
+        return np.zeros(candidate.shape, dtype=np.uint8)
+    return (labels == seed_label).astype(np.uint8)
+
+
+def center_connected_mask_in_bbox(
+    norm_bbox: np.ndarray,
+    threshold: float,
+    *,
+    gap_voxels: int = 0,
+) -> np.ndarray:
+    """Threshold inside normalized bbox ROI, keep one CC through the center."""
+    candidate = norm_bbox >= float(threshold)
+    return connected_component_from_center(candidate, gap_voxels=gap_voxels)
+
+
+def normalized_bbox_volume_in_slab(
+    slab: np.ndarray,
+    les_meta: dict[str, Any],
+) -> np.ndarray:
+    """Normalized intensities shaped as bbox crop ``(Z, Y, X)`` inside the slab."""
+    norm, _y, _x = normalized_bbox_in_slab(slab, les_meta)
+    return norm
+
+
+def center_connected_mask_in_slab(
+    slab: np.ndarray,
+    les_meta: dict[str, Any],
+    threshold: float,
+    *,
+    gap_voxels: int = 0,
+) -> np.ndarray:
+    """Center-connected mask embedded in full z-band slab coordinates."""
+    norm, y_sl, x_sl = normalized_bbox_in_slab(slab, les_meta)
+    mask_bbox = center_connected_mask_in_bbox(norm, threshold, gap_voxels=gap_voxels)
+    mask = np.zeros(slab.shape, dtype=np.uint8)
+    mask[:, y_sl, x_sl] = mask_bbox
+    return mask
+
+
+def connected_fraction_curve_for_slab(
+    slab: np.ndarray,
+    les_meta: dict[str, Any],
+    *,
+    threshold_step: float = 0.01,
+    gap_voxels: int = 0,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Fraction of bbox in center-connected component vs threshold."""
+    norm = normalized_bbox_volume_in_slab(slab, les_meta)
+    bbox_voxels = int(norm.size)
+    thresholds = default_thresholds(step=threshold_step)
+    if bbox_voxels == 0:
+        zeros = np.zeros(len(thresholds), dtype=np.float64)
+        return thresholds, zeros, norm.ravel()
+
+    fractions = np.array(
+        [
+            float(
+                center_connected_mask_in_bbox(norm, float(t), gap_voxels=gap_voxels).sum()
+                / bbox_voxels
+            )
+            for t in thresholds
+        ],
+        dtype=np.float64,
+    )
+    return thresholds, fractions, norm.ravel()
+
+
+def elbow_threshold(
+    thresholds: np.ndarray,
+    fractions: np.ndarray,
+) -> tuple[float, float]:
+    """Elbow via max perpendicular distance to chord (first→last point). Returns (t, distance)."""
+    if thresholds.size < 3:
+        t = float(thresholds[thresholds.size // 2]) if thresholds.size else 0.5
+        return t, 0.0
+
+    x = thresholds.astype(np.float64)
+    y = fractions.astype(np.float64)
+    x0, y0 = x[0], y[0]
+    x1, y1 = x[-1], y[-1]
+    dx, dy = x1 - x0, y1 - y0
+    denom = math.hypot(dx, dy)
+    if denom <= 1e-12:
+        return float(x[len(x) // 2]), 0.0
+
+    distances = np.abs(dy * x - dx * y + x1 * y0 - y1 * x0) / denom
+    index = int(np.argmax(distances))
+    return float(x[index]), float(distances[index])
+
+
+def compute_aligned_bbox_connected_table(
+    slabs_aligned: dict[int, np.ndarray],
+    phases: list[DcePhase],
+    les_meta: dict[str, Any],
+    expert_slab: np.ndarray,
+    *,
+    thresholds: np.ndarray | None = None,
+    threshold_step: float = 0.05,
+    gap_voxels: int = 0,
+    phase_filter: tuple[int, ...] = POSTCONTRAST_ANALYSIS_PHASES,
+) -> list[CuboidBrightnessRow]:
+    """Center-connected bbox fraction vs threshold (default P2–P3 only)."""
+    cutoffs = thresholds if thresholds is not None else default_thresholds(step=threshold_step)
+    les_frac, les_voxels, cuboid_voxels = les_fraction_in_bbox_slab(expert_slab, les_meta)
+    rows: list[CuboidBrightnessRow] = []
+
+    for phase in phases:
+        if phase.index not in phase_filter:
+            continue
+        slab = slabs_aligned[phase.index]
+        norm = normalized_bbox_volume_in_slab(slab, les_meta)
+        count = int(norm.size) or cuboid_voxels
+
+        fractions = np.array(
+            [
+                float(
+                    center_connected_mask_in_bbox(norm, float(t), gap_voxels=gap_voxels).sum()
+                    / count
+                )
+                if count
+                else 0.0
+                for t in cutoffs
+            ],
+            dtype=np.float64,
+        )
+        bright_counts = (fractions * count).astype(np.int64)
+        for threshold, bright_fraction, bright_voxels in zip(
+            cutoffs,
+            fractions,
+            bright_counts,
+            strict=True,
+        ):
+            rows.append(
+                CuboidBrightnessRow(
+                    phase_index=phase.index,
+                    threshold=float(threshold),
+                    bright_fraction=float(bright_fraction),
+                    bright_voxels=int(bright_voxels),
+                    cuboid_voxels=int(count),
+                    les_fraction=float(les_frac),
+                    les_voxels=int(les_voxels),
+                )
+            )
+    return rows
 
 
 def extract_bbox_from_slab(slab: np.ndarray, les_meta: dict[str, Any]) -> np.ndarray:
@@ -654,34 +837,39 @@ def plot_aligned_bbox_bright_fraction_grid(
     *,
     slug: str = "",
     threshold_step: float = 0.05,
-    normalize: bool = True,
+    gap_voxels: int = 0,
     output_path: Path | None = None,
     show: bool = True,
 ) -> Path | None:
-    """2×2 grid: one bright-fraction vs threshold panel per phase (post alignment)."""
+    """1×2 grid: center-connected bbox fraction vs threshold for P2–P3."""
     import matplotlib.pyplot as plt
 
-    rows = compute_aligned_bbox_brightness_table(
+    from les_cuboid_brightness import POSTCONTRAST_ANALYSIS_PHASES
+
+    analysis = [p for p in phases if p.index in POSTCONTRAST_ANALYSIS_PHASES]
+    rows = compute_aligned_bbox_connected_table(
         slabs_aligned,
         phases,
         les_meta,
         expert_slab,
         threshold_step=threshold_step,
-        normalize=normalize,
+        gap_voxels=gap_voxels,
     )
     curves = bright_fraction_curves_by_phase(rows)
     les_frac, les_voxels, cuboid_voxels = les_fraction_in_bbox_slab(expert_slab, les_meta)
 
-    fig, axes = plt.subplots(2, 2, figsize=(10, 8), sharex=True, sharey=True)
+    fig, axes = plt.subplots(1, max(len(analysis), 1), figsize=(5 * max(len(analysis), 1), 4))
+    if len(analysis) == 1:
+        axes = [axes]
     title = (
-        f"{slug} — bbox bright fraction vs threshold (post alignment, per phase)"
+        f"{slug} — center-connected bbox fraction vs threshold (P2–P3)"
         if slug
-        else "Bbox bright fraction vs threshold (post alignment, per phase)"
+        else "Center-connected bbox fraction vs threshold (P2–P3)"
     )
     fig.suptitle(title, fontsize=12)
 
-    colors = ["#4C72B0", "#55A868", "#C44E52", "#8172B3"]
-    for phase, ax, color in zip(phases, axes.ravel(), colors, strict=True):
+    colors = ["#55A868", "#C44E52"]
+    for ax, phase, color in zip(axes, analysis, colors, strict=True):
         thresholds, fractions = curves.get(phase.index, (np.array([]), np.array([])))
         panel_title = f"P{phase.index}"
         if phase.acquisition_time:
@@ -696,8 +884,10 @@ def plot_aligned_bbox_bright_fraction_grid(
                 markersize=3,
                 linewidth=1.8,
                 color=color,
-                label="≥ threshold",
+                label="center-connected",
             )
+            elbow_t, _ = elbow_threshold(thresholds, fractions)
+            ax.axvline(elbow_t, color=color, linestyle=":", linewidth=1.0, alpha=0.8, label=f"elbow {elbow_t:.2f}")
 
         if les_frac > 0:
             ax.axhline(
@@ -710,7 +900,7 @@ def plot_aligned_bbox_bright_fraction_grid(
 
         ax.set_title(panel_title, fontsize=10)
         ax.set_xlabel("Normalized intensity threshold")
-        ax.set_ylabel("% bbox voxels ≥ threshold")
+        ax.set_ylabel("% bbox in center-connected region")
         ax.set_xlim(0.0, 1.0)
         ax.set_ylim(0.0, 100.0)
         ax.grid(True, alpha=0.3)
@@ -718,7 +908,7 @@ def plot_aligned_bbox_bright_fraction_grid(
         ax.text(
             0.02,
             0.02,
-            f"les={les_voxels:,} / bbox={cuboid_voxels:,}",
+            f"les={les_voxels:,} / bbox={cuboid_voxels:,}  gap={gap_voxels}",
             transform=ax.transAxes,
             va="bottom",
             fontsize=8,
@@ -748,39 +938,42 @@ def plot_aligned_bbox_bright_fraction_vs_threshold(
     *,
     slug: str = "",
     threshold_step: float = 0.05,
-    normalize: bool = True,
+    gap_voxels: int = 0,
     output_path: Path | None = None,
     show: bool = True,
 ) -> Path | None:
-    """Plot % bbox voxels ≥ threshold vs threshold for P1–P4 on post-alignment slabs."""
+    """Overlay: center-connected bbox fraction vs threshold for P2–P3."""
     import matplotlib.pyplot as plt
 
-    rows = compute_aligned_bbox_brightness_table(
+    from les_cuboid_brightness import POSTCONTRAST_ANALYSIS_PHASES
+
+    analysis = [p for p in phases if p.index in POSTCONTRAST_ANALYSIS_PHASES]
+    rows = compute_aligned_bbox_connected_table(
         slabs_aligned,
         phases,
         les_meta,
         expert_slab,
         threshold_step=threshold_step,
-        normalize=normalize,
+        gap_voxels=gap_voxels,
     )
     curves = bright_fraction_curves_by_phase(rows)
     les_frac, les_voxels, cuboid_voxels = les_fraction_in_bbox_slab(expert_slab, les_meta)
 
     fig, ax = plt.subplots(figsize=(8, 5))
     title = (
-        f"{slug} — % bbox bright vs threshold (post P1 z-band alignment)"
+        f"{slug} — center-connected bbox fraction (P2–P3, post alignment)"
         if slug
-        else "% bbox bright vs threshold (post alignment)"
+        else "Center-connected bbox fraction (P2–P3)"
     )
     ax.set_title(title, fontsize=11)
     ax.set_xlabel("Normalized intensity threshold")
-    ax.set_ylabel("% bbox voxels ≥ threshold")
+    ax.set_ylabel("% bbox in center-connected region")
     ax.set_xlim(0.0, 1.0)
     ax.set_ylim(0.0, 100.0)
     ax.grid(True, alpha=0.3)
 
-    colors = ["#4C72B0", "#55A868", "#C44E52", "#8172B3"]
-    for phase, color in zip(phases, colors, strict=True):
+    colors = ["#55A868", "#C44E52"]
+    for phase, color in zip(analysis, colors, strict=True):
         thresholds, fractions = curves.get(phase.index, (np.array([]), np.array([])))
         if thresholds.size == 0:
             continue
