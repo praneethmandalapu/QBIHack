@@ -1,0 +1,299 @@
+subjectid,idh,grade,mgmt,who_2021_diagnosis,wt_volume_t1,actually_grew,risk,growth_multiplier
+100278,WT,4.0,,Glioblastoma,107000.0,False,0.9832,1.7832
+100057,,4.0,unmethylated,Glioma NOS,123518.0,True,0.9789,1.7789
+100290,WT,4.0,,Glioblastoma,56895.0,True,0.9696,1.7696
+100257,WT,4.0,unmethylated,Glioblastoma,101538.0,False,0.9675,1.7675
+100008,WT,4.0,positive,Glioblastoma,86841.0,True,0.9658,1.7658
+100211,WT,4.0,positive,Glioblastoma,119993.0,False,0.9618,1.7618
+100267,WT,4.0,unmethylated,Glioblastoma,109986.0,True,0.96,1.76
+100188,WT,4.0,,Glioblastoma,52867.0,True,0.9565,1.7565
+100230,WT,4.0,unmethylated,Glioblastoma,68580.0,True,0.956,1.756
+100213,WT,3.0,,IDH WT Astrocytoma,68879.0,True,0.9499,1.7499
+100161,mut,2.0,,IDH mut Astrocytoma,150987.0,True,0.9489,1.7489
+100039,WT,4.0,positive,Glioblastoma,84326.0,False,0.9473,1.7473
+100286,mut,4.0,,IDH mut NOS,253556.0,True,0.9456,1.7456
+100014,WT,2.0,positive,IDH WT Astrocytoma,61814.0,False,0.9451,1.7451
+100044,mut,3.0,,IDH mut Astrocytoma,161283.0,True,0.9407,1.7407
+100176,WT,4.0,positive,Glioblastoma,75364.0,True,0.9406,1.7406
+100022,WT,4.0,unmethylated,Glioblastoma,17879.0,True,0.9403,1.7403
+100260,WT,4.0,unmethylated,Glioblastoma,34800.0,True,0.938,1.738
+100238,WT,4.0,unmethylated,Glioblastoma,17358.0,True,0.9369,1.7369
+100114,mut,4.0,,IDH mut Astrocytoma,182807.0,True,0.936,1.736
+100081,,4.0,unmethylated,Glioma NOS,63619.0,True,0.9329,1.7329
+100236,WT,4.0,positive,Glioblastoma,42608.0,True,0.9324,1.7324
+100191,WT,4.0,unmethylated,Glioblastoma,149172.0,True,0.9299,1.7299
+100283,,4.0,positive,Glioma NOS,142522.0,True,0.9251,1.7251
+100265,WT,4.0,unmethylated,Glioblastoma,102526.0,False,0.9248,1.7248
+100077,,4.0,positive,Glioma NOS,141630.0,True,0.9239,1.7239
+100282,WT,4.0,unmethylated,Glioblastoma,8303.0,True,0.9207,1.7207
+100276,WT,4.0,unmethylated,Glioblastoma,62010.0,True,0.9174,1.7174
+100023,,4.0,positive,Gliosarcoma,91750.0,False,0.9164,1.7164
+100243,,4.0,unmethylated,Glioma NOS,53488.0,False,0.9145,1.7145
+100051,WT,4.0,positive,Glioblastoma,42656.0,False,0.9143,1.7143
+100271,WT,4.0,unmethylated,Glioblastoma,38837.0,True,0.914,1.714
+100261,WT,4.0,unmethylated,Glioblastoma,33456.0,False,0.9133,1.7133
+100199,,4.0,,Glioma NOS,73393.0,True,0.9109,1.7109
+100136,WT,4.0,unmethylated,Glioblastoma,179995.0,False,0.9106,1.7106
+100279,WT,4.0,,Glioblastoma,44857.0,False,0.9079,1.7079
+100266,WT,4.0,unmethylated,Glioblastoma,242763.0,False,0.9069,1.7069
+100097,,,,Glioma NOS,99102.0,True,0.905,1.705
+100298,,4.0,unmethylated,Glioma NOS,55232.0,True,0.9028,1.7028
+100299,,4.0,unmethylated,Glioma NOS,57740.0,False,0.8911,1.6911
+100167,,4.0,unmethylated,Glioma NOS,73406.0,True,0.8896,1.6896
+100210,WT,4.0,positive,Glioblastoma,21400.0,True,0.888,1.688
+100015,,4.0,positive,Glioma NOS,82955.0,True,0.8868,1.6868
+100093,WT,4.0,positive,Glioblastoma,67536.0,True,0.8839,1.6839
+100162,mut,2.0,positive,IDH mut Astrocytoma,62535.0,False,0.8796,1.6796
+100026,WT,4.0,positive,Glioblastoma,23628.0,True,0.8795,1.6795
+100240,WT,4.0,unmethylated,Glioblastoma,187003.0,False,0.8783,1.6783
+100270,,4.0,unmethylated,Glioma NOS,143493.0,False,0.8775,1.6775
+100241,WT,4.0,,Glioblastoma,192265.0,True,0.877,1.677
+100189,,4.0,positive,Glioma NOS,187144.0,True,0.8747,1.6747
+100227,WT,4.0,unmethylated,Glioblastoma,64634.0,True,0.8711,1.6711
+100121,WT,4.0,positive,Glioblastoma,82659.0,True,0.8672,1.6672
+100034,WT,,,IDH WT Astrocytoma,49334.0,False,0.8659,1.6659
+100244,,4.0,positive,Glioma NOS,21950.0,False,0.8645,1.6645
+100038,WT,4.0,positive,Glioblastoma,43342.0,True,0.8619,1.6619
+100082,WT,4.0,unmethylated,Glioblastoma,51013.0,False,0.8567,1.6567
+100245,WT,4.0,positive,Glioblastoma,13703.0,True,0.8541,1.6541
+100006,,,,Glioma NOS,76886.0,True,0.8537,1.6537
+100216,WT,4.0,positive,Glioblastoma,35335.0,True,0.8489,1.6489
+100296,,4.0,positive,Glioma NOS,99468.0,False,0.8443,1.6443
+100229,WT,4.0,unmethylated,Glioblastoma,53529.0,True,0.8436,1.6436
+100011,WT,,,Other,16977.0,True,0.8254,1.6254
+100020,WT,4.0,unmethylated,Glioblastoma,62770.0,True,0.8219,1.6219
+100102,WT,4.0,positive,Glioblastoma,28879.0,True,0.8212,1.6212
+100224,WT,4.0,unmethylated,Glioblastoma,32333.0,True,0.8155,1.6155
+100198,,2.0,unmethylated,Glioma NOS,109587.0,False,0.8046,1.6046
+100125,,4.0,,Glioma NOS,71692.0,True,0.7971,1.5971
+100074,WT,4.0,unmethylated,Glioblastoma,143884.0,False,0.7971,1.5971
+100219,WT,2.0,,IDH WT Astrocytoma,68397.0,True,0.7939,1.5939
+100169,mut,3.0,,IDH mut Astrocytoma,236357.0,True,0.7914,1.5914
+100231,WT,4.0,unmethylated,Glioblastoma,207419.0,False,0.7791,1.5791
+100152,,4.0,unmethylated,Glioma NOS,78177.0,True,0.7773,1.5773
+100196,WT,4.0,positive,Glioblastoma,103960.0,True,0.7755,1.5755
+100088,WT,,unmethylated,Gliosarcoma,32954.0,True,0.7701,1.5701
+100193,WT,1.0,,Other,68187.0,True,0.769,1.569
+100195,WT,4.0,positive,Glioblastoma,72948.0,True,0.7631,1.5631
+100092,mut,3.0,,IDH mut Astrocytoma,74124.0,False,0.7567,1.5567
+100297,,4.0,,Glioma NOS,20303.0,True,0.7562,1.5562
+100165,WT,4.0,positive,Glioblastoma,77607.0,True,0.7554,1.5554
+100190,WT,3.0,positive,Other,105751.0,True,0.7536,1.5536
+100067,,4.0,positive,Glioma NOS,71570.0,True,0.7527,1.5527
+100003,mut,3.0,positive,Oligodendroglioma,87763.0,False,0.7519,1.5519
+100040,,4.0,positive,Glioma NOS,74030.0,True,0.75,1.55
+100083,WT,4.0,positive,Glioblastoma,17535.0,True,0.7465,1.5465
+100205,,4.0,positive,Glioma NOS,17319.0,False,0.7366,1.5366
+100120,mut,2.0,,IDH mut Astrocytoma,56856.0,True,0.7346,1.5346
+100036,,3.0,,Glioma NOS,78698.0,False,0.7326,1.5326
+100289,mut,2.0,,IDH mut NOS,143396.0,True,0.7221,1.5221
+100281,WT,4.0,unmethylated,Glioblastoma,97422.0,True,0.7016,1.5016
+100228,,4.0,positive,Glioma NOS,44998.0,True,0.6959,1.4959
+100049,WT,4.0,positive,Glioblastoma,123467.0,True,0.6896,1.4896
+100232,WT,4.0,positive,Glioblastoma,118786.0,True,0.6783,1.4783
+100156,mut,3.0,positive,IDH mut Astrocytoma,93999.0,True,0.6766,1.4766
+100277,WT,4.0,positive,Glioblastoma,33231.0,True,0.6701,1.4701
+100078,WT,4.0,positive,Glioblastoma,76650.0,True,0.6627,1.4627
+100288,WT,4.0,unmethylated,Glioblastoma,16004.0,True,0.6482,1.4482
+100100,mut,3.0,,IDH mut Astrocytoma,133314.0,False,0.6427,1.4427
+100206,WT,4.0,positive,Glioblastoma,49091.0,False,0.6392,1.4392
+100174,WT,4.0,,Glioblastoma,17372.0,True,0.6353,1.4353
+100254,,4.0,,Glioma NOS,105038.0,False,0.6352,1.4352
+100248,WT,,positive,Gliosarcoma,35788.0,True,0.6193,1.4193
+100118,WT,4.0,positive,Glioblastoma,10905.0,True,0.6137,1.4137
+100275,,4.0,positive,Glioma NOS,60526.0,False,0.6122,1.4122
+100194,WT,4.0,positive,Glioblastoma,24665.0,False,0.6094,1.4094
+100013,,4.0,,Glioma NOS,27197.0,False,0.6055,1.4055
+100186,WT,4.0,positive,Glioblastoma,71918.0,True,0.5996,1.3996
+100033,,,,Other,803.0,True,0.5928,1.3928
+100019,,4.0,,Glioma NOS,126734.0,True,0.5927,1.3927
+100220,WT,4.0,unmethylated,Glioblastoma,40020.0,True,0.5784,1.3784
+100021,mut,4.0,positive,IDH mut Astrocytoma,46762.0,False,0.5694,1.3694
+100086,mut,3.0,,IDH mut Astrocytoma,185323.0,True,0.5471,1.3471
+100084,WT,4.0,unmethylated,Glioblastoma,54557.0,True,0.541,1.341
+100183,,4.0,,Other,134173.0,False,0.5249,1.3249
+100208,,4.0,positive,Glioma NOS,13613.0,True,0.5244,1.3244
+100110,mut,3.0,,Oligodendroglioma,92025.0,True,0.5224,1.3224
+100132,,4.0,,Glioma NOS,181043.0,False,0.5191,1.3191
+100080,mut,3.0,,Oligodendroglioma,100703.0,False,0.5135,1.3135
+100108,,3.0,,Glioma NOS,80380.0,True,0.5093,1.3093
+100268,,4.0,unmethylated,Glioma NOS,21969.0,True,0.508,1.308
+100302,WT,4.0,unmethylated,Glioblastoma,138960.0,True,0.506,1.306
+100109,WT,4.0,positive,Glioblastoma,31391.0,True,0.5031,1.3031
+100292,WT,4.0,positive,Glioblastoma,11064.0,False,0.4982,1.2982
+100235,WT,4.0,positive,Glioblastoma,45246.0,False,0.4974,1.2974
+100073,WT,4.0,unmethylated,Glioblastoma,35207.0,True,0.4958,1.2958
+100263,mut,2.0,,Oligodendroglioma,9396.0,False,0.4659,1.2659
+100070,,4.0,positive,Glioma NOS,90761.0,False,0.4637,1.2637
+100284,WT,3.0,positive,IDH WT Astrocytoma,82988.0,False,0.4609,1.2609
+100043,,3.0,,Glioma NOS,103332.0,False,0.4486,1.2486
+100140,,4.0,positive,Glioma NOS,124731.0,True,0.4439,1.2439
+100181,,2.0,,Glioma NOS,24867.0,True,0.4416,1.2416
+100101,mut,3.0,,IDH mut Astrocytoma,87344.0,True,0.4269,1.2269
+100215,WT,3.0,,IDH WT Astrocytoma,3284.0,False,0.4179,1.2179
+100256,WT,4.0,unmethylated,Glioblastoma,32798.0,True,0.4108,1.2108
+100117,mut,3.0,,Oligodendroglioma,75206.0,False,0.4095,1.2095
+100273,WT,4.0,positive,Glioblastoma,57521.0,True,0.4045,1.2045
+100291,,4.0,positive,Glioma NOS,22755.0,True,0.3964,1.1964
+100249,WT,4.0,positive,Glioblastoma,59988.0,True,0.3891,1.1891
+100285,,4.0,unmethylated,Glioma NOS,24625.0,True,0.3887,1.1887
+100160,WT,4.0,positive,Glioblastoma,29377.0,False,0.3699,1.1699
+100274,mut,4.0,positive,IDH mut NOS,50738.0,False,0.3634,1.1634
+100300,WT,4.0,positive,Glioblastoma,66848.0,True,0.3587,1.1587
+100079,,4.0,positive,Glioma NOS,22213.0,True,0.3586,1.1586
+100234,,4.0,positive,Glioma NOS,33660.0,False,0.3522,1.1522
+100237,,4.0,unmethylated,Glioma NOS,16536.0,False,0.3502,1.1502
+100197,mut,2.0,,IDH mut Astrocytoma,68300.0,True,0.3398,1.1398
+100168,mut,2.0,,Oligodendroglioma,80058.0,True,0.337,1.137
+100004,WT,4.0,positive,Glioblastoma,34127.0,True,0.3278,1.1278
+100287,WT,4.0,positive,Glioblastoma,45119.0,False,0.3205,1.1205
+100259,mut,2.0,,IDH mut Astrocytoma,19326.0,True,0.3181,1.1181
+100246,WT,3.0,,IDH WT Astrocytoma,44388.0,True,0.31,1.11
+100089,mut,3.0,,Oligodendroglioma,99323.0,False,0.3015,1.1015
+100200,,4.0,,Glioma NOS,20397.0,False,0.2944,1.0944
+100085,mut,2.0,,IDH mut Astrocytoma,63218.0,True,0.2911,1.0911
+100209,,4.0,positive,Glioma NOS,19957.0,True,0.2879,1.0879
+100151,mut,3.0,,IDH mut Astrocytoma,57628.0,True,0.2862,1.0862
+100148,,4.0,positive,Glioma NOS,55545.0,False,0.283,1.083
+100094,WT,4.0,,Glioblastoma,54750.0,False,0.2713,1.0713
+100239,mut,3.0,,Oligodendroglioma,63670.0,True,0.265,1.065
+100138,mut,3.0,,Oligodendroglioma,100876.0,True,0.2633,1.0633
+100293,mut,3.0,,IDH mut Astrocytoma,75275.0,True,0.2576,1.0576
+100150,mut,3.0,,IDH mut Astrocytoma,71809.0,True,0.2528,1.0528
+100099,,3.0,,Glioma NOS,19295.0,False,0.252,1.052
+100144,,4.0,,Glioma NOS,94511.0,False,0.2463,1.0463
+100295,mut,2.0,,IDH mut Astrocytoma,12420.0,True,0.2458,1.0458
+100149,WT,4.0,unmethylated,Glioblastoma,26623.0,True,0.2332,1.0332
+100050,WT,4.0,unmethylated,Glioblastoma,65224.0,True,0.2282,1.0282
+100119,WT,2.0,,IDH WT Astrocytoma,18284.0,True,0.2274,1.0274
+100029,WT,3.0,,IDH WT Astrocytoma,28342.0,True,0.2274,1.0274
+100258,mut,2.0,positive,Oligodendroglioma,32118.0,True,0.2273,1.0273
+100153,WT,3.0,,Other,12471.0,True,0.2248,1.0248
+100164,mut,2.0,,Oligodendroglioma,17439.0,True,0.2167,1.0167
+100182,WT,4.0,positive,Glioblastoma,72331.0,True,0.2149,1.0149
+100178,mut,3.0,,Oligodendroglioma,114405.0,True,0.2138,1.0138
+100041,WT,4.0,,Glioblastoma,45771.0,True,0.2134,1.0134
+100202,mut,3.0,,Oligodendroglioma,59000.0,True,0.2127,1.0127
+100068,,2.0,,Glioma NOS,83834.0,False,0.2111,1.0111
+100107,mut,2.0,,IDH mut Astrocytoma,12523.0,False,0.2102,1.0102
+100096,mut,3.0,,IDH mut NOS,85701.0,False,0.2076,1.0076
+100253,,4.0,positive,Glioma NOS,28713.0,False,0.2034,1.0034
+100063,,4.0,,Glioma NOS,8103.0,True,0.2029,1.0029
+100018,,3.0,,Glioma NOS,56942.0,False,0.1992,0.9992
+100058,mut,2.0,,Oligodendroglioma,150341.0,True,0.1924,0.9924
+100233,WT,4.0,positive,Gliosarcoma,24689.0,False,0.1837,0.9837
+100027,,3.0,,Other,10102.0,True,0.1822,0.9822
+100105,,3.0,,Glioma NOS,3112.0,True,0.1806,0.9806
+100272,WT,4.0,positive,Glioblastoma,39330.0,True,0.1792,0.9792
+100122,mut,3.0,,IDH mut Astrocytoma,51545.0,False,0.1784,0.9784
+100262,mut,2.0,positive,Oligodendroglioma,20408.0,False,0.1747,0.9747
+100054,,2.0,,Glioma NOS,21345.0,False,0.1721,0.9721
+100025,mut,3.0,,IDH mut Astrocytoma,121359.0,False,0.1703,0.9703
+100170,mut,3.0,,IDH mut Astrocytoma,8210.0,True,0.167,0.967
+100113,mut,4.0,,IDH mut NOS,18090.0,True,0.1598,0.9598
+100005,mut,3.0,,IDH mut Astrocytoma,26294.0,True,0.1591,0.9591
+100155,mut,2.0,,IDH mut Astrocytoma,7220.0,False,0.1566,0.9566
+100154,mut,2.0,,Oligodendroglioma,22515.0,False,0.1541,0.9541
+100028,WT,4.0,positive,Glioblastoma,25607.0,False,0.1537,0.9537
+100158,mut,3.0,,Oligodendroglioma,130001.0,False,0.153,0.953
+100035,mut,3.0,,IDH mut NOS,32581.0,False,0.1455,0.9455
+100204,,4.0,positive,Glioma NOS,8927.0,True,0.1449,0.9449
+100145,mut,2.0,,IDH mut Astrocytoma,4557.0,True,0.1444,0.9444
+100179,mut,2.0,,IDH mut Astrocytoma,45785.0,True,0.1439,0.9439
+100214,mut,4.0,positive,IDH mut Astrocytoma,85794.0,False,0.1428,0.9428
+100098,mut,2.0,,Oligodendroglioma,43669.0,True,0.1418,0.9418
+100016,,,,Glioma NOS,11356.0,True,0.1406,0.9406
+100112,mut,2.0,,IDH mut Astrocytoma,10939.0,True,0.139,0.939
+100192,mut,2.0,,IDH mut Astrocytoma,16957.0,False,0.1389,0.9389
+100052,mut,2.0,,Oligodendroglioma,68331.0,False,0.1388,0.9388
+100090,mut,2.0,,IDH mut Astrocytoma,26885.0,True,0.1359,0.9359
+100126,mut,2.0,,Oligodendroglioma,20165.0,False,0.1355,0.9355
+100037,,3.0,,Glioma NOS,89508.0,False,0.1341,0.9341
+100115,,3.0,,Glioma NOS,60889.0,False,0.1325,0.9325
+100055,mut,2.0,,Oligodendroglioma,77674.0,True,0.1308,0.9308
+100045,mut,3.0,,IDH mut Astrocytoma,14948.0,False,0.1253,0.9253
+100301,mut,2.0,,Oligodendroglioma,27661.0,False,0.1193,0.9193
+100131,mut,4.0,positive,IDH mut Astrocytoma,37293.0,True,0.1177,0.9177
+100075,mut,2.0,,Oligodendroglioma,92370.0,True,0.116,0.916
+100217,mut,4.0,unmethylated,IDH mut NOS,17843.0,False,0.1158,0.9158
+100116,mut,2.0,,Oligodendroglioma,109553.0,True,0.114,0.914
+100072,,3.0,,Glioma NOS,69435.0,True,0.1129,0.9129
+100137,mut,2.0,,Oligodendroglioma,50346.0,False,0.1126,0.9126
+100157,mut,3.0,,IDH mut Astrocytoma,14166.0,True,0.1114,0.9114
+100201,mut,2.0,,Oligodendroglioma,23036.0,True,0.1099,0.9099
+100133,mut,3.0,,Oligodendroglioma,38530.0,False,0.1082,0.9082
+100103,,2.0,,Glioma NOS,34383.0,True,0.1074,0.9074
+100184,mut,3.0,,IDH mut Astrocytoma,37508.0,True,0.1067,0.9067
+100142,mut,3.0,,IDH mut Astrocytoma,68547.0,True,0.1065,0.9065
+100104,mut,2.0,,Oligodendroglioma,71959.0,True,0.1064,0.9064
+100280,,2.0,,Glioma NOS,37048.0,False,0.1061,0.9061
+100294,mut,3.0,,Oligodendroglioma,22235.0,True,0.1037,0.9037
+100065,,4.0,positive,Glioma NOS,66528.0,False,0.1036,0.9036
+100053,mut,2.0,,IDH mut Astrocytoma,148958.0,False,0.1024,0.9024
+100146,mut,2.0,,IDH mut Astrocytoma,49821.0,False,0.0993,0.8993
+100047,,3.0,,Glioma NOS,54991.0,False,0.0983,0.8983
+100223,mut,2.0,,IDH mut Astrocytoma,9256.0,False,0.0955,0.8955
+100007,,,,Other,3200.0,True,0.095,0.895
+100030,mut,2.0,,Oligodendroglioma,64588.0,True,0.092,0.892
+100221,mut,2.0,,IDH mut Astrocytoma,39001.0,True,0.0918,0.8918
+100180,mut,2.0,,Oligodendroglioma,48090.0,False,0.091,0.891
+100032,WT,4.0,,Glioblastoma,56023.0,False,0.088,0.888
+100141,mut,3.0,,Oligodendroglioma,54624.0,False,0.0872,0.8872
+100212,mut,2.0,,IDH mut Astrocytoma,112471.0,False,0.0854,0.8854
+100185,mut,3.0,,IDH mut Astrocytoma,44330.0,True,0.0844,0.8844
+100207,mut,4.0,positive,IDH mut Astrocytoma,47876.0,True,0.0828,0.8828
+100127,,3.0,,Oligodendroglioma,64735.0,False,0.0815,0.8815
+100009,,2.0,,Glioma NOS,105638.0,False,0.081,0.881
+100087,mut,2.0,,IDH mut Astrocytoma,81883.0,True,0.0788,0.8788
+100252,mut,2.0,,IDH mut Astrocytoma,29859.0,True,0.0772,0.8772
+100171,mut,2.0,positive,IDH mut Astrocytoma,32404.0,True,0.0756,0.8756
+100269,WT,4.0,positive,Glioblastoma,26017.0,True,0.0702,0.8702
+100143,mut,3.0,,Oligodendroglioma,49898.0,False,0.0699,0.8699
+100010,mut,3.0,,Oligodendroglioma,93034.0,False,0.068,0.868
+100177,mut,4.0,positive,IDH mut Astrocytoma,27979.0,True,0.0665,0.8665
+100225,mut,3.0,,Oligodendroglioma,27206.0,True,0.0661,0.8661
+100106,mut,4.0,,IDH mut Astrocytoma,56211.0,False,0.0647,0.8647
+100226,mut,2.0,,IDH mut Astrocytoma,13317.0,False,0.0566,0.8566
+100147,mut,2.0,,IDH mut Astrocytoma,20198.0,True,0.0557,0.8557
+100046,,2.0,,Oligodendroglioma,24805.0,False,0.0556,0.8556
+100123,mut,3.0,unmethylated,IDH mut Astrocytoma,41420.0,False,0.0546,0.8546
+100069,mut,2.0,,Oligodendroglioma,63940.0,False,0.0535,0.8535
+100247,mut,3.0,,Oligodendroglioma,19446.0,True,0.0523,0.8523
+100056,mut,2.0,,Oligodendroglioma,125545.0,True,0.0483,0.8483
+100002,mut,2.0,positive,Oligodendroglioma,8137.0,True,0.0438,0.8438
+100139,,2.0,,Oligodendroglioma,31372.0,True,0.0425,0.8425
+100129,mut,2.0,,Oligodendroglioma,1641.0,False,0.0423,0.8423
+100218,mut,4.0,,IDH mut Astrocytoma,38018.0,False,0.0422,0.8422
+100042,mut,2.0,,Oligodendroglioma,25019.0,True,0.0396,0.8396
+100175,WT,4.0,positive,Glioblastoma,39981.0,False,0.0387,0.8387
+100017,,3.0,,Glioma NOS,6641.0,True,0.0369,0.8369
+100059,,4.0,,Glioma NOS,188935.0,False,0.0358,0.8358
+100134,mut,3.0,,IDH mut Astrocytoma,66627.0,False,0.0343,0.8343
+100024,mut,2.0,,Oligodendroglioma,30528.0,True,0.0335,0.8335
+100130,mut,3.0,,Oligodendroglioma,11845.0,False,0.0333,0.8333
+100095,mut,3.0,,IDH mut NOS,57050.0,True,0.033,0.833
+100124,mut,2.0,,Oligodendroglioma,25701.0,False,0.0325,0.8325
+100173,mut,,,IDH mut Astrocytoma,17129.0,False,0.0305,0.8305
+100128,mut,2.0,unmethylated,Oligodendroglioma,33771.0,False,0.0294,0.8294
+100135,mut,3.0,,Oligodendroglioma,12088.0,False,0.0294,0.8294
+100066,mut,3.0,,Oligodendroglioma,54613.0,True,0.0293,0.8293
+100163,,2.0,,Glioma NOS,49375.0,False,0.0292,0.8292
+100166,mut,2.0,,IDH mut Astrocytoma,33962.0,True,0.0286,0.8286
+100061,,3.0,,Oligodendroglioma,56646.0,True,0.0279,0.8279
+100264,mut,2.0,,Oligodendroglioma,75667.0,False,0.0277,0.8277
+100012,mut,2.0,,Oligodendroglioma,31253.0,False,0.0274,0.8274
+100062,,3.0,,Glioma NOS,56297.0,False,0.0244,0.8244
+100222,mut,3.0,,IDH mut Astrocytoma,28836.0,False,0.0243,0.8243
+100251,mut,2.0,,Oligodendroglioma,46513.0,False,0.0236,0.8236
+100111,mut,2.0,,Oligodendroglioma,23146.0,True,0.0225,0.8225
+100187,mut,3.0,,Oligodendroglioma,35208.0,True,0.0193,0.8193
+100255,mut,4.0,positive,IDH mut Astrocytoma,27986.0,True,0.0192,0.8192
+100203,mut,2.0,,IDH mut Astrocytoma,24205.0,True,0.0188,0.8188
+100048,,3.0,,Oligodendroglioma,50766.0,True,0.0162,0.8162
+100064,mut,2.0,,Oligodendroglioma,3097.0,True,0.0147,0.8147
+100001,mut,,,Oligodendroglioma,50470.0,False,0.0108,0.8108
+100060,,2.0,,Glioma NOS,31416.0,True,0.0101,0.8101
+100172,mut,3.0,,Oligodendroglioma,37002.0,False,0.0075,0.8075
+100250,mut,2.0,,Oligodendroglioma,21911.0,False,0.0075,0.8075
+100031,mut,2.0,,Oligodendroglioma,52350.0,True,0.0065,0.8065
+100076,,,,Glioma NOS,39091.0,False,0.0049,0.8049

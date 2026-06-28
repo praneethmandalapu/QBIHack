@@ -1,0 +1,37 @@
+feature,mean_abs_shap
+et_volume_label3_t1,0.73242724
+days_from_1st_surgery_dx_to_1st_scan,0.43908957
+snfh_volume_label2_t1,0.4371044
+rc_volume_label4_t1,0.41683942
+tc_volume_label_1_plus_2_t1,0.31860113
+who_2021_diagnosis_Oligodendroglioma,0.2675666
+idh_WT,0.26018596
+number_of_surgeries,0.2584472
+wt_volume_label1_plus_2_plus_3_t1,0.19966406
+on_tx_at_1st_scan_c_chemo_rt_n_none_n,0.17267886
+patient_age,0.14553462
+mgmt_methylation_index,0.13718691
+on_tx_at_1st_scan_c_chemo_rt_n_none_c,0.09348849
+eor_at_1st_sx_GTR,0.08180307
+mgmt_unmethylated,0.06669301
+1p19q_codel,0.06243825
+grade,0.05578368
+1p19q_intact,0.05304954
+ncr_volume_label1_t1,0.051273607
+eor_at_1st_sx_STR,0.05125356
+who_2021_diagnosis_Glioblastoma,0.049096752
+idh_mut,0.04290851
+patient_sex_Female,0.025622744
+atrx_loss,0.02289868
+who_2021_diagnosis_Glioma NOS,0.022052778
+mgmt_positive,0.01948909
+eor_at_1st_sx_BX,0.012647604
+patient_sex_Male,0.01114605
+who_2021_diagnosis_IDH mut Astrocytoma,0.0052176076
+atrx_intact,0.00302793
+eor_at_1st_sx_MRI,0.0
+who_2021_diagnosis_IDH mut NOS,0.0
+who_2021_diagnosis_Other,0.0
+who_2021_diagnosis_IDH WT Astrocytoma,0.0
+who_2021_diagnosis_Gliosarcoma,0.0
+on_tx_at_1st_scan_c_chemo_rt_n_none_rt,0.0

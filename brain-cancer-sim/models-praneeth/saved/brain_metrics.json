@@ -1,0 +1,21 @@
+{
+  "cv_auc_oof": 0.7938,
+  "n": 298,
+  "n_deceased": 126,
+  "n_features": 36,
+  "target": "mortality (death recorded during follow-up)",
+  "risk_meaning": "predicted mortality probability; relative prognostic rank",
+  "growth_multiplier": "0.8 + 1.0*risk",
+  "params": {
+    "objective": "binary:logistic",
+    "eval_metric": "auc",
+    "max_depth": 3,
+    "learning_rate": 0.05,
+    "subsample": 0.9,
+    "colsample_bytree": 0.8,
+    "n_estimators": 300,
+    "reg_lambda": 2.0,
+    "tree_method": "hist",
+    "random_state": 17
+  }
+}
