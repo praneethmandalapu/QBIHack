@@ -1,0 +1,31 @@
+{
+  "contract_version": "1.0.0",
+  "slug": "glioma_ucsf_100213_followup",
+  "patient_id": "100213",
+  "dataset": "ucsf_longitudinal_glioma",
+  "disease": "Glioma",
+  "timepoint": "followup",
+  "study_date": "day57",
+  "source_path": "data/raw/ucsf_alptdg/100213/100213_time2_t1ce.nii.gz",
+  "shape": [
+    155,
+    240,
+    240
+  ],
+  "dtype": "float32",
+  "spacing_mm": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "axis_order": [
+    "Z",
+    "Y",
+    "X"
+  ],
+  "normalize": false,
+  "value_semantics": {
+    "description": "Raw MR intensity; paired expert mask in data/processed/segmentations/"
+  },
+  "segmentation_path": "data/processed/segmentations/glioma_ucsf_100213_followup_mask.nii.gz"
+}

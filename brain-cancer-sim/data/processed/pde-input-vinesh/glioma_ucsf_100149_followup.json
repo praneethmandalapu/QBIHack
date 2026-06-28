@@ -1,0 +1,44 @@
+{
+  "contract_version": "1.0.0",
+  "slug": "glioma_ucsf_100149_followup",
+  "grid_size": 64,
+  "source_raw_extract": "data/processed/raw-extract-philip-chandan/100149/followup.npy",
+  "source_segmentation": "data/processed/segmentations/glioma_ucsf_100149_followup_mask.nii.gz",
+  "shape": [
+    64,
+    64,
+    64
+  ],
+  "dtype": "float32",
+  "axis_order": [
+    "Z",
+    "Y",
+    "X"
+  ],
+  "spacing_mm": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "value_range": [
+    0.0,
+    1.0
+  ],
+  "background_value": 0.0,
+  "tumor_burden_rule": "values strictly greater than background_value",
+  "segmentation": {
+    "method": "expert_mask",
+    "notes": "Binary or multi-label mask from dataset; resample to target grid. No Otsu fallback in v1."
+  },
+  "value_semantics": {
+    "0.0": "background/healthy",
+    ">0": "initial tumor burden (expert mask)"
+  },
+  "upstream": {
+    "patient_id": "100149",
+    "dataset": "ucsf_longitudinal_glioma",
+    "timepoint": "followup",
+    "study_date": "day56",
+    "raw_contract_version": "1.0.0"
+  }
+}

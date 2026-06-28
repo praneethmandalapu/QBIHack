@@ -1,0 +1,38 @@
+{
+  "patient_id": "100213",
+  "baseline_slug": "glioma_ucsf_100213_baseline",
+  "followup_slug": "glioma_ucsf_100213_followup",
+  "params": {
+    "risk_multiplier": 0.7187764690472929,
+    "D": 0.15,
+    "rho": 0.025,
+    "delta": 0.0,
+    "spacing": [
+      1.0,
+      1.0,
+      1.0
+    ]
+  },
+  "regime": "growth",
+  "knob_name": "risk_multiplier",
+  "knob_value": 0.7187764690472929,
+  "baseline_burden": 20407.88024868071,
+  "target_burden": 39646.616121553205,
+  "achieved_burden": 39640.4431774937,
+  "burden_error_pct": -0.015569914064248068,
+  "target_mode": "wt_scaled",
+  "pde_burden_baseline": 20407.88024868071,
+  "pde_burden_followup": 31176.209012582898,
+  "timesteps": 57,
+  "dt": 1.0,
+  "dt_unit": "days",
+  "interval_days": 57.09652777777228,
+  "simulated_days": 57.0,
+  "cfl_max_dt": 1.1111111111111112,
+  "observed": {
+    "wt_baseline_mm3": 68879.0,
+    "wt_followup_mm3": 133812.0,
+    "wt_delta_mm3": 64933.0,
+    "wt_growth_pct": 94.27111311139825
+  }
+}

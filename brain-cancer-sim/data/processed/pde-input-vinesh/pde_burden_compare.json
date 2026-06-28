@@ -1,12 +1,21 @@
 {
-  "generated_at": "2026-06-28T18:31:44.388895+00:00",
+  "generated_at": "2026-06-28T23:30:42.006871+00:00",
   "grid_size": 64,
+  "cohort_selection": "no_resection_cavity",
+  "excluded_resection_cavity_patient_ids": [
+    "100130",
+    "100134",
+    "100192",
+    "100220",
+    "100260"
+  ],
   "comparison": {
     "wt_volume_source": "wt_volume_report.json computed_mm3 (labels 1+2+3)",
     "pde_burden_rule": "voxels > 0 in g64 PDE cube at 1 mm spacing",
-    "growth_match_tolerance_pct": 5.0
+    "growth_match_tolerance_pct": 5.0,
+    "resection_cavity_note": "Patients with label 4 at any visit (100130, 100134, 100192, 100220, 100260) are omitted \u2014 PDE prep seeds mask > 0, which inflates burden vs WT."
   },
-  "patient_count": 7,
+  "patient_count": 14,
   "patients": [
     {
       "patient_id": "100002",
@@ -32,6 +41,121 @@
       "pde_growth_pct": 2.802015484822416,
       "growth_pct_delta": 0.0,
       "growth_pct_delta_workbook": 0.0,
+      "qc_flags": [
+        "ok"
+      ]
+    },
+    {
+      "patient_id": "100014",
+      "grade": 2.0,
+      "idh_status": "WT",
+      "interval_days": 52.73888888888905,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 61814.0,
+        "pde_voxels": 58694,
+        "pde_mm3": 58694.0,
+        "capture_pct": 94.95259973468794
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 36894.0,
+        "pde_voxels": 34384,
+        "pde_mm3": 34384.0,
+        "capture_pct": 93.19672575486528
+      },
+      "wt_growth_pct": -40.314491862684825,
+      "workbook_growth_pct": -40.314491862684825,
+      "pde_growth_pct": -41.41820288274781,
+      "growth_pct_delta": -1.1037110200629883,
+      "growth_pct_delta_workbook": -1.1037110200629883,
+      "qc_flags": [
+        "crop_loss_baseline",
+        "crop_loss_followup"
+      ]
+    },
+    {
+      "patient_id": "100020",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "interval_days": 71.99930555555329,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 62770.0,
+        "pde_voxels": 49518,
+        "pde_mm3": 49518.0,
+        "capture_pct": 78.88800382348255
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 105601.0,
+        "pde_voxels": 91568,
+        "pde_mm3": 91568.0,
+        "capture_pct": 86.71130008238558
+      },
+      "wt_growth_pct": 68.23482555360842,
+      "workbook_growth_pct": 68.23482555360842,
+      "pde_growth_pct": 84.91861545296659,
+      "growth_pct_delta": 16.683789899358175,
+      "growth_pct_delta_workbook": 16.683789899358175,
+      "qc_flags": [
+        "crop_loss_baseline",
+        "crop_loss_followup",
+        "growth_mismatch"
+      ]
+    },
+    {
+      "patient_id": "100038",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "interval_days": 62.8840277777781,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 43342.0,
+        "pde_voxels": 43342,
+        "pde_mm3": 43342.0,
+        "capture_pct": 100.0
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 78774.0,
+        "pde_voxels": 76912,
+        "pde_mm3": 76912.0,
+        "capture_pct": 97.63627592860588
+      },
+      "wt_growth_pct": 81.74980388537676,
+      "workbook_growth_pct": 81.74980388537676,
+      "pde_growth_pct": 77.45374002122652,
+      "growth_pct_delta": -4.296063864150241,
+      "growth_pct_delta_workbook": -4.296063864150241,
+      "qc_flags": [
+        "ok"
+      ]
+    },
+    {
+      "patient_id": "100039",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "interval_days": 26.902777777773736,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 84326.0,
+        "pde_voxels": 80944,
+        "pde_mm3": 80944.0,
+        "capture_pct": 95.98937457012072
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 64638.0,
+        "pde_voxels": 63418,
+        "pde_mm3": 63418.0,
+        "capture_pct": 98.11256536402735
+      },
+      "wt_growth_pct": -23.347484761520764,
+      "workbook_growth_pct": -23.347484761520764,
+      "pde_growth_pct": -21.652006325360745,
+      "growth_pct_delta": 1.6954784361600197,
+      "growth_pct_delta_workbook": 1.6954784361600197,
       "qc_flags": [
         "ok"
       ]
@@ -66,151 +190,235 @@
       ]
     },
     {
-      "patient_id": "100192",
+      "patient_id": "100129",
       "grade": 2.0,
       "idh_status": "mut",
-      "interval_days": 83.04999999999563,
+      "interval_days": 109.0131944444438,
       "baseline": {
         "label": "baseline",
-        "wt_mm3": 11463.0,
-        "pde_voxels": 16941,
-        "pde_mm3": 16941.0,
-        "capture_pct": 147.78853703219053
+        "wt_mm3": 1641.0,
+        "pde_voxels": 1640,
+        "pde_mm3": 1640.0,
+        "capture_pct": 99.93906154783669
       },
       "followup": {
         "label": "followup",
-        "wt_mm3": 4798.0,
-        "pde_voxels": 10028,
-        "pde_mm3": 10028.0,
-        "capture_pct": 209.00375156315133
+        "wt_mm3": 1606.0,
+        "pde_voxels": 1606,
+        "pde_mm3": 1606.0,
+        "capture_pct": 100.0
       },
-      "wt_growth_pct": -58.14359242781122,
-      "workbook_growth_pct": -40.8150026537713,
-      "pde_growth_pct": -40.80632784369281,
-      "growth_pct_delta": 17.337264584118408,
-      "growth_pct_delta_workbook": 0.008674810078488804,
+      "wt_growth_pct": -2.1328458257160268,
+      "workbook_growth_pct": -2.1328458257160268,
+      "pde_growth_pct": -2.073170731707317,
+      "growth_pct_delta": 0.05967509400870963,
+      "growth_pct_delta_workbook": 0.05967509400870963,
       "qc_flags": [
-        "label_inflation_baseline",
-        "label_inflation_followup",
-        "growth_mismatch"
+        "ok"
       ]
     },
     {
-      "patient_id": "100260",
-      "grade": 4.0,
-      "idh_status": "WT",
-      "interval_days": 62.9555555555562,
+      "patient_id": "100137",
+      "grade": 2.0,
+      "idh_status": "mut",
+      "interval_days": 70.84999999999854,
       "baseline": {
         "label": "baseline",
-        "wt_mm3": 18547.0,
-        "pde_voxels": 33600,
-        "pde_mm3": 33600.0,
-        "capture_pct": 181.16137380708471
+        "wt_mm3": 50346.0,
+        "pde_voxels": 38113,
+        "pde_mm3": 38113.0,
+        "capture_pct": 75.70214118301355
       },
       "followup": {
         "label": "followup",
-        "wt_mm3": 97533.0,
-        "pde_voxels": 80262,
-        "pde_mm3": 80262.0,
-        "capture_pct": 82.2921472732306
+        "wt_mm3": 49255.0,
+        "pde_voxels": 36915,
+        "pde_mm3": 36915.0,
+        "capture_pct": 74.9467059181809
       },
-      "wt_growth_pct": 425.86941284304737,
-      "workbook_growth_pct": 201.57471264367817,
-      "pde_growth_pct": 138.875,
-      "growth_pct_delta": -286.99441284304737,
-      "growth_pct_delta_workbook": -62.69971264367817,
+      "wt_growth_pct": -2.16700433003615,
+      "workbook_growth_pct": -2.16700433003615,
+      "pde_growth_pct": -3.143284443628158,
+      "growth_pct_delta": -0.9762801135920083,
+      "growth_pct_delta_workbook": -0.9762801135920083,
       "qc_flags": [
-        "label_inflation_baseline",
+        "crop_loss_baseline",
+        "crop_loss_followup"
+      ]
+    },
+    {
+      "patient_id": "100149",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "interval_days": 55.940277777779556,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 26623.0,
+        "pde_voxels": 20986,
+        "pde_mm3": 20986.0,
+        "capture_pct": 78.82657852233032
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 31798.0,
+        "pde_voxels": 22244,
+        "pde_mm3": 22244.0,
+        "capture_pct": 69.95408516258884
+      },
+      "wt_growth_pct": 19.438079855763814,
+      "workbook_growth_pct": 19.438079855763814,
+      "pde_growth_pct": 5.994472505479844,
+      "growth_pct_delta": -13.443607350283969,
+      "growth_pct_delta_workbook": -13.443607350283969,
+      "qc_flags": [
+        "crop_loss_baseline",
         "crop_loss_followup",
         "growth_mismatch"
       ]
     },
     {
-      "patient_id": "100220",
-      "grade": 4.0,
-      "idh_status": "WT",
-      "interval_days": 27.0715277777781,
+      "patient_id": "100184",
+      "grade": 3.0,
+      "idh_status": "mut",
+      "interval_days": 104.95833333333576,
       "baseline": {
         "label": "baseline",
-        "wt_mm3": 38492.0,
-        "pde_voxels": 38842,
-        "pde_mm3": 38842.0,
-        "capture_pct": 100.90927985035852
+        "wt_mm3": 37508.0,
+        "pde_voxels": 25145,
+        "pde_mm3": 25145.0,
+        "capture_pct": 67.03903167324304
       },
       "followup": {
         "label": "followup",
-        "wt_mm3": 108441.0,
-        "pde_voxels": 92327,
-        "pde_mm3": 92327.0,
-        "capture_pct": 85.1403067105615
+        "wt_mm3": 83910.0,
+        "pde_voxels": 69009,
+        "pde_mm3": 69009.0,
+        "capture_pct": 82.24168752234537
       },
-      "wt_growth_pct": 181.72347500779384,
-      "workbook_growth_pct": 173.8830584707646,
-      "pde_growth_pct": 137.69888265279852,
-      "growth_pct_delta": -44.02459235499532,
-      "growth_pct_delta_workbook": -36.18417581796609,
+      "wt_growth_pct": 123.71227471472753,
+      "workbook_growth_pct": 123.71227471472753,
+      "pde_growth_pct": 174.44422350367867,
+      "growth_pct_delta": 50.731948788951144,
+      "growth_pct_delta_workbook": 50.731948788951144,
       "qc_flags": [
+        "crop_loss_baseline",
         "crop_loss_followup",
         "growth_mismatch"
       ]
     },
     {
-      "patient_id": "100134",
-      "grade": 3.0,
-      "idh_status": "mut",
-      "interval_days": 105.10624999999709,
+      "patient_id": "100210",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "interval_days": 60.04236111111095,
       "baseline": {
         "label": "baseline",
-        "wt_mm3": 11235.0,
-        "pde_voxels": 65801,
-        "pde_mm3": 65801.0,
-        "capture_pct": 585.6786826880285
+        "wt_mm3": 21400.0,
+        "pde_voxels": 21400,
+        "pde_mm3": 21400.0,
+        "capture_pct": 100.0
       },
       "followup": {
         "label": "followup",
-        "wt_mm3": 12288.0,
-        "pde_voxels": 37584,
-        "pde_mm3": 37584.0,
-        "capture_pct": 305.859375
+        "wt_mm3": 38832.0,
+        "pde_voxels": 38329,
+        "pde_mm3": 38329.0,
+        "capture_pct": 98.70467655541822
       },
-      "wt_growth_pct": 9.372496662216289,
-      "workbook_growth_pct": -42.43324778243055,
-      "pde_growth_pct": -42.882327016306746,
-      "growth_pct_delta": -52.25482367852304,
-      "growth_pct_delta_workbook": -0.44907923387619775,
+      "wt_growth_pct": 81.45794392523365,
+      "workbook_growth_pct": 81.45794392523365,
+      "pde_growth_pct": 79.10747663551402,
+      "growth_pct_delta": -2.3504672897196315,
+      "growth_pct_delta_workbook": -2.3504672897196315,
       "qc_flags": [
-        "label_inflation_baseline",
-        "label_inflation_followup",
+        "ok"
+      ]
+    },
+    {
+      "patient_id": "100213",
+      "grade": 3.0,
+      "idh_status": "WT",
+      "interval_days": 57.09652777777228,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 68879.0,
+        "pde_voxels": 60137,
+        "pde_mm3": 60137.0,
+        "capture_pct": 87.30817810943829
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 133812.0,
+        "pde_voxels": 104443,
+        "pde_mm3": 104443.0,
+        "capture_pct": 78.05204316503752
+      },
+      "wt_growth_pct": 94.27111311139825,
+      "workbook_growth_pct": 94.27111311139825,
+      "pde_growth_pct": 73.6751085022532,
+      "growth_pct_delta": -20.596004609145055,
+      "growth_pct_delta_workbook": -20.596004609145055,
+      "qc_flags": [
+        "crop_loss_baseline",
+        "crop_loss_followup",
         "growth_mismatch"
       ]
     },
     {
-      "patient_id": "100130",
+      "patient_id": "100215",
       "grade": 3.0,
-      "idh_status": "mut",
-      "interval_days": 181.9777777777781,
+      "idh_status": "WT",
+      "interval_days": 62.92569444444234,
       "baseline": {
         "label": "baseline",
-        "wt_mm3": 4144.0,
-        "pde_voxels": 11836,
-        "pde_mm3": 11836.0,
-        "capture_pct": 285.6177606177606
+        "wt_mm3": 3284.0,
+        "pde_voxels": 3284,
+        "pde_mm3": 3284.0,
+        "capture_pct": 100.0
       },
       "followup": {
         "label": "followup",
-        "wt_mm3": 4722.0,
-        "pde_voxels": 8313,
-        "pde_mm3": 8313.0,
-        "capture_pct": 176.04828462515883
+        "wt_mm3": 2933.0,
+        "pde_voxels": 2933,
+        "pde_mm3": 2933.0,
+        "capture_pct": 100.0
       },
-      "wt_growth_pct": 13.947876447876448,
-      "workbook_growth_pct": -29.818488813845505,
-      "pde_growth_pct": -29.765123352483947,
-      "growth_pct_delta": -43.71299980036039,
-      "growth_pct_delta_workbook": 0.053365461361558175,
+      "wt_growth_pct": -10.688185140073081,
+      "workbook_growth_pct": -10.688185140073081,
+      "pde_growth_pct": -10.688185140073081,
+      "growth_pct_delta": 0.0,
+      "growth_pct_delta_workbook": 0.0,
       "qc_flags": [
-        "label_inflation_baseline",
-        "label_inflation_followup",
+        "ok"
+      ]
+    },
+    {
+      "patient_id": "100219",
+      "grade": 2.0,
+      "idh_status": "WT",
+      "interval_days": 37.098611111112405,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 68397.0,
+        "pde_voxels": 46142,
+        "pde_mm3": 46142.0,
+        "capture_pct": 67.46202318815153
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 83146.0,
+        "pde_voxels": 49048,
+        "pde_mm3": 49048.0,
+        "capture_pct": 58.990209992062155
+      },
+      "wt_growth_pct": 21.56381127827244,
+      "workbook_growth_pct": 21.56381127827244,
+      "pde_growth_pct": 6.29794980711716,
+      "growth_pct_delta": -15.26586147115528,
+      "growth_pct_delta_workbook": -15.26586147115528,
+      "qc_flags": [
+        "crop_loss_baseline",
+        "crop_loss_followup",
         "growth_mismatch"
       ]
     }
