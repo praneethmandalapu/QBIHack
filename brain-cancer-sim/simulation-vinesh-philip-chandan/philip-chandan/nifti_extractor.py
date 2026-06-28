@@ -20,6 +20,7 @@ UCSF_TIMEPOINT_TOKENS = {
 
 # BraTS-style expert labels; whole tumor (WT) = 1 + 2 + 3 per cohort.json.
 WT_SEGMENTATION_LABELS = (1, 2, 3)
+RESECTION_CAVITY_LABEL = 4
 
 
 def _load_nifti(path: Path) -> tuple[np.ndarray, tuple[float, float, float]]:
@@ -89,6 +90,27 @@ def wt_volume_from_segmentation(seg_path: Path) -> float:
     """Convenience: WT mm^3 directly from a segmentation NIfTI path."""
     labels, spacing = load_segmentation_labels(seg_path)
     return compute_wt_volume_mm3(labels, spacing)
+
+
+def resection_cavity_stats(
+    labels: np.ndarray,
+    spacing_mm: tuple[float, float, float],
+) -> dict[str, Any]:
+    """Summarize label 4 (resection cavity) presence and volume in a label map."""
+    voxel_mm3 = float(spacing_mm[0] * spacing_mm[1] * spacing_mm[2])
+    l4_count = int((labels == RESECTION_CAVITY_LABEL).sum())
+    labels_present = sorted(int(value) for value in np.unique(labels) if int(value) > 0)
+    return {
+        "has_resection_cavity": l4_count > 0,
+        "resection_cavity_mm3": l4_count * voxel_mm3,
+        "labels_present": labels_present,
+    }
+
+
+def resection_cavity_from_segmentation(seg_path: Path) -> dict[str, Any]:
+    """Convenience: resection cavity stats directly from a segmentation NIfTI path."""
+    labels, spacing = load_segmentation_labels(seg_path)
+    return resection_cavity_stats(labels, spacing)
 
 
 def resolve_ucsf_paths(

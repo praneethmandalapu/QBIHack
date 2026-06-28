@@ -29,6 +29,9 @@ from spike_paths import (  # noqa: E402
 MANIFEST_VERSION = "1.0.0"
 DEMO_STABLE_PATIENT = "100002"
 DEMO_AGGRESSIVE_PATIENT = "100118"
+MANIFEST_PATIENT_IDS = frozenset({DEMO_STABLE_PATIENT, DEMO_AGGRESSIVE_PATIENT})
+# BraTS label 4 (resection cavity) — excluded from handoff manifest (PDE seeds mask > 0).
+RESECTION_EXCLUDED_PATIENT_IDS = frozenset({"100130", "100134", "100192", "100220", "100260"})
 
 
 def _rel(path: Path) -> str:
@@ -151,6 +154,8 @@ def build_manifest() -> dict[str, Any]:
     volumes: list[dict[str, Any]] = []
     for json_path, meta in _discover_raw_sidecars():
         patient_id = str(meta["patient_id"])
+        if patient_id not in MANIFEST_PATIENT_IDS:
+            continue
         cohort_row = cohort_lookup.get(patient_id, {})
         volumes.append(_volume_entry(json_path, meta, cohort_row))
 
@@ -165,9 +170,10 @@ def build_manifest() -> dict[str, Any]:
         "contract_version": contract_version(),
         "generated_at": date.today().isoformat(),
         "description": (
-            "Philip-Chandan brain imaging handoff: UCSF longitudinal glioma cohort "
-            "(7 patients, baseline + follow-up). Load by slug, patient_id, or demo key."
+            "Philip-Chandan brain imaging handoff: two UCSF longitudinal glioma patients "
+            "without resection cavity (label 4). Load by slug, patient_id, or demo key."
         ),
+        "excluded_resection_cavity_patient_ids": sorted(RESECTION_EXCLUDED_PATIENT_IDS),
         "demo": {
             "stable": {
                 "patient_id": DEMO_STABLE_PATIENT,

@@ -42,6 +42,7 @@ if str(_ROOT) not in sys.path:
 from cohort import COHORT_DISCOVERY_UCSF_PATH, COHORT_PATH, RAW_DATA_DIR, REPO_ROOT, UCSF_MASTER_CSV
 from cohort.cohort_io import iter_cohort_entries, load_cohort, resolve_patient_raw_dir
 from cohort.datasets import DatasetSpec, PREFERRED_DATASET_KEYS, get_dataset, iter_datasets
+from nifti_extractor import resection_cavity_from_segmentation
 
 NBIA_BASE = "https://services.cancerimagingarchive.net/nbia-api/services/v1"
 
@@ -459,6 +460,73 @@ def _has_visit_segmentation_masks(report: dict[str, Any]) -> bool:
     return len(visit_labels) >= 2
 
 
+def _pick_segmentation_path(timepoint: dict[str, Any]) -> Path | None:
+    paths = [Path(value) for value in timepoint.get("segmentation_paths") or []]
+    if not paths:
+        return None
+    seg_paths = [path for path in paths if "seg" in path.name.lower()]
+    return seg_paths[0] if seg_paths else paths[0]
+
+
+def scan_resection_cavity_for_report(report: dict[str, Any]) -> dict[str, Any]:
+    """Add per-visit label-4 (resection cavity) stats from local expert segmentations."""
+    visits: dict[str, Any] = {}
+    for visit_label in sorted(UCSF_VISIT_LABELS):
+        timepoint = next(
+            (tp for tp in (report.get("timepoints") or []) if tp.get("label") == visit_label),
+            None,
+        )
+        if timepoint is None:
+            visits[visit_label] = {
+                "has_resection_cavity": None,
+                "resection_cavity_mm3": None,
+                "labels_present": [],
+                "segmentation_path": None,
+            }
+            continue
+        seg_path = _pick_segmentation_path(timepoint)
+        if seg_path is None or not seg_path.is_file():
+            visits[visit_label] = {
+                "has_resection_cavity": None,
+                "resection_cavity_mm3": None,
+                "labels_present": [],
+                "segmentation_path": str(seg_path) if seg_path else None,
+            }
+            continue
+        stats = resection_cavity_from_segmentation(seg_path)
+        visits[visit_label] = {
+            "has_resection_cavity": stats["has_resection_cavity"],
+            "resection_cavity_mm3": stats["resection_cavity_mm3"],
+            "labels_present": stats["labels_present"],
+            "segmentation_path": str(seg_path),
+        }
+
+    baseline = visits.get("baseline", {})
+    followup = visits.get("followup", {})
+    return {
+        "resection_cavity": visits,
+        "has_resection_cavity_baseline": baseline.get("has_resection_cavity"),
+        "has_resection_cavity_followup": followup.get("has_resection_cavity"),
+        "has_resection_cavity_any_visit": any(
+            visit.get("has_resection_cavity") for visit in visits.values()
+        ),
+    }
+
+
+def passes_resection_exclusion(
+    resection: dict[str, Any],
+    *,
+    exclude_baseline: bool = False,
+    exclude_followup: bool = False,
+) -> bool:
+    """Return True when patient passes resection-cavity filters (not excluded)."""
+    if exclude_baseline and resection.get("has_resection_cavity_baseline"):
+        return False
+    if exclude_followup and resection.get("has_resection_cavity_followup"):
+        return False
+    return True
+
+
 def load_ucsf_master_lookup(
     master_csv: Path | None = None,
 ) -> dict[str, dict[str, Any]]:
@@ -483,6 +551,8 @@ def discover_ucsf_cohort(
     cohort_path: Path | None = None,
     master_csv: Path | None = None,
     raw_root: Path | None = None,
+    exclude_resection_baseline: bool = False,
+    exclude_resection_followup: bool = False,
 ) -> dict[str, Any]:
     """Audit UCSF-ALPTDG patients against imaging + same-ID genomics (IDH/grade) criteria."""
     master_lookup = load_ucsf_master_lookup(master_csv)
@@ -501,12 +571,22 @@ def discover_ucsf_cohort(
     patients: list[dict[str, Any]] = []
     imaging_eligible_ids: list[str] = []
     genomics_eligible_ids: list[str] = []
+    resection_filtered_ids: list[str] = []
 
     for report in imaging_reports:
         patient_id = str(report["patient_id"])
         if not _is_ucsf_subject_id(patient_id):
             continue
         if not _has_visit_segmentation_masks(report):
+            continue
+
+        resection = scan_resection_cavity_for_report(report)
+        if not passes_resection_exclusion(
+            resection,
+            exclude_baseline=exclude_resection_baseline,
+            exclude_followup=exclude_resection_followup,
+        ):
+            resection_filtered_ids.append(patient_id)
             continue
 
         clinical = master_lookup.get(patient_id, {})
@@ -528,6 +608,7 @@ def discover_ucsf_cohort(
             "mgmt": clinical.get("mgmt") or None,
             "who_2021_diagnosis": clinical.get("who_2021_diagnosis") or None,
             "wt_growth_pct": clinical.get("wt_growth_pct") or None,
+            **resection,
         }
         patients.append(entry)
         imaging_eligible_ids.append(patient_id)
@@ -545,6 +626,12 @@ def discover_ucsf_cohort(
     except ValueError:
         genomics_source = str(master_path)
 
+    exclusion_notes: list[str] = []
+    if exclude_resection_baseline:
+        exclusion_notes.append("exclude label 4 (resection cavity) at baseline")
+    if exclude_resection_followup:
+        exclusion_notes.append("exclude label 4 (resection cavity) at follow-up")
+
     return {
         "dataset_key": "ucsf_longitudinal_glioma",
         "generated_at": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
@@ -558,20 +645,25 @@ def discover_ucsf_cohort(
                 "data/processed/ucsf_longitudinal_master.csv (UCSF clinical workbook; "
                 "not TCGA expression data)"
             ),
+            "resection_cavity_exclusions": exclusion_notes or None,
         },
         "counts": {
             "imaging_two_timepoint_expert_seg": len(imaging_set),
             "same_id_genomics_idh_grade": len(genomics_set),
             "in_cohort_json": len(cohort_ids & genomics_set),
             "missing_from_cohort_json": len(missing_from_cohort),
+            "excluded_resection_cavity": len(resection_filtered_ids),
         },
+        "excluded_resection_cavity_patient_ids": sorted(resection_filtered_ids),
         "genomics_source": genomics_source,
         "cohort_json_patient_ids": sorted(cohort_ids),
         "missing_from_cohort_json": missing_from_cohort,
         "patients": patients,
         "notes": (
             "cohort.json is curated for demo pairs/backups, not a full inventory. "
-            "Regenerate this file after downloading UCSF NIfTI or refreshing clean_ucsf.py output."
+            "Regenerate this file after downloading UCSF NIfTI or refreshing clean_ucsf.py output. "
+            "Label 4 (RC) = resection cavity; excluded from WT (labels 1+2+3) but present in many "
+            "postoperative UCSF segmentations."
         ),
     }
 
@@ -591,6 +683,11 @@ def print_ucsf_discovery_summary(result: dict[str, Any]) -> None:
     print(f"UCSF discovery ({result['dataset_key']})")
     print(f"  Imaging (2 TP + expert seg): {counts['imaging_two_timepoint_expert_seg']}")
     print(f"  Same-ID genomics (IDH+grade): {counts['same_id_genomics_idh_grade']}")
+    if counts.get("excluded_resection_cavity"):
+        print(f"  Excluded (label 4 resection cavity): {counts['excluded_resection_cavity']}")
+        criteria = result.get("criteria", {}).get("resection_cavity_exclusions")
+        if criteria:
+            print(f"    filters: {', '.join(criteria)}")
     print(f"  Listed in cohort.json: {counts['in_cohort_json']}")
     print(f"  Genomics-eligible but not in cohort.json: {counts['missing_from_cohort_json']}")
     if result.get("missing_from_cohort_json"):
@@ -1016,6 +1113,16 @@ def build_arg_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Skip writing cohort_discovery_ucsf.json (stdout / --json only)",
     )
+    discover_ucsf_parser.add_argument(
+        "--exclude-resection-baseline",
+        action="store_true",
+        help="Drop patients with label 4 (resection cavity) at baseline",
+    )
+    discover_ucsf_parser.add_argument(
+        "--exclude-resection-followup",
+        action="store_true",
+        help="Drop patients with label 4 (resection cavity) at follow-up",
+    )
 
     show_parser = subparsers.add_parser(
         "show",
@@ -1096,6 +1203,8 @@ def main(argv: list[str] | None = None) -> int:
             cohort_path=args.cohort,
             master_csv=args.master_csv,
             raw_root=args.raw_root,
+            exclude_resection_baseline=args.exclude_resection_baseline,
+            exclude_resection_followup=args.exclude_resection_followup,
         )
         if not args.no_write:
             path = write_ucsf_discovery_json(result, args.output)

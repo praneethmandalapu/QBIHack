@@ -8,31 +8,35 @@ Pattern reference (breast, completed): `breast-cancer-sim/simulation-vinesh-phil
 
 ---
 
-## Current status — Phase 0.5 cohort scale-up
+## Current status — Phase 0.5 cohort scale-up *(mostly complete)*
 
-**Work from this section first.**
+**Work from this section first:** manifest + Vinesh calibration.
 
 | Doc | Purpose |
 |-----|---------|
 | [`../../DATASETS.md`](../../DATASETS.md) | Candidate longitudinal MRI datasets |
 | [`../handoff_contract.json`](../handoff_contract.json) | Versioned Philip-Chandan ↔ Vinesh contract (`1.0.0`) |
 | [`VALIDATION.md`](VALIDATION.md) | QC + napari inspection guide |
-| [`report.md`](report.md) / [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) | Live pipeline narrative — **regenerate after cohort export:** `generate_pipeline_report.py` |
+| [`report.md`](report.md) / [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) | Live pipeline narrative — **regenerate:** `generate_pipeline_report.py` |
 | [`cohort/COHORT.md`](cohort/COHORT.md) | Patient picks and discovery notes |
 
 **Spike case:** UCSF-ALPTDG patient `100002` · IDH-mut grade 2 oligodendroglioma · slugs `glioma_ucsf_100002_{baseline,followup}`
 
-**Cohort export (7 patients):** `100002`, `100118`, `100130`, `100134`, `100192`, `100220`, `100260` — baseline + follow-up raw `.npy` + JSON under `raw-extract-philip-chandan/<patient_id>/`. PDE g64 cubes under `pde-input-vinesh/<patient_id>/g64/{baseline,followup}.npy`. Longitudinal QC PNGs: `data/qc/slice-plots-philip-chandan/<patient_id>_longitudinal_mid-z-overlay.png`. WT volume table: `wt_volume_report.json` (from `export_all_raw.py --compare-ucsf-workbook`).
+**Cohort export (7 patients on disk):** `100002`, `100118`, `100130`, `100134`, `100192`, `100220`, `100260` — baseline + follow-up raw `.npy` + JSON under `raw-extract-philip-chandan/<patient_id>/`. PDE g64 cubes under `pde-input-vinesh/<patient_id>/g64/{baseline,followup}.npy`. Longitudinal QC PNGs: `data/qc/slice-plots-philip-chandan/<patient_id>_longitudinal_mid-z-overlay.png`. WT volume table: `wt_volume_report.json`. PDE burden compare: `pde-input-vinesh/pde_burden_compare.json`.
+
+**Resection cavity exclusion (label 4):** Five patients have BraTS label 4 (resection cavity) on at least one visit: `100130`, `100134`, `100192`, `100220`, `100260`. WT volumes use labels 1+2+3 only; PDE prep seeds `mask > 0`, so burden capture is misleading for these cases. **`PIPELINE_REPORT.pdf` §7–8 tables include only the two patients without RC:** `100002` (spike) and `100118` (demo contrast). Full export artifacts for all seven remain on disk for audit.
 
 **Scale-up order:**
 
 1. Baseline spike green — **done** (raw + PDE g64 + solver smoke on `100002`)
 2. Longitudinal pair on same patient (t1→t2) — **done** for `100002` raw + PDE g64; calibrated sim pending (Vinesh)
 3. Seven-patient cohort raw export — **done** (`export_all_raw.py`, checkpointed)
-4. WT volume QC + longitudinal overlay figures — **done** (`wt_volume_report.py`, `PIPELINE_REPORT.pdf` §8)
-5. PDE prep g64 for full cohort (7 × baseline + follow-up) — **done**; `manifest.json` v1.0.0 — **pending**
-6. Vinesh `calibrate.py` + demo toggle (`100118` vs `100002`) — **pending**
-7. Jasim render + Vihari toggle — **waiting on manifest + calibrated frames**
+4. WT volume QC + longitudinal overlay PNGs — **done** (`wt_volume_report.py`; overlays on disk, not embedded in PDF)
+5. PDE prep g64 for full cohort (7 × baseline + follow-up) — **done**
+6. PDE burden compare + pipeline PDF — **done** (`pde_burden_compare.py`, `PIPELINE_REPORT.pdf` with Fig 4 baseline/follow-up PDE input; cohort MR overlays removed from PDF)
+7. `manifest.json` v1.0.0 — **done** (2 non-resection patients: `100002`, `100118`)
+8. Vinesh `calibrate.py` + demo toggle (`100118` vs `100002`) — **pending**
+9. Jasim render + Vihari toggle — **waiting on manifest + calibrated frames**
 
 **Split:** You deliver **raw** MR extract + spacing + segmentation path to `data/processed/raw-extract-philip-chandan/`, then run **`prepare_pde_input.py`** (resample/crop/normalize → `data/processed/pde-input-vinesh/`). Vinesh owns `run_growth()` and porting `calibrate.py`.
 
@@ -40,7 +44,7 @@ Pattern reference (breast, completed): `breast-cancer-sim/simulation-vinesh-phil
 
 | Owner | Next action |
 |-------|-------------|
-| **Philip-Chandan** | `manifest.json` v1.0.0; regenerate `PIPELINE_REPORT.pdf` after QC changes |
+| **Philip-Chandan** | Regenerate `PIPELINE_REPORT.pdf` after QC changes; notify Vinesh of manifest paths |
 | **Vinesh** | Port `calibrate.py` + `make_growth_animation.py` (expert-mask seeding, not breast Otsu); `run_growth()` on Philip-Chandan PDE inputs |
 | **Praneeth / Jasim / Vihari** | Not blocking t1→t2 on patient 1 |
 
@@ -55,7 +59,7 @@ Pattern reference (breast, completed): `breast-cancer-sim/simulation-vinesh-phil
 | **Spike raw extract** | Raw `.npy` + `.json` in `data/processed/raw-extract-philip-chandan/` — **done** (baseline + follow-up) |
 | **Expert mask paired** | Mask in `data/processed/segmentations/` aligned to MR `(Z, Y, X)` — **done** |
 | **PDE-ready volume (your scope)** | You run `prepare_pde_input.py` → `data/processed/pde-input-vinesh/<patient_id>/g64/` — **done** (7 patients × baseline + follow-up g64) |
-| **`manifest.json`** | Maps disease grade / timepoint → slug → paths + metadata — **not started** |
+| **`manifest.json`** | Maps disease grade / timepoint → slug → paths + metadata — **done** (2 patients; `generate_manifest.py`) |
 | **Handoff to Vinesh** | `solve_growth()` runs on real data without reformatting on Vinesh's side — **done** (baseline smoke); calibrated t1→t2 pending |
 
 **Out of scope for v1:** PyRadiomics feature extraction, MS lesion datasets (see stretch below).
@@ -168,15 +172,16 @@ flowchart LR
 4. QC with `view_volume_napari.py --slug <slug>` and `qc_slice_plot.py` — **done** (baseline).
 5. Hand off to Vinesh; stay paired until `solve_growth()` succeeds — **done** (baseline smoke).
 
-### Phase 0.5 — Longitudinal t1→t2 on `100002` *(next)*
+### Phase 0.5 — Longitudinal t1→t2 on `100002` *(export done; calibration next)*
 
-Export both timepoints so Vinesh can simulate growth from timepoint 1 to timepoint 2 (228 days; WT volume 8137 → 8365 mm³, ~+2.8%).
+Export both timepoints so Vinesh can simulate growth from timepoint 1 to timepoint 2 (183 days; WT volume 8137 → 8365 mm³, ~+2.8%).
 
-1. **Philip-Chandan:** both raw extracts + masks — follow-up **done** on disk; cohort export via `export_all_raw.py` (checkpointed).
-2. **Philip-Chandan:** PDE prep g64 for all cohort slugs — **done** (`prepare_pde_input.py --slug ... --grid-size 64` per slug).
-3. **Vinesh:** port breast [`calibrate.py`](../vinesh/calibrate.py) — tune solver so simulated burden matches real follow-up (expert-mask seeding via `mask_seeding.py`, not breast Otsu `isolate_tumor`).
-4. **Optional:** growth animation GIF (breast `make_growth_animation.py` pattern).
-5. **Philip-Chandan:** document paired slugs + `interval_days` + calibrated params in `manifest.json`.
+1. **Philip-Chandan:** both raw extracts + masks — **done** for full cohort (7 × 2 timepoints).
+2. **Philip-Chandan:** PDE prep g64 for all cohort slugs — **done**.
+3. **Philip-Chandan:** WT volume report, PDE burden compare, pipeline PDF — **done** (PDF excludes five resection-cavity patients from §7–8 tables).
+4. **Vinesh:** port breast [`calibrate.py`](../vinesh/calibrate.py) — tune solver so simulated burden matches real follow-up (expert-mask seeding via `mask_seeding.py`, not breast Otsu `isolate_tumor`).
+5. **Optional:** growth animation GIF (breast `make_growth_animation.py` pattern).
+6. **Philip-Chandan:** publish `manifest.json` v1.0.0 with paired slugs + `interval_days` + calibrated params.
 
 When Philip-Chandan supply a follow-up scan, Vinesh calibrates growth so simulation reproduces baseline→followup change — same intent as breast `calibrate.py`.
 
@@ -288,10 +293,11 @@ Live narrative: [`report.md`](report.md) / [`PIPELINE_REPORT.pdf`](PIPELINE_REPO
 - [x] Follow-up PDE input g64 (`100002/g64/followup.npy`)
 - [x] Cohort-driven export CLI — 7 patients × 2 timepoints (`export_all_raw.py`)
 - [x] WT volume report + UCSF workbook compare (`wt_volume_report.json`)
-- [x] Longitudinal before/after overlay PNGs (7 patients, in `PIPELINE_REPORT.pdf`)
+- [x] Longitudinal before/after overlay PNGs (7 patients, on disk)
 - [x] PDE input g64 for all 7 patients × baseline + follow-up (`pde-input-vinesh/<patient_id>/g64/`)
 - [x] PDE prep QC PNGs for full cohort (`data/qc/pde-prep-vinesh/g64/`)
-- [x] Follow-up PDE input g64 (`100002/g64/followup.npy`)
+- [x] PDE burden compare JSON (`pde_burden_compare.json`; full cohort)
+- [x] `PIPELINE_REPORT.pdf` — Fig 4 baseline/follow-up PDE input; §7–8 tables for non-resection patients only
 - [ ] Brain `calibrate.py` ported and run on baseline→followup pair
 - [ ] Document calibrated params + interval in manifest
 
@@ -300,7 +306,7 @@ Live narrative: [`report.md`](report.md) / [`PIPELINE_REPORT.pdf`](PIPELINE_REPO
 - [x] Seven UCSF patients with baseline + follow-up raw extracts
 - [x] Seven UCSF patients with baseline + follow-up PDE g64 inputs
 - [ ] Two patients or two grades highlighted for demo toggle (`100002` + `100118`)
-- [ ] `manifest.json` v1.0.0
+- [x] `manifest.json` v1.0.0 (2 patients: `100002`, `100118`)
 - [ ] Jasim render without axis flip
 - [ ] Vihari disease/grade toggle wired
 
@@ -311,9 +317,11 @@ Live narrative: [`report.md`](report.md) / [`PIPELINE_REPORT.pdf`](PIPELINE_REPO
 | File | Status | Notes |
 |------|--------|-------|
 | `nifti_extractor.py` | **done** | nibabel load; `(Z, Y, X)` convention |
-| `export_raw_extract.py` | **partial** | Core export works; CLI only baseline spike |
+| `export_raw_extract.py` | **partial** | Core export works; use `export_all_raw.py` for cohort |
 | `export_all_raw.py` | **done** | Cohort + multi-timepoint export; checkpoint; `--compare-ucsf-workbook` |
-| `wt_volume_report.py` | **done** | WT mm³ from expert seg; UCSF workbook diff (UCSF flag only) |
+| `wt_volume_report.py` | **done** | WT mm³ from expert seg (labels 1+2+3); UCSF workbook diff |
+| `pde_burden_compare.py` | **done** | PDE g64 voxel burden vs WT growth %; `label_inflation_*` flags for RC patients |
+| `generate_manifest.py` | **done** | → `manifest.json` v1.0.0 (2 non-resection patients) |
 | `qc_slice_plot.py` | **done** | Per-slug mid-Z + `{patient_id}_longitudinal_mid-z-overlay.png` |
 | `view_volume_napari.py` | **done** | Clinical QC + `--pde-input` |
 | `qc_pde_plot.py` | **done** | PDE prep QC figures under `data/qc/pde-prep-vinesh/` |
@@ -352,8 +360,9 @@ Also: `--timepoints`, `--no-qc`, `--resume` / `--no-resume`, `--force`, `--retry
 
 1. **`export_raw_extract.py`** — single-spike CLI only; use `export_all_raw.py` for cohort batches (checkpointed).
 2. **`handoff_contract.json`** — `spike_patient` is baseline-only; paired longitudinal metadata belongs in `manifest.json`.
-3. **No brain `calibrate.py`** — blocks t1→t2 simulation despite follow-up raw extract on disk.
-4. **`report.md`** — “Next” line still lists follow-up as pending; optional sync in a separate edit.
+3. **No brain `calibrate.py`** — blocks t1→t2 simulation despite follow-up PDE inputs on disk.
+4. **Resection cavity (label 4)** — five cohort patients seed PDE from cavity voxels; excluded from PDF QC tables until PDE prep filters label 4 (future contract bump).
+5. **`manifest.json`** — published for 2 non-resection patients; five RC cases remain on disk only.
 
 ---
 
@@ -380,11 +389,11 @@ pip install -r requirements.txt
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py --slug glioma_ucsf_100002_baseline --pde-input
 ```
 
-Regenerate pipeline PDF (includes §8 longitudinal figures for all 7 patients):
+Regenerate pipeline PDF (§7–8 show non-resection patients only; Fig 4 = baseline/follow-up PDE input):
 
 ```bash
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py \
-  --all-primary --include-backups --volume-report-only --compare-ucsf-workbook
+  --all-primary --volume-report-only --compare-ucsf-workbook
 # PDE prep — all cohort slugs (g64)
 for f in data/processed/raw-extract-philip-chandan/*/{baseline,followup}.json; do
   slug=$(.venv/bin/python -c "import json; print(json.load(open('$f'))['slug'])")

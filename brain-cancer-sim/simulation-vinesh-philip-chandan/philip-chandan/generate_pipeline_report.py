@@ -23,7 +23,6 @@ from nifti_extractor import (  # noqa: E402
     load_expert_mask,
     resolve_ucsf_supplementary_paths,
 )
-from cohort.cohort_io import iter_cohort_entries  # noqa: E402
 from qc_slice_plot import (  # noqa: E402
     ensure_overlay_plot,
     pick_mask_z_index,
@@ -57,11 +56,26 @@ SPIKE = spike_patient()
 SPIKE_SLUG = SPIKE["slug"]
 VOLUME_REPORT_JSON = RAW_EXTRACT_PHILIP_CHANDAN / "wt_volume_report.json"
 
+# BraTS label 4 (resection cavity) on any visit — PDE prep seeds mask > 0, so burden
+# capture vs WT (labels 1+2+3) is misleading. Excluded from PDF QC tables in §7–8.
+RESECTION_EXCLUDED_PATIENT_IDS = frozenset({"100130", "100134", "100192", "100220", "100260"})
+
 
 def _load_volume_report() -> dict | None:
     if not VOLUME_REPORT_JSON.is_file():
         return None
     return json.loads(VOLUME_REPORT_JSON.read_text(encoding="utf-8"))
+
+
+def _without_resection_patients(report: dict | None) -> dict | None:
+    if report is None:
+        return None
+    patients = [
+        row
+        for row in report.get("patients", [])
+        if str(row.get("patient_id")) not in RESECTION_EXCLUDED_PATIENT_IDS
+    ]
+    return {**report, "patients": patients, "patient_count": len(patients)}
 
 
 def _temp_sequence_figure(slug: str) -> Path | None:
@@ -533,19 +547,21 @@ def build_report() -> ReportPDF:
     pdf.set_font("Helvetica", "", 10)
 
     volume_report = _load_volume_report()
+    report_volume = _without_resection_patients(volume_report)
 
     # --- 7. PDE burden vs WT growth ---
-    burden_report = build_pde_burden_report(volume_report)
+    burden_report = build_pde_burden_report(report_volume)
     write_pde_burden_report(path=PDE_BURDEN_COMPARE_JSON, wt_report=volume_report)
 
     pdf.section_title("7", "PDE burden vs WT growth spec (QC)")
     pdf.body(
         "After prepare_pde_input.py, tumor burden in the 64^3 PDE cube is the count of voxels "
         "with value > 0 (handoff_contract tumor_burden_rule). At 1 mm spacing each voxel is "
-        "~1 mm^3 when the lesion fits inside the crop. WT volumes in wt_volume_report.json use "
-        "BraTS labels 1+2+3 only; PDE prep seeds from mask > 0, so per-timepoint capture can "
-        "exceed 100% when label 4 (resection cavity) is present. The longitudinal check is "
-        "whether PDE voxel growth % tracks computed_growth_pct from the expert WT spec."
+        "~1 mm^3 when the lesion fits inside the crop. WT volumes use BraTS labels 1+2+3 only. "
+        "Five cohort patients (100130, 100134, 100192, 100220, 100260) have label 4 resection "
+        "cavity on at least one visit and are omitted below - PDE prep seeds mask > 0, which "
+        "inflates capture vs WT. Tables show the two patients without resection cavity "
+        "(100002 spike + 100118 demo contrast)."
     )
     if burden_report.get("patients"):
         pdf.subsection("Per-timepoint burden capture (WT mm^3 vs PDE voxels)")
@@ -567,12 +583,11 @@ def build_report() -> ReportPDF:
         )
         pdf.body(
             f"Spike patient 100002 matches exactly (100% capture, +2.8% growth). "
-            f"{ok_count}/{burden_report['patient_count']} patients pass all QC flags "
+            f"{ok_count}/{burden_report['patient_count']} non-resection patients pass all QC flags "
             f"(capture 95-105% both timepoints and growth within +/-5% of WT spec). "
-            f"Large-tumor patients (e.g. 100118, 100220, 100260) show follow-up crop loss "
-            f"that skews PDE growth % - Vinesh calibrate.py should use full-res WT targets, "
-            f"not cropped voxel counts alone. JSON sidecar: "
-            f"{PDE_BURDEN_COMPARE_JSON.relative_to(REPO_ROOT)}."
+            f"Patient 100118 shows follow-up crop loss on the 64^3 grid - Vinesh calibrate.py "
+            f"should use full-res WT targets, not cropped voxel counts alone. Full cohort JSON "
+            f"(all 7 patients) sidecar: {PDE_BURDEN_COMPARE_JSON.relative_to(REPO_ROOT)}."
         )
     else:
         pdf.body(
@@ -581,20 +596,18 @@ def build_report() -> ReportPDF:
         )
 
     # --- 8. UCSF cohort scale-up ---
-    pdf.section_title("8", "UCSF cohort scale-up - 7 patients longitudinal QC")
+    pdf.section_title("8", "UCSF cohort scale-up - WT volume QC (no resection cavity)")
     pdf.body(
         "export_all_raw.py exported baseline + follow-up raw extracts for seven UCSF-LPTDG "
-        "patients in cohort.json (primary spike 100002 plus six discovery picks). "
-        "qc_slice_plot.save_longitudinal_overlay_plot() renders side-by-side T1ce slices "
-        "at the baseline tumor-rich z index with lime expert contours (PNG on disk under "
-        "data/qc/slice-plots-philip-chandan/). WT volumes (labels 1+2+3) come from "
-        "wt_volume_report.py; use --compare-ucsf-workbook on export_all_raw to diff "
-        "against UCSF Table S1."
+        "patients in cohort.json. Five have label 4 resection cavity (excluded from tables "
+        "below). Longitudinal T1ce overlay PNGs for all seven are on disk under "
+        "data/qc/slice-plots-philip-chandan/. WT volumes (labels 1+2+3) from wt_volume_report.py; "
+        "use --compare-ucsf-workbook on export_all_raw to diff against UCSF Table S1."
     )
 
-    if volume_report:
+    if report_volume:
         table_rows: list[list[str]] = []
-        for row in volume_report.get("patients", []):
+        for row in report_volume.get("patients", []):
             pid = str(row["patient_id"])
             baseline = row.get("baseline") or {}
             followup = row.get("followup") or {}
@@ -634,10 +647,10 @@ def build_report() -> ReportPDF:
     pdf.body(
         "Phase 0 delivered NIfTI ingest, UCSF spike export, expert-mask QC, napari viewer, "
         "Philip-Chandan PDE prep into 64^3 continuous-density input, and solve_growth() smoke "
-        "on patient 100002. Cohort scale-up exported seven patients (14 timepoints) with "
-        "longitudinal overlay PNGs on disk, WT volume table (section 8), and PDE burden vs "
-        "growth QC (section 7). Next: manifest.json v1.0.0, Vinesh calibrate.py for t1->t2, "
-        "and demo toggle (100002 stable IDH-mut vs 100118 aggressive IDH-WT GBM)."
+        "on patient 100002. Cohort scale-up exported seven patients (14 timepoints); PDE burden "
+        "and WT tables in this PDF cover the two without resection cavity (100002, 100118). "
+        "Next: manifest.json v1.0.0, Vinesh calibrate.py for t1->t2, and demo toggle "
+        "(100002 stable IDH-mut vs 100118 aggressive IDH-WT GBM)."
     )
     pdf.subsection("Deliverables completed")
     pdf.table(
@@ -645,12 +658,13 @@ def build_report() -> ReportPDF:
         [
             ["Cohort", "cohort.json rev1 - 7 UCSF patients", "Done"],
             ["Export", "export_all_raw.py checkpointed batch", "7 patients × 2 timepoints"],
-            ["Volume QC", "wt_volume_report.json + workbook compare", "Done"],
+            ["Volume QC", "wt_volume_report.json + workbook compare", "Done (7 exported)"],
             ["Longitudinal QC", "7 before/after overlay PNGs", "On disk"],
             ["PDE prep", "prepare_pde_input g64 - 7 patients x 2 timepoints", "Done"],
-            ["PDE burden QC", "pde_burden_compare.json + section 7", "In this PDF"],
+            ["PDE burden QC", "pde_burden_compare.json + section 7", "2 non-resection in PDF"],
             ["Solver", "run_growth() smoke on 100002 baseline", "Passed"],
-            ["Pending", "manifest.json, calibrate.py, Jasim/Vihari", "Next"],
+            ["Manifest", "manifest.json v1.0.0 (2 patients)", "Done"],
+            ["Pending", "calibrate.py, Jasim/Vihari", "Next"],
         ],
         [28, 88, 62],
     )
