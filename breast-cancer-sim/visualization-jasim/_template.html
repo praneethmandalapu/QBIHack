@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OncoPulse — Brain &amp; Breast Tumor Viewer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230a0c10'/%3E%3Cpath d='M2 16h7l3-9 4 18 3-9h11' fill='none' stroke='%23ff7a45' stroke-width='2.4' stroke-linejoin='round' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+<style>
+:root{
+  --ink:#0a0c10; --ink-2:#0f131b; --panel:#10151f;
+  --bone:#ece7df; --muted:#7d8696; --line:rgba(236,231,223,.10);
+  --signal:#ff7a45; --signal-rgb:255,122,69; --crit:#ff3b54; --vital:#46e0b0;
+  --font-d:'Space Grotesk',sans-serif; --font-m:'JetBrains Mono',monospace; --font-s:'Instrument Serif',serif;
+  --ease:cubic-bezier(.23,1,.32,1); --ease-io:cubic-bezier(.65,.01,.05,.99);
+  --step-0:clamp(1rem,.91rem+.43vw,1.15rem);--step-1:clamp(1.2rem,1.07rem+.63vw,1.5rem);
+  --step-3:clamp(1.9rem,1.5rem+1.6vw,2.8rem);
+  --s-l:clamp(2rem,1.8rem+.9vw,2.5rem);--s-xl:clamp(3rem,2.7rem+1.3vw,3.75rem);
+  --s-2xl:clamp(4rem,3.6rem+1.7vw,5.5rem);--s-3xl:clamp(6rem,5.4rem+2.6vw,8rem);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--bone);font-family:var(--font-d);font-size:var(--step-0);line-height:1.6;
+  overflow-x:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+::selection{background:var(--signal);color:var(--ink)}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:var(--ink)}::-webkit-scrollbar-thumb{background:#1c2430}
+a{color:inherit;text-decoration:none}
+.over{font-family:var(--font-m);font-size:.74rem;letter-spacing:.32em;text-transform:uppercase;color:var(--muted)}
+.wrap{max-width:1280px;margin:0 auto;padding:0 clamp(1.2rem,4vw,3rem)}
+.glow{position:fixed;inset:-10% -10% auto -10%;height:70vh;z-index:0;pointer-events:none;
+  background:radial-gradient(60% 70% at 70% 0%,rgba(var(--signal-rgb),.16) 0%,transparent 60%)}
+.grain::after{content:'';position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.5;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E")}
+
+#loader{position:fixed;inset:0;z-index:9999;background:var(--ink);display:grid;place-items:center;transition:opacity .6s var(--ease),visibility .6s}
+#loader.done{opacity:0;visibility:hidden}
+#loader svg{width:min(60vw,420px)}
+#loader path{stroke:var(--signal);stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 1.3s var(--ease-io) forwards}
+.loader-tag{position:absolute;bottom:8vh;font-family:var(--font-m);font-size:.74rem;letter-spacing:.3em;color:var(--muted)}
+@keyframes draw{to{stroke-dashoffset:0}}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;
+  padding:.85rem clamp(1.2rem,4vw,3rem);background:rgba(10,12,16,.55);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:.6rem;font-weight:700;letter-spacing:-.02em;font-size:1.05rem}
+.brand svg{width:30px;height:18px}.brand b{color:var(--signal)}
+.nlinks{display:flex;gap:2rem;align-items:center;font-family:var(--font-m);font-size:.78rem;letter-spacing:.08em}
+.nlink{position:relative;color:var(--muted);text-transform:uppercase;cursor:pointer;transition:color .3s;background:none;border:none}
+.nlink::after{content:'';position:absolute;left:0;bottom:-5px;width:100%;height:1px;background:var(--signal);transform:scaleX(0);transform-origin:right;transition:transform .35s var(--ease)}
+.nlink:hover{color:var(--bone)}.nlink:hover::after{transform:scaleX(1);transform-origin:left}
+.status{display:flex;align-items:center;gap:.5rem;font-family:var(--font-m);font-size:.72rem;color:var(--vital);letter-spacing:.12em}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--vital);animation:ping 2s var(--ease-io) infinite}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(70,224,176,.45)}70%{box-shadow:0 0 0 9px rgba(70,224,176,0)}100%{box-shadow:0 0 0 0 rgba(70,224,176,0)}}
+@media(max-width:780px){.nlinks{display:none}}
+
+.hero{position:relative;z-index:2;min-height:92vh;display:flex;flex-direction:column;justify-content:center;padding-top:6rem;padding-bottom:2rem}
+.hero .over{margin-bottom:1.4rem}
+.title{position:relative;font-weight:700;letter-spacing:-.045em;line-height:.84;font-size:clamp(3.6rem,15vw,12rem);text-transform:uppercase}
+.title .pulseword{color:var(--bone)}
+.ecg{position:absolute;left:0;right:0;top:52%;height:120px;width:100%;z-index:-1;overflow:visible;pointer-events:none}
+.ecg path{fill:none;stroke:var(--signal);stroke-width:2;opacity:.85;filter:drop-shadow(0 0 6px rgba(var(--signal-rgb),.6));stroke-dasharray:2600;stroke-dashoffset:2600;animation:trace 3.2s var(--ease-io) .8s forwards}
+@keyframes trace{to{stroke-dashoffset:0}}
+.lede{max-width:50rem;margin-top:1.8rem;color:#c4c1ba;font-size:var(--step-1);line-height:1.5;text-wrap:pretty}
+.lede b{color:var(--bone);font-weight:600}
+.cta-row{display:flex;gap:1rem;margin-top:2.2rem;flex-wrap:wrap}
+.btn{font-family:var(--font-m);font-size:.82rem;letter-spacing:.06em;text-transform:uppercase;padding:.95rem 1.6rem;border:1px solid var(--bone);position:relative;overflow:hidden;z-index:1;transition:color .4s var(--ease);cursor:pointer;background:transparent;color:var(--bone)}
+.btn::before{content:'';position:absolute;inset:0;background:var(--bone);transform:scaleX(0);transform-origin:left;transition:transform .4s var(--ease);z-index:-1}
+.btn:hover{color:var(--ink)}.btn:hover::before{transform:scaleX(1)}
+.btn--signal{border-color:var(--signal);color:var(--signal)}.btn--signal::before{background:var(--signal)}.btn--signal:hover{color:var(--ink)}
+.hero-ticker{margin-top:auto;border-top:1px solid var(--line);border-bottom:1px solid var(--line);display:flex;gap:3rem;padding:.9rem 0;font-family:var(--font-m);font-size:.78rem;color:var(--muted);overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 6%,#000 94%,transparent)}
+.hero-ticker .row{display:flex;gap:3rem;white-space:nowrap;animation:tick 26s linear infinite}
+.hero-ticker b{color:var(--signal)}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+.tabs{position:sticky;top:53px;z-index:150;display:flex;background:rgba(10,12,16,.72);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--line);margin-bottom:var(--s-l)}
+.tab{font-family:var(--font-m);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:1rem 1.5rem;cursor:pointer;background:transparent;border:none;position:relative;transition:color .3s}
+.tab .ix{color:var(--signal);margin-right:.5rem}
+.tab::after{content:'';position:absolute;left:0;bottom:-1px;width:100%;height:2px;background:var(--signal);transform:scaleX(0);transform-origin:left;transition:transform .35s var(--ease)}
+.tab:hover{color:var(--bone)}.tab.on{color:var(--bone)}.tab.on::after{transform:scaleX(1)}
+.tabpanel[hidden]{display:none}
+
+section{position:relative;z-index:2}
+.divider{display:flex;align-items:center;gap:1.2rem;padding:var(--s-l) 0 var(--s-l)}
+.divider .num{font-family:var(--font-m);color:var(--signal);font-size:.8rem;letter-spacing:.2em}
+.divider h2{font-size:var(--step-3);font-weight:600;letter-spacing:-.03em;line-height:1}
+.divider .ln{flex:1;height:1px;background:var(--line)}
+.reveal{opacity:0;transform:translateY(2.5rem);transition:opacity .9s var(--ease),transform .9s var(--ease)}
+.reveal.vis{opacity:1;transform:none}
+
+.cluster{display:grid;grid-template-columns:repeat(12,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.cell{background:var(--ink);padding:1.5rem 1.4rem;display:flex;flex-direction:column;gap:.5rem}
+.cell .lab{font-family:var(--font-m);font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+.cell .val{font-family:var(--font-m);font-weight:700;font-size:clamp(1.7rem,4vw,2.6rem);letter-spacing:-.02em;line-height:1}
+.cell .val .u{font-size:.9rem;color:var(--muted);margin-left:.25rem}
+.cell .sub{font-family:var(--font-m);font-size:.72rem;color:var(--muted)}
+.cell .sub b{color:var(--bone)}
+.cell.c-5{grid-column:span 5}.cell.c-4{grid-column:span 4}.cell.c-3{grid-column:span 3}
+@media(max-width:880px){.cell.c-5,.cell.c-4,.cell.c-3{grid-column:span 6}}
+@media(max-width:520px){.cell.c-5,.cell.c-4,.cell.c-3{grid-column:span 12}}
+
+.split{display:grid;grid-template-columns:1.55fr 1fr;gap:1.4rem;align-items:stretch}
+@media(max-width:980px){.split{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line);background:linear-gradient(180deg,var(--panel),var(--ink));position:relative}
+.panel .ph{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1.1rem;border-bottom:1px solid var(--line);flex-wrap:wrap;gap:.6rem}
+.panel .ph .t{font-family:var(--font-m);font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.modes{display:flex;gap:.4rem;flex-wrap:wrap}
+.mode{font-family:var(--font-m);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding:.35rem .7rem;border:1px solid var(--line);cursor:pointer;transition:all .3s var(--ease);background:transparent}
+.mode:hover{color:var(--bone);border-color:var(--muted)}
+.mode.on{color:var(--ink);background:var(--signal);border-color:var(--signal)}
+.selbar{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.7rem 1.1rem;border-bottom:1px solid var(--line)}
+.seg-l{font-family:var(--font-m);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-right:.2rem}
+.seg-l.sp{margin-left:.8rem}
+.stage{position:relative;height:clamp(360px,52vh,560px)}
+.viz{width:100%;height:100%}
+.scan{position:absolute;inset:0;pointer-events:none;overflow:hidden;mix-blend-mode:screen}
+.scan::before{content:'';position:absolute;left:0;right:0;height:34%;background:linear-gradient(180deg,transparent,rgba(var(--signal-rgb),.10),transparent);animation:sweep 4.5s var(--ease-io) infinite}
+@keyframes sweep{0%{top:-34%}100%{top:100%}}
+.reticle{position:absolute;top:.8rem;left:.8rem;font-family:var(--font-m);font-size:.66rem;color:var(--muted);letter-spacing:.1em;line-height:1.7}
+.panel .cap{padding:.8rem 1.1rem;border-top:1px solid var(--line);font-family:var(--font-m);font-size:.72rem;color:var(--muted)}
+.timeline{display:flex;align-items:center;gap:1rem;padding:.85rem 1.1rem;border-top:1px solid var(--line)}
+.play{flex:0 0 auto;width:38px;height:38px;border:1px solid var(--signal);background:transparent;color:var(--signal);font-family:var(--font-m);font-size:.85rem;cursor:pointer;display:grid;place-items:center;transition:all .3s var(--ease)}
+.play:hover,.play.on{background:var(--signal);color:var(--ink)}
+.tl{flex:1;-webkit-appearance:none;appearance:none;height:2px;background:var(--line);outline:none;cursor:pointer}
+.tl::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 4px rgba(var(--signal-rgb),.18);cursor:pointer}
+.tl::-moz-range-thumb{width:14px;height:14px;border:none;border-radius:50%;background:var(--signal);cursor:pointer}
+.tlread{flex:0 0 auto;font-size:.74rem;color:var(--muted);letter-spacing:.06em;min-width:12rem;text-align:right}
+.tlread b{color:var(--signal)}
+@media(max-width:520px){.tlread{display:none}}
+.tele-body{padding:1rem .8rem}
+.read{padding:1.1rem;border-top:1px solid var(--line);font-size:.95rem;color:#c4c1ba;line-height:1.55}
+.read b{color:var(--bone)}.read .ok{color:var(--vital)}
+.ctx{padding:1.2rem;display:flex;flex-direction:column;gap:1rem}
+.ctx h4{font-family:var(--font-m);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--signal)}
+.ctx p{font-size:.92rem;color:#c4c1ba;line-height:1.5}
+.ctx p b{color:var(--bone)}
+
+.band{width:100vw;margin-left:calc(-50vw + 50%);background:var(--ink-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:var(--s-2xl) 0;margin-top:var(--s-2xl)}
+.viz-wide{width:100%;height:300px}
+.band .meta{display:flex;gap:2.5rem;flex-wrap:wrap;font-family:var(--font-m);font-size:.74rem;color:var(--muted);margin-top:1.2rem}
+.band .meta b{color:var(--bone)}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4rem}
+@media(max-width:880px){.steps{grid-template-columns:1fr}}
+.step{border-top:2px solid var(--signal);padding-top:1.1rem}
+.step .n{font-family:var(--font-m);font-size:.8rem;color:var(--signal);letter-spacing:.2em}
+.step h3{font-size:var(--step-1);font-weight:600;margin:.6rem 0 .5rem;letter-spacing:-.02em}
+.step p{color:var(--muted);font-size:.95rem}
+.pullquote{font-family:var(--font-s);font-style:italic;font-size:clamp(1.6rem,4.5vw,3rem);line-height:1.2;letter-spacing:-.01em;max-width:42rem;margin:var(--s-2xl) 0;color:var(--bone)}
+.pullquote span{color:var(--signal)}
+
+footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:var(--s-3xl);padding:var(--s-2xl) 0 var(--s-l)}
+.foot-mark{font-weight:700;letter-spacing:-.04em;line-height:.85;text-transform:uppercase;font-size:clamp(3rem,12vw,9rem);color:#161b25}
+.foot-mark b{color:var(--signal)}
+.credits{display:grid;grid-template-columns:repeat(5,1fr);gap:1rem;margin-top:2rem;font-family:var(--font-m);font-size:.74rem;color:var(--muted)}
+.credits .role{color:var(--signal);letter-spacing:.1em;text-transform:uppercase;font-size:.66rem;margin-bottom:.3rem}
+.credits b{color:var(--bone);font-weight:500}
+.foot-base{display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-top:2.5rem;font-family:var(--font-m);font-size:.72rem;color:var(--muted)}
+@media(max-width:780px){.credits{grid-template-columns:repeat(2,1fr)}}
+
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none}
+}
+</style>
+</head>
+<body class="grain">
+<div class="glow"></div>
+
+<div id="loader">
+  <svg viewBox="0 0 700 200" preserveAspectRatio="xMidYMid meet"><path d="M0 100 H180 l22 -64 l30 130 l26 -150 l24 168 l22 -84 H400 l18 -40 l20 80 H700"/></svg>
+  <div class="loader-tag">LOADING TUMOR VOLUMES…</div>
+</div>
+
+<nav>
+  <a class="brand" href="#top"><svg viewBox="0 0 60 30"><path d="M2 15h14l4-11 6 24 5-26 5 28 4-15h13" fill="none" stroke="#ff7a45" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Onco<b>Pulse</b></a>
+  <div class="nlinks">
+    <button class="nlink" data-gototab="brain">Brain</button>
+    <button class="nlink" data-gototab="breast">Breast</button>
+    <a class="nlink" href="#method">Method</a>
+  </div>
+  <div class="status"><span class="dot"></span>REAL&nbsp;DATA</div>
+</nav>
+
+<main id="top" class="wrap">
+  <header class="hero">
+    <div class="over">Two cancers · one growth engine · real public imaging cohorts</div>
+    <h1 class="title">ONCO<span class="pulseword">PULSE</span>
+      <svg class="ecg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0 60 H320 l26 -44 l34 92 l30 -104 l28 116 l26 -56 H720 l22 -30 l24 60 H1200"/></svg>
+    </h1>
+    <p class="lede"><b>Glioma</b> grows over time — a calibrated reaction–diffusion model seeded from a real
+       UCSF MRI, set against a 298-patient cohort. <b>Breast</b> is a static 3D snapshot of real TCGA-BRCA
+       volumes. Switch tabs below to explore each.</p>
+    <div class="cta-row">
+      <a class="btn btn--signal" data-gototab="brain" href="#tabs">Brain · longitudinal →</a>
+      <a class="btn" data-gototab="breast" href="#tabs">Breast · snapshot</a>
+    </div>
+    <div class="hero-ticker" aria-hidden="true"><div class="row">
+      <span>BRAIN <b>UCSF-LPTDG GLIOMA</b></span><span>COHORT <b>298 PATIENTS</b></span>
+      <span>BREAST <b>TCGA-BRCA</b></span><span>ENGINE <b>REACTION–DIFFUSION PDE</b></span>
+      <span>GRID <b>64³ ISOTROPIC</b></span>
+      <span>BRAIN <b>UCSF-LPTDG GLIOMA</b></span><span>COHORT <b>298 PATIENTS</b></span>
+      <span>BREAST <b>TCGA-BRCA</b></span><span>ENGINE <b>REACTION–DIFFUSION PDE</b></span>
+      <span>GRID <b>64³ ISOTROPIC</b></span>
+    </div></div>
+  </header>
+
+  <div class="tabs" id="tabs">
+    <button class="tab on" data-tab="brain"><span class="ix">01</span>Brain · longitudinal</button>
+    <button class="tab" data-tab="breast"><span class="ix">02</span>Breast · snapshot</button>
+  </div>
+
+  <!-- ===================== BRAIN ===================== -->
+  <section class="tabpanel" data-tab="brain">
+    <div class="cluster reveal">
+      <div class="cell c-5"><span class="lab">IDH regime</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="bk-idh">—</span><span class="sub">UCSF glioma · seed <b>100002</b></span></div>
+      <div class="cell c-4"><span class="lab">Cohort growth rate</span><span class="val" id="bk-gm">—</span><span class="sub">median multiplier</span></div>
+      <div class="cell c-3"><span class="lab">Grade</span><span class="val" style="font-size:clamp(1.3rem,3vw,1.9rem)" id="bk-grade">—</span><span class="sub">WHO 2021</span></div>
+      <div class="cell c-5"><span class="lab">Modeled burden</span><span class="val"><span id="bk-peak">—</span><span class="u">idx</span></span><span class="sub">baseline = 100 · ~180 d</span></div>
+      <div class="cell c-4"><span class="lab">Cohort grew</span><span class="val"><span id="bk-grew">—</span></span><span class="sub">of this subtype (real)</span></div>
+      <div class="cell c-3"><span class="lab">Interval</span><span class="val" style="font-size:clamp(1.3rem,3vw,1.9rem)">180<span class="u">d</span></span><span class="sub">baseline → follow-up</span></div>
+    </div>
+
+    <div class="split" style="margin-top:1.4rem">
+      <div class="panel reveal">
+        <div class="ph"><span class="t">3D glioma · calibrated growth</span></div>
+        <div class="selbar">
+          <span class="seg-l">Regime</span>
+          <button class="mode on" data-regime="aggressive">IDH-wildtype</button>
+          <button class="mode" data-regime="indolent">IDH-mutant</button>
+        </div>
+        <div class="stage" id="brainStage">
+          <div class="reticle">UCSF 100002<br>GLIOMA<br>ISO 0.30</div>
+          <div class="viz" id="brain3d"></div>
+          <div class="scan"></div>
+        </div>
+        <div class="timeline">
+          <button class="play" id="brain-play" aria-label="Play growth">▶</button>
+          <input class="tl" id="brain-tl" type="range" min="0" max="17" value="0" step="1" aria-label="Timestep">
+          <div class="tlread" id="brain-tlread">DAY 000 · <b>100</b> burden idx</div>
+        </div>
+        <div class="cap">Scrub or play to grow the lesion · drag to orbit · calibrated reaction–diffusion</div>
+      </div>
+      <div class="panel reveal">
+        <div class="ph"><span class="t">Modeled tumor burden</span><span class="t" style="color:var(--signal)">index / day</span></div>
+        <div class="tele-body"><div class="viz-wide" id="brainCurve"></div></div>
+        <div class="read" id="brain-read">—</div>
+      </div>
+    </div>
+
+    <div class="band">
+      <div class="wrap">
+        <div class="divider reveal" style="padding-top:0"><span class="num">▟</span><h2>Real UCSF cohort</h2><span class="ln"></span></div>
+        <div class="split">
+          <div class="panel reveal"><div class="ph"><span class="t">Growth by IDH status · 298 patients</span></div>
+            <div class="tele-body"><div class="viz-wide" id="cohortChart"></div></div></div>
+          <div class="panel reveal"><div class="ctx">
+            <h4>What the cohort shows</h4>
+            <p><b>IDH status</b> is the dominant driver of glioma behaviour. In this UCSF-LPTDG cohort,
+               <b id="ck-wt">96</b> IDH-wildtype gliomas grow at a median multiplier of <b id="ck-wtgm">1.57</b> and
+               <b id="ck-wtgrew">70%</b> measurably grew between scans.</p>
+            <p>The <b id="ck-mut">123</b> IDH-mutant gliomas are far more indolent — median multiplier
+               <b id="ck-mutgm">0.92</b>, only <b id="ck-mutgrew">55%</b> growing. The 3D model above is
+               seeded from a real baseline and driven at these measured rates.</p>
+            <p style="color:var(--muted);font-size:.84rem">Calibrated growth model — reproduces measured behaviour, not an out-of-sample prediction.</p>
+          </div></div>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top:var(--s-2xl)">
+      <div class="divider reveal" style="padding-top:0"><span class="num">▟</span><h2>Radiology slices</h2><span class="ln"></span></div>
+      <div class="reveal"><div class="viz-wide" id="brainSlices"></div></div>
+      <div class="meta reveal" style="display:flex;gap:2.5rem;flex-wrap:wrap;font-family:var(--font-m);font-size:.74rem;color:var(--muted);margin-top:1.2rem">
+        <span style="">PLANE <b style="color:var(--bone)">AXIAL · CORONAL · SAGITTAL</b></span>
+        <span>FRAME <b style="color:var(--bone)">final (most grown)</b></span>
+        <span>MODEL GRID <b style="color:var(--bone)">64³ @ 1.0 mm</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== BREAST ===================== -->
+  <section class="tabpanel" data-tab="breast" hidden>
+    <div class="cluster reveal">
+      <div class="cell c-5"><span class="lab">Subtype</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="xk-subtype">—</span><span class="sub">TCGA <b id="xk-tcga">—</b></span></div>
+      <div class="cell c-4"><span class="lab">Study</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="xk-study">—</span><span class="sub">DCE-MRI acquisition</span></div>
+      <div class="cell c-3"><span class="lab">Model grid</span><span class="val">64³</span><span class="sub">isotropic voxels</span></div>
+      <div class="cell c-5"><span class="lab">Enhancing fraction</span><span class="val"><span id="xk-frac">—</span><span class="u">%</span></span><span class="sub">high-signal · windowed</span></div>
+      <div class="cell c-4"><span class="lab">Acquired matrix</span><span class="val" style="font-size:clamp(1.2rem,2.6vw,1.7rem)" id="xk-matrix">—</span><span class="sub"><b id="xk-spacing">—</b> spacing</span></div>
+      <div class="cell c-3"><span class="lab">Modality</span><span class="val" style="font-size:clamp(1.2rem,2.6vw,1.7rem)">DCE-MRI</span><span class="sub">T1 · contrast</span></div>
+    </div>
+
+    <div class="split" style="margin-top:1.4rem">
+      <div class="panel reveal">
+        <div class="ph"><span class="t">3D snapshot</span>
+          <div class="modes">
+            <button class="mode on" data-xmode="volumetric">Volumetric</button>
+            <button class="mode" data-xmode="isosurface">Isosurface</button>
+            <button class="mode" data-xmode="cutaway">Cutaway</button>
+          </div>
+        </div>
+        <div class="selbar">
+          <span class="seg-l">Case</span>
+          <button class="mode on" data-xcase="luminal_a">Luminal A</button>
+          <button class="mode" data-xcase="basal">Basal-like</button>
+          <span class="seg-l sp">Study</span>
+          <button class="mode on" data-xstudy="study1">I</button>
+          <button class="mode" data-xstudy="study2">II</button>
+        </div>
+        <div class="stage" id="breastStage">
+          <div class="reticle" id="xReticle">—</div>
+          <div class="viz" id="breast3d"></div>
+          <div class="scan"></div>
+        </div>
+        <div class="cap">Drag to orbit · auto-rotating · windowed MR intensity, rendered by value</div>
+      </div>
+      <div class="panel reveal"><div class="ctx">
+        <h4>Three views, one lesion</h4>
+        <p><b>Volumetric</b> renders the full density cloud with an opacity transfer function — dense tissue
+           glows through translucent margins. <b>Isosurface</b> wraps a single shell at 0.5 for a clean boundary.
+           <b>Cutaway</b> clips the volume to expose the interior.</p>
+        <p>No longitudinal series exists for these TCGA-BRCA cases, so breast is presented as a
+           <b>static 3D snapshot</b> — read it across the three views and the orthogonal slices below.</p>
+        <p style="color:var(--muted);font-size:.84rem">Whole-breast windowed MR intensity · rendered by value, not a tumor segmentation.</p>
+      </div></div>
+    </div>
+
+    <div style="margin-top:var(--s-2xl)">
+      <div class="divider reveal" style="padding-top:0"><span class="num">▟</span><h2>Radiology slices</h2><span class="ln"></span></div>
+      <div class="reveal"><div class="viz-wide" id="breastSlices"></div></div>
+      <div class="meta reveal" style="display:flex;gap:2.5rem;flex-wrap:wrap;font-family:var(--font-m);font-size:.74rem;color:var(--muted);margin-top:1.2rem">
+        <span>PLANE <b style="color:var(--bone)">AXIAL · CORONAL · SAGITTAL</b></span>
+        <span>SOURCE <b style="color:var(--bone)">windowed MR intensity</b></span>
+        <span>WINDOW <b style="color:var(--bone)">0.00 – 1.00</b></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== METHOD ===================== -->
+  <section id="method">
+    <div class="divider reveal"><span class="num">04</span><h2>From archive to viewer</h2><span class="ln"></span></div>
+    <div class="steps">
+      <div class="step reveal"><div class="n">01 · ACQUIRE</div><h3>Public imaging</h3><p>UCSF-LPTDG longitudinal glioma MRI and TCGA-BRCA breast DCE-MRI, pulled from public archives by the imaging team.</p></div>
+      <div class="step reveal"><div class="n">02 · MODEL</div><h3>Reaction–diffusion PDE</h3><p>A 3D Fisher–Kolmogorov solver grows the glioma baseline at IDH-calibrated rates from a 298-patient cohort.</p></div>
+      <div class="step reveal"><div class="n">03 · VISUALIZE</div><h3>Interactive 3D</h3><p>Frame stacks become a longitudinal player; static breast volumes become a multi-view snapshot — this layer.</p></div>
+    </div>
+    <p class="pullquote reveal">One grows. One holds still. <span>Both are real</span> — and both are yours to interrogate.</p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-mark reveal">ONCO<b>PULSE</b></div>
+    <div class="credits reveal">
+      <div><div class="role">P1 · Genomics ML</div><b>Praneeth</b><br>XGBoost · SHAP risk</div>
+      <div><div class="role">P2 · Tumor mechanics</div><b>Vinesh</b><br>3D PDE solver</div>
+      <div><div class="role">P3 · Visualization</div><b>Jasim</b><br>3D viewer</div>
+      <div><div class="role">P4 · Systems · LLM</div><b>Vihari</b><br>Streamlit · narrative</div>
+      <div><div class="role">P5 · Radiomics</div><b>Philip · Chandan</b><br>imaging pipeline</div>
+    </div>
+    <div class="foot-base"><span>ONCOPULSE · BRAIN &amp; BREAST TUMOR VIEWER</span><span>VISUALIZATION LAYER · PLOTLY + VANILLA JS</span></div>
+  </div>
+</footer>
+
+<script>
+const GRID={x:__GRID_X__,y:__GRID_Y__,z:__GRID_Z__}, CSCALE=__CSCALE__, OPAC=__OPAC__, LAYOUT3D=__LAYOUT3D__;
+const BRAIN=__BRAIN__, BRAIN_SLICES=__BRAIN_SLICES__, COHORT=__COHORT__;
+const BR_VOLS=__BR_VOLS__, BR_SLICES=__BR_SLICES__, BR_META=__BR_META__, BR_CASES=__BR_CASES__;
+const CFG={responsive:true,displayModeBar:false};
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let spinTimer=null, angle=0, activeViz='brain3d', playing=false;
+function startSpin(){ if(reduce||playing)return; clearInterval(spinTimer); const gd=document.getElementById(activeViz); if(!gd)return;
+  spinTimer=setInterval(()=>{angle+=0.0045*Math.PI; const R=1.8; Plotly.relayout(gd,{'scene.camera.eye':{x:R*Math.cos(angle),y:R*Math.sin(angle),z:0.85}});},60); }
+function stopSpin(){ clearInterval(spinTimer); }
+const CAPS={x:{show:false},y:{show:false},z:{show:false}};
+function isoTrace(val,isomin,cmin,cmax){ return {type:'isosurface',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:isomin,isomax:1.0,cmin:cmin,cmax:cmax,surface:{count:3},colorscale:CSCALE,showscale:false,opacity:0.62,caps:CAPS}; }
+function volTrace(val){ return {type:'volume',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:0.15,isomax:1.0,cmin:0.2,cmax:0.85,colorscale:CSCALE,opacityscale:OPAC,surface:{count:18},showscale:false,caps:CAPS}; }
+
+/* ---------- BRAIN ---------- */
+let bRegime='aggressive', bIdx=0, bPlay=null;
+function bDraw(){ Plotly.react('brain3d',[isoTrace(BRAIN[bRegime].values[bIdx],0.3,0.25,0.8)],LAYOUT3D,CFG).then(()=>{if(activeViz==='brain3d')startSpin();}); }
+function bGoto(i){ const reg=BRAIN[bRegime]; bIdx=Math.max(0,Math.min(i,reg.n-1));
+  Plotly.restyle('brain3d',{value:[reg.values[bIdx]]},[0]);
+  document.getElementById('brain-tlread').innerHTML=`DAY ${String(reg.days[bIdx]).padStart(3,'0')} · <b>${reg.idx[bIdx].toFixed(0)}</b> burden idx`;
+  Plotly.relayout('brainCurve',{shapes:[{type:'line',x0:reg.days[bIdx],x1:reg.days[bIdx],y0:0,y1:reg.peak*1.1,line:{color:'#ff7a45',width:1.6,dash:'dot'}}]});
+  document.getElementById('brain-tl').value=bIdx;
+}
+function bCurve(){ const reg=BRAIN[bRegime];
+  const tr={x:reg.days,y:reg.idx,mode:'lines',line:{color:'#ff7a45',width:3},fill:'tozeroy',fillcolor:'rgba(255,122,69,0.10)'};
+  const ly={paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',height:300,margin:{l:48,r:12,t:18,b:34},font:{color:'#9aa6b6',family:'JetBrains Mono'},
+    xaxis:{title:'days',gridcolor:'rgba(236,231,223,0.06)',zerolinecolor:'rgba(236,231,223,0.10)'},
+    yaxis:{title:'burden index (baseline=100)',gridcolor:'rgba(236,231,223,0.06)',zerolinecolor:'rgba(236,231,223,0.10)'}};
+  Plotly.react('brainCurve',[tr],ly,CFG);
+}
+function bSlices(){ const f=BRAIN_SLICES[bRegime]; Plotly.react('brainSlices',f.data,f.layout,CFG); }
+function bKPIs(){ const reg=BRAIN[bRegime];
+  document.getElementById('bk-idh').textContent=reg.label;
+  document.getElementById('bk-gm').textContent='×'+reg.gm.toFixed(2);
+  document.getElementById('bk-grade').textContent='Grade '+reg.grade;
+  document.getElementById('bk-peak').textContent=reg.peak;
+  document.getElementById('bk-grew').textContent=reg.grew+'%';
+  document.getElementById('brain-read').innerHTML=`Seeded from a real UCSF glioma (patient 100002), grown at the cohort's <b>${reg.label}</b> rate (median × <b class="ok">${reg.gm.toFixed(2)}</b>). Over ~180 days, modeled burden reaches <b class="ok">${reg.peak}</b> (baseline=100). In the real cohort, <b>${reg.grew}%</b> of ${reg.idh==='WT'?'IDH-wildtype':'IDH-mutant'} gliomas grew. <span style="color:var(--muted)">Calibrated growth model — not an out-of-sample prediction.</span>`;
+}
+function bPlayToggle(){ if(playing){bStop();return;} playing=true; stopSpin();
+  const pb=document.getElementById('brain-play'); pb.textContent='❚❚'; pb.classList.add('on');
+  if(bIdx>=BRAIN[bRegime].n-1) bGoto(0);
+  bPlay=setInterval(()=>{ if(bIdx>=BRAIN[bRegime].n-1){bStop();return;} bGoto(bIdx+1); }, reduce?0:170);
+}
+function bStop(){ playing=false; clearInterval(bPlay); const pb=document.getElementById('brain-play'); if(pb){pb.textContent='▶';pb.classList.remove('on');} startSpin(); }
+function bSetRegime(reg,btn){ bStop(); bRegime=reg; bIdx=0;
+  document.querySelectorAll('[data-regime]').forEach(x=>x.classList.remove('on')); btn.classList.add('on');
+  bCurve(); bSlices(); bKPIs(); bDraw(); setTimeout(()=>bGoto(0),80);
+}
+function cohortChart(){
+  const tr={type:'bar',x:['IDH-WT','IDH-mutant'],y:[COHORT.wt_gm,COHORT.mut_gm],marker:{color:['#ff3b54','#46e0b0']},
+    text:['×'+COHORT.wt_gm,'×'+COHORT.mut_gm],textposition:'outside',textfont:{color:'#ece7df',family:'JetBrains Mono'}};
+  const ly={paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',height:300,margin:{l:48,r:12,t:24,b:34},font:{color:'#9aa6b6',family:'JetBrains Mono'},
+    yaxis:{title:'median growth ×',gridcolor:'rgba(236,231,223,0.06)',zerolinecolor:'rgba(236,231,223,0.10)',range:[0,Math.max(2,COHORT.wt_gm*1.25)]},xaxis:{color:'#9aa6b6'}};
+  Plotly.react('cohortChart',[tr],ly,CFG);
+  document.getElementById('ck-wt').textContent=COHORT.wt; document.getElementById('ck-wtgm').textContent=COHORT.wt_gm;
+  document.getElementById('ck-wtgrew').textContent=COHORT.wt_grew+'%'; document.getElementById('ck-mut').textContent=COHORT.mut;
+  document.getElementById('ck-mutgm').textContent=COHORT.mut_gm; document.getElementById('ck-mutgrew').textContent=COHORT.mut_grew+'%';
+}
+let brainReady=false;
+function brainInit(){
+  if(!brainReady){ brainReady=true;
+    Plotly.newPlot('brain3d',[isoTrace(BRAIN[bRegime].values[0],0.3,0.25,0.8)],LAYOUT3D,CFG);
+    bCurve(); bSlices(); bKPIs(); cohortChart(); bGoto(0);
+    const stage=document.getElementById('brainStage');
+    stage.addEventListener('mouseenter',()=>{if(activeViz==='brain3d')stopSpin();});
+    stage.addEventListener('mouseleave',()=>{if(activeViz==='brain3d')startSpin();});
+    document.getElementById('brain-play').addEventListener('click',bPlayToggle);
+    document.getElementById('brain-tl').addEventListener('input',e=>{bStop();bGoto(parseInt(e.target.value,10));});
+    document.querySelectorAll('[data-regime]').forEach(b=>b.addEventListener('click',()=>bSetRegime(b.dataset.regime,b)));
+  } else { ['brain3d','brainCurve','brainSlices','cohortChart'].forEach(id=>{const g=document.getElementById(id);if(g&&g.data)Plotly.Plots.resize(g);}); }
+}
+
+/* ---------- BREAST ---------- */
+let xCase='luminal_a', xStudy='study1', xMode='volumetric';
+function xSlug(){ return BR_CASES[xCase][xStudy]; }
+function xTrace(){ const val=BR_VOLS[xSlug()];
+  if(xMode==='isosurface') return isoTrace(val,0.5,0.45,0.95);
+  if(xMode==='cutaway'){ const c=val.map((d,i)=>GRID.y[i]>=16?0:d); return volTrace(c); }
+  return volTrace(val);
+}
+function xDraw(){ Plotly.react('breast3d',[xTrace()],LAYOUT3D,CFG).then(()=>{if(activeViz==='breast3d')startSpin();}); }
+function xSlices(){ const f=BR_SLICES[xSlug()]; Plotly.react('breastSlices',f.data,f.layout,CFG); }
+function xKPIs(){ const m=BR_META[xSlug()];
+  document.getElementById('xk-subtype').textContent=m.subtype; document.getElementById('xk-tcga').textContent=m.tcga;
+  document.getElementById('xk-study').textContent=m.study; document.getElementById('xk-frac').textContent=m.frac.toFixed(0);
+  document.getElementById('xk-matrix').textContent=m.matrix; document.getElementById('xk-spacing').textContent=m.spacing+' mm';
+  document.getElementById('xReticle').innerHTML=`${m.tcga}<br>${m.subtype}<br>STUDY ${m.study}`;
+}
+function xSet(kind,val,btn,sel){ document.querySelectorAll(sel).forEach(x=>x.classList.remove('on')); btn.classList.add('on');
+  if(kind==='case')xCase=val; else if(kind==='study')xStudy=val; else xMode=val;
+  if(kind==='mode'){ xDraw(); } else { xKPIs(); xSlices(); xDraw(); }
+}
+let breastReady=false;
+function breastInit(){
+  if(!breastReady){ breastReady=true;
+    Plotly.newPlot('breast3d',[xTrace()],LAYOUT3D,CFG); xSlices(); xKPIs();
+    const stage=document.getElementById('breastStage');
+    stage.addEventListener('mouseenter',()=>{if(activeViz==='breast3d')stopSpin();});
+    stage.addEventListener('mouseleave',()=>{if(activeViz==='breast3d')startSpin();});
+    document.querySelectorAll('[data-xcase]').forEach(b=>b.addEventListener('click',()=>xSet('case',b.dataset.xcase,b,'[data-xcase]')));
+    document.querySelectorAll('[data-xstudy]').forEach(b=>b.addEventListener('click',()=>xSet('study',b.dataset.xstudy,b,'[data-xstudy]')));
+    document.querySelectorAll('[data-xmode]').forEach(b=>b.addEventListener('click',()=>xSet('mode',b.dataset.xmode,b,'[data-xmode]')));
+  } else { ['breast3d','breastSlices'].forEach(id=>{const g=document.getElementById(id);if(g&&g.data)Plotly.Plots.resize(g);}); }
+}
+
+/* ---------- tabs ---------- */
+function showTab(name){
+  document.querySelectorAll('.tabpanel').forEach(p=>{p.hidden=(p.dataset.tab!==name);});
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
+  stopSpin(); playing=false; clearInterval(bPlay);
+  const pb=document.getElementById('brain-play'); if(pb){pb.textContent='▶';pb.classList.remove('on');}
+  if(name==='brain'){ activeViz='brain3d'; brainInit(); } else { activeViz='breast3d'; breastInit(); }
+  startSpin();
+}
+
+window.addEventListener('load',()=>setTimeout(()=>document.getElementById('loader').classList.add('done'),reduce?100:1400));
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>showTab(t.dataset.tab)));
+  document.querySelectorAll('[data-gototab]').forEach(a=>a.addEventListener('click',()=>showTab(a.dataset.gototab)));
+  showTab('brain');
+  const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+});
+window.addEventListener('resize',()=>{ ['brain3d','brainCurve','brainSlices','cohortChart','breast3d','breastSlices'].forEach(id=>{const g=document.getElementById(id);if(g&&g.data)Plotly.Plots.resize(g);}); });
+</script>
+</body>
+</html>
