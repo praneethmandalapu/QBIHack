@@ -2,7 +2,7 @@
   "contract_version": "1.0.0",
   "slug": "glioma_ucsf_100002_followup",
   "patient_id": "100002",
-  "dataset": "UCSF Longitudinal Glioma",
+  "dataset": "ucsf_longitudinal_glioma",
   "disease": "Glioma",
   "timepoint": "followup",
   "study_date": "time2",

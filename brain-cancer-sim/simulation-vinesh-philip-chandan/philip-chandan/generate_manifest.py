@@ -17,7 +17,7 @@ VOLUME_REPORT_PATH = REPO_ROOT / "data/processed/raw-extract-philip-chandan/wt_v
 sys.path.insert(0, str(PHILIP_CHANDAN_DIR))
 sys.path.insert(0, str(SIM_ROOT))
 
-from cohort.cohort_io import iter_cohort_entries, load_cohort  # noqa: E402
+from cohort.cohort_io import is_no_resection_cavity, iter_cohort_entries, load_cohort  # noqa: E402
 from handoff_contract import contract_version, default_grid_size  # noqa: E402
 from spike_paths import (  # noqa: E402
     RAW_EXTRACT_PHILIP_CHANDAN,
@@ -29,9 +29,6 @@ from spike_paths import (  # noqa: E402
 MANIFEST_VERSION = "1.0.0"
 DEMO_STABLE_PATIENT = "100002"
 DEMO_AGGRESSIVE_PATIENT = "100118"
-MANIFEST_PATIENT_IDS = frozenset({DEMO_STABLE_PATIENT, DEMO_AGGRESSIVE_PATIENT})
-# BraTS label 4 (resection cavity) — excluded from handoff manifest (PDE seeds mask > 0).
-RESECTION_EXCLUDED_PATIENT_IDS = frozenset({"100130", "100134", "100192", "100220", "100260"})
 
 
 def _rel(path: Path) -> str:
@@ -46,6 +43,14 @@ def _load_volume_report() -> dict[str, Any]:
 
 def _volume_report_by_patient(report: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return {str(row["patient_id"]): row for row in report.get("patients", [])}
+
+
+def _manifest_patient_ids() -> frozenset[str]:
+    return frozenset(
+        str(entry["patient_id"])
+        for entry in iter_cohort_entries(include_backups=True)
+        if is_no_resection_cavity(entry)
+    )
 
 
 def _cohort_by_patient() -> dict[str, dict[str, Any]]:
@@ -64,6 +69,7 @@ def _cohort_by_patient() -> dict[str, dict[str, Any]]:
             "diagnosis": raw.get("diagnosis") or raw.get("who_2021_diagnosis"),
             "mgmt_status": entry.get("mgmt_status") or raw.get("mgmt_status") or raw.get("mgmt"),
             "risk_tier": raw.get("risk_tier"),
+            "cohort_selection": raw.get("cohort_selection"),
         }
     return lookup
 
@@ -74,7 +80,7 @@ def _discover_raw_sidecars() -> list[tuple[Path, dict[str, Any]]]:
         if not patient_dir.is_dir() or patient_dir.name.startswith("."):
             continue
         for json_path in sorted(patient_dir.glob("*.json")):
-            if json_path.name == "wt_volume_report.json":
+            if json_path.name in ("wt_volume_report.json", "manifest.json"):
                 continue
             meta = json.loads(json_path.read_text(encoding="utf-8"))
             if meta.get("slug"):
@@ -138,6 +144,7 @@ def _patient_longitudinal(
         "mgmt_status": cohort_row.get("mgmt_status"),
         "diagnosis": cohort_row.get("diagnosis"),
         "cohort_group": cohort_row.get("cohort_group"),
+        "cohort_selection": cohort_row.get("cohort_selection"),
         "interval_days": round(interval_days) if interval_days is not None else None,
         "measured_growth_pct": measured_growth_pct,
         "baseline_slug": baseline["slug"] if baseline else None,
@@ -148,13 +155,20 @@ def _patient_longitudinal(
 
 
 def build_manifest() -> dict[str, Any]:
+    manifest_ids = _manifest_patient_ids()
     cohort_lookup = _cohort_by_patient()
     wt_lookup = _volume_report_by_patient(_load_volume_report())
+
+    excluded_rc = sorted(
+        str(entry["patient_id"])
+        for entry in iter_cohort_entries(include_backups=True)
+        if not is_no_resection_cavity(entry)
+    )
 
     volumes: list[dict[str, Any]] = []
     for json_path, meta in _discover_raw_sidecars():
         patient_id = str(meta["patient_id"])
-        if patient_id not in MANIFEST_PATIENT_IDS:
+        if patient_id not in manifest_ids:
             continue
         cohort_row = cohort_lookup.get(patient_id, {})
         volumes.append(_volume_entry(json_path, meta, cohort_row))
@@ -170,10 +184,12 @@ def build_manifest() -> dict[str, Any]:
         "contract_version": contract_version(),
         "generated_at": date.today().isoformat(),
         "description": (
-            "Philip-Chandan brain imaging handoff: two UCSF longitudinal glioma patients "
-            "without resection cavity (label 4). Load by slug, patient_id, or demo key."
+            f"Philip-Chandan brain imaging handoff: {len(manifest_ids)} UCSF longitudinal glioma "
+            "patients without resection cavity (label 4) at baseline or follow-up. "
+            "Load by slug, patient_id, or demo key."
         ),
-        "excluded_resection_cavity_patient_ids": sorted(RESECTION_EXCLUDED_PATIENT_IDS),
+        "cohort_selection": "no_resection_cavity",
+        "excluded_resection_cavity_patient_ids": excluded_rc,
         "demo": {
             "stable": {
                 "patient_id": DEMO_STABLE_PATIENT,

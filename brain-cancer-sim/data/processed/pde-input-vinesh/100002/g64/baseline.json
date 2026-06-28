@@ -36,7 +36,7 @@
   },
   "upstream": {
     "patient_id": "100002",
-    "dataset": "UCSF Longitudinal Glioma",
+    "dataset": "ucsf_longitudinal_glioma",
     "timepoint": "baseline",
     "study_date": "time1",
     "raw_contract_version": "1.0.0"

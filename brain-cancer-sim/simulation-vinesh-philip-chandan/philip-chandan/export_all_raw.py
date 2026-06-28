@@ -77,6 +77,7 @@ from batch_job_state import (  # noqa: E402
 from cohort import REPO_ROOT as COHORT_REPO_ROOT  # noqa: E402
 from cohort.cohort_io import (  # noqa: E402
     filter_cohort_timepoints,
+    is_no_resection_cavity,
     iter_cohort_entries,
     load_cohort,
     resolve_repo_path as _resolve_repo_path,
@@ -155,6 +156,7 @@ def resolve_patients(
     patient_id: str | None,
     all_primary: bool,
     include_backups: bool,
+    no_resection_cavity: bool = False,
 ) -> list[dict[str, Any]]:
     if patient_id:
         for entry in iter_cohort_entries(include_backups=True):
@@ -162,8 +164,13 @@ def resolve_patients(
                 return [entry]
         raise SystemExit(f"Patient ID not found in cohort: {patient_id}")
 
+    if no_resection_cavity:
+        return [entry for entry in iter_cohort_entries(include_backups=True) if is_no_resection_cavity(entry)]
+
     if not all_primary and not include_backups:
-        raise SystemExit("Specify --all-primary, --include-backups, or --patient-id")
+        raise SystemExit(
+            "Specify --all-primary, --include-backups, --no-resection-cavity, or --patient-id"
+        )
 
     patients = list(iter_cohort_entries(include_backups=include_backups))
     if all_primary and not include_backups:
@@ -401,6 +408,11 @@ def main() -> None:
         help="Also include backup patients from cohort.json",
     )
     parser.add_argument(
+        "--no-resection-cavity",
+        action="store_true",
+        help="Export cohort patients with no label 4 (resection cavity) at baseline or follow-up",
+    )
+    parser.add_argument(
         "--timepoints",
         default="all",
         metavar="SELECTION",
@@ -472,6 +484,7 @@ def main() -> None:
         patient_id=args.patient_id,
         all_primary=args.all_primary,
         include_backups=args.include_backups,
+        no_resection_cavity=args.no_resection_cavity,
     )
 
     if not args.volume_report_only:

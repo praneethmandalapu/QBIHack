@@ -19,7 +19,7 @@ def load_cohort(path: Path | None = None) -> dict[str, Any]:
 
 def _normalize_patient_entry(entry: dict[str, Any], *, group: str) -> dict[str, Any]:
     dataset_key = entry.get("dataset_key") or entry.get("dataset", "")
-    if dataset_key in ("UCSF Longitudinal Glioma",):
+    if dataset_key in ("UCSF Longitudinal Glioma", "UCSF Longitudinal Glioma (UCSF-LPTDG)"):
         dataset_key = "ucsf_longitudinal_glioma"
     elif dataset_key in ("MU-Glioma-Post",):
         dataset_key = "mu_glioma_post"
@@ -36,8 +36,24 @@ def _normalize_patient_entry(entry: dict[str, Any], *, group: str) -> dict[str, 
         "timepoints": list(entry.get("timepoints", [])),
         "notes": entry.get("notes", ""),
         "backup": bool(entry.get("backup", group != "primary")),
+        "cohort_selection": entry.get("cohort_selection"),
+        "has_resection_cavity_baseline": entry.get("has_resection_cavity_baseline"),
+        "has_resection_cavity_followup": entry.get("has_resection_cavity_followup"),
         "raw_dir": resolve_patient_raw_dir(dataset_key, patient_id),
     }
+
+
+def is_no_resection_cavity(entry: dict[str, Any]) -> bool:
+    """True when expert seg has no label 4 (resection cavity) at baseline or follow-up."""
+    if entry.get("cohort_selection") == "no_resection_cavity":
+        return True
+    if entry.get("cohort_selection") == "has_resection_cavity":
+        return False
+    baseline = entry.get("has_resection_cavity_baseline")
+    followup = entry.get("has_resection_cavity_followup")
+    if baseline is not None or followup is not None:
+        return not baseline and not followup
+    return False
 
 
 def resolve_repo_path(raw_path: str, *, repo_root: Path | None = None) -> Path:

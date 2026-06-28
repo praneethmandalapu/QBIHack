@@ -1,9 +1,9 @@
 {
   "contract_version": "1.0.0",
-  "slug": "glioma_ucsf_longitudinal_glioma_(ucsf_lptdg)_100118_baseline",
+  "slug": "glioma_ucsf_100118_baseline",
   "grid_size": 64,
   "source_raw_extract": "data/processed/raw-extract-philip-chandan/100118/baseline.npy",
-  "source_segmentation": "data/processed/segmentations/glioma_ucsf_longitudinal_glioma_(ucsf_lptdg)_100118_baseline_mask.nii.gz",
+  "source_segmentation": "data/processed/segmentations/glioma_ucsf_100118_baseline_mask.nii.gz",
   "shape": [
     64,
     64,
@@ -36,7 +36,7 @@
   },
   "upstream": {
     "patient_id": "100118",
-    "dataset": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+    "dataset": "ucsf_longitudinal_glioma",
     "timepoint": "baseline",
     "study_date": "day0",
     "raw_contract_version": "1.0.0"

@@ -27,14 +27,21 @@ DEFAULT_PARAMS: dict = {
 }
 
 
+def cfl_max_dt(D: float, spacing) -> float:
+    """Maximum explicit Euler dt for stability (diffusion-limited)."""
+    if D <= 0:
+        return float("inf")
+    dx = min(spacing)
+    return float(dx * dx / (6.0 * D))
+
+
 def _check_cfl(D: float, dt: float, spacing) -> None:
     if D <= 0:
         return
-    dx = min(spacing)
-    dt_max = dx * dx / (6.0 * D)
+    dt_max = cfl_max_dt(D, spacing)
     assert dt <= dt_max, (
         f"Unstable: dt={dt} exceeds CFL limit {dt_max:.4f} "
-        f"(D={D}, dx={dx}). Reduce dt or D."
+        f"(D={D}, dx={min(spacing)}). Reduce dt or D."
     )
 
 

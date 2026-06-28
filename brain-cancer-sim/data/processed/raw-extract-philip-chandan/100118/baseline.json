@@ -1,8 +1,8 @@
 {
   "contract_version": "1.0.0",
-  "slug": "glioma_ucsf_longitudinal_glioma_(ucsf_lptdg)_100118_baseline",
+  "slug": "glioma_ucsf_100118_baseline",
   "patient_id": "100118",
-  "dataset": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+  "dataset": "ucsf_longitudinal_glioma",
   "disease": "Glioma",
   "timepoint": "baseline",
   "study_date": "day0",
@@ -27,5 +27,5 @@
   "value_semantics": {
     "description": "Raw MR intensity; paired expert mask in data/processed/segmentations/"
   },
-  "segmentation_path": "data/processed/segmentations/glioma_ucsf_longitudinal_glioma_(ucsf_lptdg)_100118_baseline_mask.nii.gz"
+  "segmentation_path": "data/processed/segmentations/glioma_ucsf_100118_baseline_mask.nii.gz"
 }
