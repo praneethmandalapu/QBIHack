@@ -163,6 +163,18 @@ def make_treatment_sequence(
 # --------------------------------------------------------------------------- #
 # Quantitative analytics  (this is what turns a picture into a "digital twin")
 # --------------------------------------------------------------------------- #
+def tumor_mass(frame: np.ndarray, spacing: tuple[float, float, float] = DEFAULT_SPACING) -> float:
+    """Integrated tumor burden = sum of density * voxel volume.
+
+    This is the threshold-free measure the brain PDE was *calibrated* against
+    (Vinesh): it tracks total tumor cell content, so it stays meaningful even
+    when diffusion lowers peak density. Prefer this over a thresholded voxel
+    count for growth curves — the latter is unstable near the carrying capacity
+    and at low seed densities.
+    """
+    return float(frame.sum()) * float(np.prod(spacing))
+
+
 def tumor_metrics(frame: np.ndarray, spacing: tuple[float, float, float] = DEFAULT_SPACING) -> dict:
     """Quantify one frame: volumes (mm^3), fractions, and max diameter (mm)."""
     voxel_mm3 = float(np.prod(spacing))

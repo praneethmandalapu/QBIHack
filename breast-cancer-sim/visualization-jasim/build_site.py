@@ -51,31 +51,24 @@ def theme_2d(fig):
 # --------------------------------------------------------------------------- #
 # BRAIN — longitudinal glioma growth (calibrated, seeded from real UCSF 100002)
 # --------------------------------------------------------------------------- #
-BRAIN_META = {
-    "aggressive": {"label": "IDH-wildtype", "tag": "aggressive", "idh": "WT",
-                   "grade": "4", "gm": 1.57, "grew": 70},
-    "indolent": {"label": "IDH-mutant", "tag": "indolent", "idh": "mutant",
-                 "grade": "2–3", "gm": 0.92, "grew": 55},
-}
 BRAIN = {}
 BRAIN_SLICES = {}
-for key, m in BRAIN_META.items():
+for key in ("model", "measured"):           # model first = default (shows growth)
+    meta = json.loads((FRAMES / f"glioma_100002_{key}_frames.json").read_text())
     arr = np.load(FRAMES / f"glioma_100002_{key}_frames.npy")   # (T,Z,Y,X)
     T = arr.shape[0]
     disp = [r.downsample(arr[i], 2) for i in range(T)]
-    burden = [float((arr[i] > 0.3).sum()) for i in range(T)]
-    b0 = burden[0] or 1.0
     BRAIN[key] = {
-        **m,
         "values": [np.round(d.ravel(), 2).tolist() for d in disp],
-        "idx": [round(100 * b / b0, 1) for b in burden],     # burden index, baseline = 100
-        "days": [round(i * 180 / (T - 1)) for i in range(T)],
-        "n": T, "peak": round(100 * burden[-1] / b0),
+        "idx": meta["mass_index"], "days": meta["days"], "n": T,   # mass index, baseline = 100
+        "kind": meta["kind"], "idh": meta["idh"], "grade": meta["grade"],
+        "growth": meta["growth_pct"], "note": meta["note"],
+        "peak": round(meta["mass_index"][-1]),
     }
     BRAIN_SLICES[key] = theme_2d(r.render_slices(arr[-1], (1.0, 1.0, 1.0)))
 
 # real UCSF cohort summary (298 patients)
-_rows = list(csv.DictReader(open(BRAIN_csv := BRAIN_META and (REPO / "brain-cancer-sim/data/processed/brain_patient_features.csv"))))
+_rows = list(csv.DictReader(open(REPO / "brain-cancer-sim/data/processed/brain_patient_features.csv")))
 _wt = [x for x in _rows if x["idh"] == "WT"]
 _mut = [x for x in _rows if x["idh"] and x["idh"] != "WT"]
 
@@ -148,6 +141,7 @@ for k, v in repl.items():
 out = SITE / "index.html"
 out.write_text(html, encoding="utf-8")
 print(f"wrote {out}  ({out.stat().st_size / 1e6:.1f} MB)")
-print(f"brain: aggressive peak {BRAIN['aggressive']['peak']}% · indolent peak {BRAIN['indolent']['peak']}%")
+print(f"brain: model +{BRAIN['model']['growth']}% mass (peak idx {BRAIN['model']['peak']}) · "
+      f"measured +{BRAIN['measured']['growth']}% (peak idx {BRAIN['measured']['peak']})")
 print(f"cohort: n={COHORT['n']} WT grew {COHORT['wt_grew']}% (GM {COHORT['wt_gm']}) · mut grew {COHORT['mut_grew']}% (GM {COHORT['mut_gm']})")
 print("breast:", ", ".join(f"{BR_META[s]['subtype'][:3]}/{BR_META[s]['study']}={BR_META[s]['frac']}%" for s in BR_SLUGS))
