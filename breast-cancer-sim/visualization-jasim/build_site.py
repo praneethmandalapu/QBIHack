@@ -24,6 +24,7 @@ warnings.filterwarnings("ignore")
 import numpy as np  # noqa: E402
 import color_maps as cm  # noqa: E402
 import render_3d as r  # noqa: E402
+import make_brain_frames as bf  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 BREAST = HERE.parent                      # breast-cancer-sim/
@@ -57,13 +58,17 @@ BRAIN_META = {
     "indolent": {"label": "IDH-mutant", "tag": "indolent", "idh": "mutant",
                  "grade": "2–3", "gm": 0.92, "grew": 55},
 }
+bf.ensure_frames(FRAMES)   # regenerate gitignored demo stacks from the real seed
 BRAIN = {}
 BRAIN_SLICES = {}
 for key, m in BRAIN_META.items():
     arr = np.load(FRAMES / f"glioma_100002_{key}_frames.npy")   # (T,Z,Y,X)
     T = arr.shape[0]
     disp = [r.downsample(arr[i], 2) for i in range(T)]
-    burden = [float((arr[i] > 0.3).sum()) for i in range(T)]
+    # Tumor-VOLUME index (voxels at clinical tumor density >=0.5), baseline=100.
+    # Volume — not a low threshold — so the curve tracks the lesion expanding,
+    # not the diffusion halo crossing a floor (which inflated the old >0.3 count).
+    burden = [float((arr[i] > 0.5).sum()) for i in range(T)]
     b0 = burden[0] or 1.0
     BRAIN[key] = {
         **m,

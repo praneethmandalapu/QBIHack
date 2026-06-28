@@ -231,13 +231,13 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
           <button class="mode" data-regime="indolent">IDH-mutant</button>
         </div>
         <div class="stage" id="brainStage">
-          <div class="reticle">UCSF 100002<br>GLIOMA<br>ISO 0.30</div>
+          <div class="reticle">UCSF 100002<br>GLIOMA<br>ISO 0.40</div>
           <div class="viz" id="brain3d"></div>
           <div class="scan"></div>
         </div>
         <div class="timeline">
           <button class="play" id="brain-play" aria-label="Play growth">▶</button>
-          <input class="tl" id="brain-tl" type="range" min="0" max="17" value="0" step="1" aria-label="Timestep">
+          <input class="tl" id="brain-tl" type="range" min="0" max="20" value="0" step="1" aria-label="Timestep">
           <div class="tlread" id="brain-tlread">DAY 000 · <b>100</b> burden idx</div>
         </div>
         <div class="cap">Scrub or play to grow the lesion · drag to orbit · calibrated reaction–diffusion</div>
@@ -380,7 +380,7 @@ function volTrace(val){ return {type:'volume',x:GRID.x,y:GRID.y,z:GRID.z,value:v
 
 /* ---------- BRAIN ---------- */
 let bRegime='aggressive', bIdx=0, bPlay=null;
-function bDraw(){ Plotly.react('brain3d',[isoTrace(BRAIN[bRegime].values[bIdx],0.3,0.25,0.8)],LAYOUT3D,CFG).then(()=>{if(activeViz==='brain3d')startSpin();}); }
+function bDraw(){ Plotly.react('brain3d',[isoTrace(BRAIN[bRegime].values[bIdx],0.4,0.4,0.95)],LAYOUT3D,CFG).then(()=>{if(activeViz==='brain3d')startSpin();}); }
 function bGoto(i){ const reg=BRAIN[bRegime]; bIdx=Math.max(0,Math.min(i,reg.n-1));
   Plotly.restyle('brain3d',{value:[reg.values[bIdx]]},[0]);
   document.getElementById('brain-tlread').innerHTML=`DAY ${String(reg.days[bIdx]).padStart(3,'0')} · <b>${reg.idx[bIdx].toFixed(0)}</b> burden idx`;
@@ -401,7 +401,7 @@ function bKPIs(){ const reg=BRAIN[bRegime];
   document.getElementById('bk-grade').textContent='Grade '+reg.grade;
   document.getElementById('bk-peak').textContent=reg.peak;
   document.getElementById('bk-grew').textContent=reg.grew+'%';
-  document.getElementById('brain-read').innerHTML=`Seeded from a real UCSF glioma (patient 100002), grown at the cohort's <b>${reg.label}</b> rate (median × <b class="ok">${reg.gm.toFixed(2)}</b>). Over ~180 days, modeled burden reaches <b class="ok">${reg.peak}</b> (baseline=100). In the real cohort, <b>${reg.grew}%</b> of ${reg.idh==='WT'?'IDH-wildtype':'IDH-mutant'} gliomas grew. <span style="color:var(--muted)">Calibrated growth model — not an out-of-sample prediction.</span>`;
+  document.getElementById('brain-read').innerHTML=`Seeded from a real UCSF glioma (patient 100002), forward-simulated as an <b>${reg.label}</b> lesion — high-invasion reaction–diffusion for IDH-wildtype, low-invasion + attrition for IDH-mutant. Over ~180 days, modeled tumor volume reaches <b class="ok">${reg.peak}</b> (baseline=100). In the real 298-patient cohort, <b>${reg.grew}%</b> of ${reg.idh==='WT'?'IDH-wildtype':'IDH-mutant'} gliomas grew (median growth ×<b class="ok">${reg.gm.toFixed(2)}</b>). <span style="color:var(--muted)">Calibrated growth model — not an out-of-sample prediction.</span>`;
 }
 function bPlayToggle(){ if(playing){bStop();return;} playing=true; stopSpin();
   const pb=document.getElementById('brain-play'); pb.textContent='❚❚'; pb.classList.add('on');
@@ -426,7 +426,8 @@ function cohortChart(){
 let brainReady=false;
 function brainInit(){
   if(!brainReady){ brainReady=true;
-    Plotly.newPlot('brain3d',[isoTrace(BRAIN[bRegime].values[0],0.3,0.25,0.8)],LAYOUT3D,CFG);
+    Plotly.newPlot('brain3d',[isoTrace(BRAIN[bRegime].values[0],0.4,0.4,0.95)],LAYOUT3D,CFG);
+    document.getElementById('brain-tl').max=BRAIN[bRegime].n-1;
     bCurve(); bSlices(); bKPIs(); cohortChart(); bGoto(0);
     const stage=document.getElementById('brainStage');
     stage.addEventListener('mouseenter',()=>{if(activeViz==='brain3d')stopSpin();});
