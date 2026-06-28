@@ -664,7 +664,7 @@ def build_report() -> ReportPDF:
             ["PDE burden QC", "pde_burden_compare.json + section 7", "2 non-resection in PDF"],
             ["Solver", "run_growth() smoke on 100002 baseline", "Passed"],
             ["Manifest", "manifest.json v1.0.0 (2 patients)", "Done"],
-            ["Pending", "calibrate.py, Jasim/Vihari", "Next"],
+            ["Pending", "calibrate.py, Jasim/Vinesh/Philip", "Next"],
         ],
         [28, 88, 62],
     )

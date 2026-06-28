@@ -71,4 +71,4 @@ Full imaging bundle is **~11 GB** via TCIA Faspex (requires `ascli` + `ascli con
 ## After patient lock
 
 1. Edit `cohort.json` — add real `patient_id`, timepoints, bump `version`.
-2. Notify Praneeth (genomics), Vinesh (paths), Vihari (manifest keys).
+2. Notify Praneeth (genomics), Vinesh (paths), Vinesh/Philip (manifest keys).

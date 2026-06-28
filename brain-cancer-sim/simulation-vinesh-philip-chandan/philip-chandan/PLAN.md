@@ -36,7 +36,7 @@ Pattern reference (breast, completed): `breast-cancer-sim/simulation-vinesh-phil
 6. PDE burden compare + pipeline PDF — **done** (`pde_burden_compare.py`, `PIPELINE_REPORT.pdf` with Fig 4 baseline/follow-up PDE input; cohort MR overlays removed from PDF)
 7. `manifest.json` v1.0.0 — **done** (2 non-resection patients: `100002`, `100118`)
 8. Vinesh `calibrate.py` + demo toggle (`100118` vs `100002`) — **pending**
-9. Jasim render + Vihari toggle — **waiting on manifest + calibrated frames**
+9. Jasim render + Vinesh/Philip toggle — **waiting on manifest + calibrated frames**
 
 **Split:** You deliver **raw** MR extract + spacing + segmentation path to `data/processed/raw-extract-philip-chandan/`, then run **`prepare_pde_input.py`** (resample/crop/normalize → `data/processed/pde-input-vinesh/`). Vinesh owns `run_growth()` and porting `calibrate.py`.
 
@@ -46,7 +46,7 @@ Pattern reference (breast, completed): `breast-cancer-sim/simulation-vinesh-phil
 |-------|-------------|
 | **Philip-Chandan** | Regenerate `PIPELINE_REPORT.pdf` after QC changes; notify Vinesh of manifest paths |
 | **Vinesh** | Port `calibrate.py` + `make_growth_animation.py` (expert-mask seeding, not breast Otsu); `run_growth()` on Philip-Chandan PDE inputs |
-| **Praneeth / Jasim / Vihari** | Not blocking t1→t2 on patient 1 |
+| **Praneeth / Jasim / Vinesh/Philip** | Not blocking t1→t2 on patient 1 |
 
 ---
 
@@ -127,7 +127,7 @@ brain-cancer-sim/
 │       └── calibrate.py             # TODO — port from breast
 ├── models-praneeth/               # genomics / risk models (stub)
 ├── visualization-jasim/
-└── app-vihari/
+└── app/
 ```
 
 ---
@@ -189,7 +189,7 @@ When Philip-Chandan supply a follow-up scan, Vinesh calibrates growth so simulat
 
 - Export baseline (+ follow-up) for **`100118`** (IDH-WT GBM) alongside `100002`.
 - Publish `manifest.json` v1.0.0 — maps grade / IDH / timepoint → slug → paths.
-- Notify Praneeth (genomics labels), Jasim (render), Vihari (toggle).
+- Notify Praneeth (genomics labels), Jasim (render), Vinesh/Philip (toggle).
 
 ### Phase 2 — Stretch (post-demo)
 
@@ -198,7 +198,7 @@ When Philip-Chandan supply a follow-up scan, Vinesh calibrates growth so simulat
 
 ### Phase 3 — MedPy cleanup *(low priority — after end-to-end)*
 
-**Do not start until:** spike → calibrated t1→t2 verified → Jasim render sign-off → Vihari toggle wired (checklist below green).
+**Do not start until:** spike → calibrated t1→t2 verified → Jasim render sign-off → Vinesh/Philip toggle wired (checklist below green).
 
 **Package:** `medpy` is already in [`../../requirements.txt`](../../requirements.txt). Swap internals only; preserve handoff contract shapes and test signatures.
 
@@ -259,7 +259,7 @@ flowchart LR
     PC --> NPY[raw .npy + PDE prep + manifest + masks]
     NPY --> V[Vinesh: solver + calibrate]
     V --> J[Jasim: render_3d]
-    V --> UI[Vihari: Streamlit tabs]
+    V --> UI[Vinesh/Philip: Streamlit tabs]
 ```
 
 | Who | When | Message |
@@ -267,7 +267,7 @@ flowchart LR
 | **Praneeth** | Before UI lock | Confirm `100118` vs `100002` IDs + IDH/grade for demo toggle (cohort already drafted) |
 | **Vinesh** | Now | Port `calibrate.py` for t1→t2 on `100002`; consume Philip-Chandan PDE inputs |
 | **Jasim** | After calibrated frames | Axis `(Z, Y, X)`; continuous density frames |
-| **Vihari** | After manifest | `subtype` or `slug` → `pde_npy` mapping |
+| **Vinesh/Philip** | After manifest | `subtype` or `slug` → `pde_npy` mapping |
 
 Live narrative: [`report.md`](report.md) / [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf).
 
@@ -308,7 +308,7 @@ Live narrative: [`report.md`](report.md) / [`PIPELINE_REPORT.pdf`](PIPELINE_REPO
 - [ ] Two patients or two grades highlighted for demo toggle (`100002` + `100118`)
 - [x] `manifest.json` v1.0.0 (2 patients: `100002`, `100118`)
 - [ ] Jasim render without axis flip
-- [ ] Vihari disease/grade toggle wired
+- [ ] Vinesh/Philip disease/grade toggle wired
 
 ---
 

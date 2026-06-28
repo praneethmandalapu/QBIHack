@@ -96,7 +96,7 @@ multiplier (NOT calibrated to the follow-up), simulate to the real interval, and
 compare against the held-out follow-up mask — see
 `vinesh/calibrate.py::validate_growth`.
 
-## Bringing it into the app (Vihari)
+## Bringing it into the app (Vinesh/Philip)
 
 - **Risk / Predict tab:** `get_patient(id)` for the score + molecular fields.
 - **Explain tab:** read `brain_shap_importance.csv` / breast `shap_importance.csv`.

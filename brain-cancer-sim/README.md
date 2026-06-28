@@ -13,7 +13,7 @@ Longitudinal glioma / brain tumor growth simulation. Layout mirrors [`breast-can
 | `simulation-vinesh-philip-chandan/vinesh/` | Vinesh | PDE growth engine, `prepare_pde_input.py` *(stub)* |
 | `models-praneeth/` | Praneeth | Genomics / risk models *(stub)* |
 | `visualization-jasim/` | Jasim | Plotly 3D rendering |
-| `app-vihari/` | Vihari | Streamlit shell (tab stubs) |
+| `app/` | Vinesh/Philip | Streamlit shell (tab stubs) |
 
 ## Setup
 
@@ -43,7 +43,7 @@ python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py --d
 ## Run the app
 
 ```bash
-streamlit run app-vihari/app.py
+streamlit run app/app.py
 ```
 
 ## Relationship to breast-cancer-sim

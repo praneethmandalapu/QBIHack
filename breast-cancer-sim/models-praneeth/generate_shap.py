@@ -3,7 +3,7 @@
 Two entry points:
 
   build_global()  - run once after training. Computes SHAP over the full pooled
-                    cohort and writes the artifacts Vihari's EXPLAIN tab reads:
+                    cohort and writes the artifacts Vinesh/Philip's EXPLAIN tab reads:
                         saved/shap_importance.csv   gene, mean_abs_shap (ranked)
                         saved/shap_values.pkl       {genes, base_value, values, X}
 

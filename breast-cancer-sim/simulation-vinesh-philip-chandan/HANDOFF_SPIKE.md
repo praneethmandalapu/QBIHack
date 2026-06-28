@@ -251,7 +251,7 @@ python simulation-vinesh-philip-chandan/vinesh/prepare_pde_input.py
 After step 7 is green for this one case:
 
 1. Repeat export for `TCGA-AR-A1AQ` / `2001-11-21` (Basal baseline).
-2. Add subtype toggle / manifest at demo layer (Vihari/Jasim).
+2. Add subtype toggle / manifest at demo layer (Vinesh/Philip/Jasim).
 3. Follow-up timepoints stay optional until baseline demo works.
 
 ---

@@ -177,7 +177,7 @@ PDE outputs: `data/processed/pde-input-vinesh/{slug}.npy` + `.json`.
 | PDE input | Vinesh | 64³, 1 mm, [0,1], tumor > 0 |
 | Simulation | Vinesh | `solve_growth()` frames |
 | Render | Jasim | 3D view from PDE/solver output |
-| UI | Vihari | Subtype/timepoint toggle from manifest |
+| UI | Vinesh/Philip | Subtype/timepoint toggle from manifest |
 
 ---
 

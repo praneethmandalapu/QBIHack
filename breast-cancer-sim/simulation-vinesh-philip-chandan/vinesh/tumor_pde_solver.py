@@ -73,7 +73,7 @@ def solve_growth(
         timesteps: number of frames to simulate (each is one returned array).
         dt: time increment per step. Keep small enough to satisfy the CFL guard.
         params: overrides for DEFAULT_PARAMS (D, rho, delta, risk_multiplier,
-            spacing). Vihari's sliders and Praneeth's risk model feed in here.
+            spacing). Vinesh/Philip's sliders and Praneeth's risk model feed in here.
 
     Returns:
         List of `timesteps + 1` arrays (including the initial frame), one 3D
@@ -91,7 +91,7 @@ def solve_growth(
     _check_cfl(D, dt, spacing)
 
     # Work in float32 to keep memory low when passing heavy 3D arrays around
-    # (Vihari's main concern for the Streamlit app).
+    # (Vinesh/Philip's main concern for the Streamlit app).
     u = np.clip(initial_volume.astype(np.float32), 0.0, 1.0)
 
     # Mean voxel spacing squared, used to scale the discrete Laplacian into
@@ -120,7 +120,7 @@ def solve_growth(
 def total_volume(frame: np.ndarray, spacing=(1.0, 1.0, 1.0), threshold: float = 0.5) -> float:
     """Tumor volume (mm^3) of a single frame: voxels above `threshold` x voxel size.
 
-    Use this to build the volume-over-time curve that Vihari's LLM tab
+    Use this to build the volume-over-time curve that Vinesh/Philip's LLM tab
     summarizes ("tumor shrank 32% under hormone therapy", etc.).
     """
     voxel_vol = float(np.prod(spacing))

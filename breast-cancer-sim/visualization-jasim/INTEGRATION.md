@@ -1,4 +1,4 @@
-# OncoPulse visualization handoff (Person 3 / jasim → Person 4 / vihari)
+# OncoPulse visualization handoff (Person 3 / jasim → Person 4 / Vinesh/Philip)
 
 A clinical "digital twin" of tumor evolution: volumetric rendering, biologically
 layered tissue, radiology slices, and quantitative burden tracking (volume,
@@ -28,7 +28,7 @@ cd breast-cancer-sim/visualization-jasim
 | `growth_analytics(frames, spacing, days_per_step)` | Series + doubling time + RECIST. |
 | `downsample(frame, factor)` | Decimate heavy real arrays before display. |
 
-## Drop into `app-vihari/tabs/simulate_tab.py`
+## Drop into `app/tabs/simulate_tab.py`
 The viz folder name has a dash, so add it to the path:
 
 ```python

@@ -19,7 +19,7 @@ Upgraded "hero" API:
     render_growth_curve - tumor-burden-over-time chart
     make_treatment_sequence - grow-then-respond scenario for demos
 
-Default backend is Plotly so Person 4 (vihari) can `st.plotly_chart(fig)`.
+Default backend is Plotly so Person 4 (Vinesh/Philip) can `st.plotly_chart(fig)`.
 """
 
 from __future__ import annotations

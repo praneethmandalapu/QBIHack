@@ -5,7 +5,7 @@ Drugs do NOT edit the density array directly. Instead they return a modified
 (the PDE). This keeps the model honest: a drug changes *rates*, and the PDE
 plays those rates forward over time.
 
-Mapping (Vihari's sliders -> these levers):
+Mapping (Vinesh/Philip's sliders -> these levers):
     hormone   (e.g. tamoxifen)  -> lowers proliferation rho
     chemo                       -> lowers rho AND adds cell death (necrotic core)
     radiation                   -> strong, mostly cell death
@@ -21,7 +21,7 @@ from tumor_pde_solver import DEFAULT_PARAMS
 
 
 # How strongly each drug pulls the growth/death levers, per unit dose.
-# Dose is expected normalized to [0, 1] from Vihari's slider.
+# Dose is expected normalized to [0, 1] from Vinesh/Philip's slider.
 # These are hackathon placeholders — retune against literature / real runs.
 DRUG_EFFECTS: dict[str, dict] = {
     "none":      {"rho_factor": 1.00, "delta_add": 0.00},
@@ -44,7 +44,7 @@ def apply_drug(
             symmetry / future spatially-targeted drugs (e.g. radiation only
             hitting a sub-region); the baseline model uses it only for shape.
         drug: one of DRUG_EFFECTS keys ("none", "hormone", "chemo", "radiation").
-        dose: normalized dose in [0, 1] from Vihari's slider. 0 = no effect.
+        dose: normalized dose in [0, 1] from Vinesh/Philip's slider. 0 = no effect.
         params: base params to modify (defaults to DEFAULT_PARAMS).
 
     Returns:

@@ -49,6 +49,6 @@ the browser. Risk handoff CSVs for the imaging cohort live in
 | Surface | Command | Notes |
 |---------|---------|-------|
 | Streamlit demo | `../.venv/bin/python -m streamlit run demo_app.py` | Synthetic treatment scenario; not the two-cancer tabbed site |
-| Vihari app | `../.venv/bin/python -m streamlit run app-vihari/app.py` | Predict / Explain / Simulate tabs (work in progress) |
+| Vinesh/Philip app | `../.venv/bin/python -m streamlit run app/app.py` | Predict / Explain / Simulate tabs (work in progress) |
 
 More detail: `breast-cancer-sim/visualization-jasim/HANDOFF_VINESH.md`.

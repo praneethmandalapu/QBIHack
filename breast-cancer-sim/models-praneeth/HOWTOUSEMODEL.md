@@ -2,7 +2,7 @@
 
 Complete reference for the genomics risk model, written for both humans and
 coding agents. If you are an agent working in `vinesh/`, `philip-chandan/`, or
-`app-vihari/` and you need a per-patient growth/risk number, **read this whole
+`app/` and you need a per-patient growth/risk number, **read this whole
 file first** — it tells you exactly what to call, what you get back, and what it
 means.
 
@@ -147,7 +147,7 @@ reproducible inputs are gitignored.
 |---|---|
 | `models-praneeth/saved/model.pkl` | Pickled `XGBClassifier`. Unpickling needs xgboost installed (+ libomp on Mac). |
 | `models-praneeth/saved/metrics.json` | `{cv_auc, cv_auc_std, best_rounds, best_params, cross_cohort, genes, n_samples, n_trials}` |
-| `models-praneeth/saved/shap_importance.csv` | columns: `gene, mean_abs_shap` (ranked desc) — for Vihari's EXPLAIN tab |
+| `models-praneeth/saved/shap_importance.csv` | columns: `gene, mean_abs_shap` (ranked desc) — for Vinesh/Philip's EXPLAIN tab |
 | `models-praneeth/saved/shap_values.pkl` | `{genes, base_value, values: ndarray(N,30), X: ndarray(N,30), index: list[barcode/sample]}` |
 | `models-praneeth/saved/training_log.txt` | Full per-trial training log (evidence of the search) |
 | `data/processed/gene_list.json` | `{genes: [30 names], n_genes: 30, input: "...", label: "..."}` — **single source of truth for gene order** |
@@ -213,7 +213,7 @@ common way to misuse the model:
 | `gene_correlation`, `list_barcodes`, `GENE_LIST` | CSV/JSON | no | no |
 | `score_expression` | `model.pkl` | **yes** | **yes** |
 
-**Practical consequence:** Philip, Vinesh, Vihari almost always only need the
+**Practical consequence:** Philip, Vinesh, Vinesh/Philip almost always only need the
 precomputed lookups → they can depend on just `pandas`, with no xgboost/libomp
 headache. Only retraining or scoring novel expression touches the model.
 

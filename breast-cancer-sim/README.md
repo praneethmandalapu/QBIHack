@@ -12,7 +12,7 @@ Multi-domain pipeline for breast cancer risk prediction, explainability, tumor g
 | `simulation-vinesh-philip-chandan/vinesh/` | Vinesh | PDE tumor growth engine and drug interventions |
 | `simulation-vinesh-philip-chandan/philip-chandan/` | Philip, Chandan | TCIA DICOM → 3D volume extraction |
 | `visualization-jasim/` | Jasim | 3D rendering and tissue color maps |
-| `app-vihari/` | Vihari | Streamlit frontend and LLM narrative |
+| `app/` | Vinesh/Philip | Streamlit frontend and LLM narrative |
 
 ### Simulation layout
 
@@ -39,5 +39,5 @@ Place METABRIC CSVs in `data/raw/` and TCIA DICOM series in `data/raw/`. Process
 ## Run the app
 
 ```bash
-streamlit run app-vihari/app.py
+streamlit run app/app.py
 ```
