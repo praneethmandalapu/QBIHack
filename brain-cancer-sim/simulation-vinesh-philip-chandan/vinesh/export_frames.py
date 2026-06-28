@@ -98,6 +98,10 @@ def export_frames(
         "timesteps": int(timesteps),
         "dt": float(dt),
         "volume_mm3_per_frame": [round(total_volume(f, spacing), 1) for f in kept],
+        # Robust burden = integral of density (Sigma-u). Unlike the thresholded
+        # volume above (sensitive near the start), this is diffusion-stable —
+        # prefer it for the burden-over-time curve. See HANDOFF_JASIM.md s7.
+        "burden_sum_per_frame": [round(float(f.sum()), 2) for f in kept],
     }
     if meta_extra:
         meta.update(meta_extra)

@@ -37,38 +37,38 @@ SEED_PATH = (BRAIN_REPO / "data/processed/pde-input-vinesh"
              / "glioma_ucsf_100002_baseline.npy")
 OUT_DIR = BREAST / "data/processed/brain-frames-jasim"
 
-# Vinesh's solver (disease-agnostic; identical contract in both repos).
+# Vinesh's engine (disease-agnostic; identical contract in both repos).
 sys.path.insert(0, str(BRAIN_REPO / "simulation-vinesh-philip-chandan/vinesh"))
 from tumor_pde_solver import solve_growth  # noqa: E402
+from mask_seeding import seed_from_mask  # noqa: E402
 
 N_KEEP, DT = 21, 0.1
 
-# Per-scenario PDE parameters. D drives spatial invasion (the missing ingredient
-# before); risk_multiplier scales proliferation; delta is net cell death.
+# Per-scenario PDE parameters. D (invasion) is the lever that makes the margin
+# advance; risk_multiplier scales proliferation; delta is net cell death.
+# Horizon ~180 steps == ~180 days (1 step/day), matching the engine's TS_PER_DAY.
 SCENARIOS = {
-    # IDH-wildtype GBM: fast outward invasion, volume ~+200% over the window.
-    "aggressive": {"D": 0.40, "risk_multiplier": 1.0, "delta": 0.0, "timesteps": 170},
+    # IDH-wildtype GBM: high invasion -> the front sweeps outward (~+270% volume).
+    "aggressive": {"D": 0.50, "risk_multiplier": 1.0, "delta": 0.0, "timesteps": 180},
     # IDH-mutant: minimal invasion + attrition -> roughly stable / slight regress.
-    "indolent": {"D": 0.10, "risk_multiplier": 0.5, "delta": 0.05, "timesteps": 160},
+    "indolent": {"D": 0.08, "risk_multiplier": 0.6, "delta": 0.06, "timesteps": 180},
 }
 
 
 def load_seed() -> np.ndarray:
-    """Real 100002 lesion, rescaled so the tumor sits near carrying capacity.
+    """Seed the real 100002 lesion as a PDE density via Vinesh's seed_from_mask.
 
-    The prepared input is a low (~0.30) intensity plateau. Rescaling its 99th
-    percentile to ~0.92 (shape/texture preserved, background untouched) makes the
-    isosurface at 0.5 meaningful from frame 0 and forces growth to come from the
-    front rather than from filling in headroom below carrying capacity.
+    The expert-mask EXTENT is taken from the prepared input (its nonzero region);
+    interior density is assigned by seed_from_mask (a near-capacity lesion with an
+    infiltrative margin) — NOT the raw MR intensity, which previously put the tumor
+    at a flat ~0.30 plateau and made it densify in place instead of invade. This is
+    the same fix now applied in prepare_pde_input.py.
     """
-    raw = np.load(SEED_PATH).astype(np.float32)
-    nz = raw[raw > 0]
-    if nz.size == 0:
+    arr = np.load(SEED_PATH).astype(np.float32)
+    mask = (arr > 0).astype(np.float32)
+    if mask.sum() == 0:
         raise ValueError(f"Seed {SEED_PATH} has no tumor voxels")
-    hi = float(np.percentile(nz, 99.0))
-    seed = np.clip(raw / hi * 0.92, 0.0, 1.0).astype(np.float32)
-    seed[raw <= 0] = 0.0
-    return seed
+    return seed_from_mask(mask, profile="flat", peak=0.9)
 
 
 def _stack(seed: np.ndarray, p: dict) -> np.ndarray:
