@@ -58,6 +58,44 @@ def downsample(frame: np.ndarray, factor: int = 2) -> np.ndarray:
     return frame[::factor, ::factor, ::factor]
 
 
+def normalize_intensity(vol: np.ndarray, hi_pct: float = 99.5) -> np.ndarray:
+    """Display-window a real MR-derived field so its bright region maps to ~1.
+
+    Philip's `pde_npy` volumes are normalized MR intensities, not saturating
+    tumor density: most tissue sits at 0.1-0.5 and the dynamic range varies per
+    case. A fixed isosurface at 0.5 would over/under-shoot. This contrast-stretch
+    rescales each volume by its own high percentile (background stays 0), so the
+    tissue structure renders legibly without changing the source files.
+    """
+    nz = vol[vol > 0]
+    if nz.size == 0:
+        return vol.astype(np.float32)
+    hi = float(np.percentile(nz, hi_pct))
+    if hi <= 0:
+        return vol.astype(np.float32)
+    return np.clip(vol / hi, 0.0, 1.0).astype(np.float32)
+
+
+def load_pde_volume(slug: str, data_root: str | None = None, normalize: bool = True):
+    """Load a Philip/Chandan PDE-ready volume by slug via the manifest.
+
+    Returns (volume, entry). `volume` is float32 (Z,Y,X) in [0,1]; `entry` is the
+    manifest record (subtype, timepoint, tcga_id, ...). Loads `pde_npy` only —
+    never the full-resolution `raw_npy`.
+    """
+    import json
+    from pathlib import Path
+
+    root = Path(data_root) if data_root else Path(__file__).resolve().parents[1]
+    manifest = json.loads(
+        (root / "data/processed/raw-extract-philip-chandan/manifest.json").read_text())
+    entry = next(v for v in manifest["volumes"] if v["slug"] == slug)
+    vol = np.load(root / entry["pde_npy"]).astype(np.float32)
+    if normalize:
+        vol = normalize_intensity(vol)
+    return vol, entry
+
+
 def make_dummy_sequence(
     n: int = 24,
     shape: tuple[int, int, int] = (64, 64, 64),
