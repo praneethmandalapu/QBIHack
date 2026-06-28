@@ -18,7 +18,8 @@ Multi-cancer tumor simulation and visualization: breast (TCGA-BRCA) and brain
 
 Jasim's **tabbed static site** (brain growth animation + real breast MR volumes)
 lives in `breast-cancer-sim/visualization-jasim/`. Build once, then serve the
-`site/` folder.
+`site/` folder locally. The same build is copied to `docs/` for GitHub Pages
+(deployed from the `main` branch).
 
 **Prerequisites:** venv installed (`breast-cancer-sim/.venv`), local processed
 data (brain baseline for patient 100002, breast PDE volumes for the primary
@@ -30,6 +31,7 @@ cd breast-cancer-sim/visualization-jasim
 # 1) Bake breast + brain into a single self-contained page
 #    (auto-regenerates brain frame stacks via make_brain_frames if missing)
 ../.venv/bin/python build_site.py
+cp site/index.html ../../docs/index.html
 
 # 2) Serve locally
 ../.venv/bin/python -m http.server 8080 --directory site

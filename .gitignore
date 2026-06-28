@@ -22,6 +22,8 @@ venv/
 
 # Generated visualization artifacts
 *.html
+!breast-cancer-sim/visualization-jasim/site/index.html
+!docs/index.html
 breast-cancer-sim/visualization-jasim/streamlit.log
 
 # Claude Code
