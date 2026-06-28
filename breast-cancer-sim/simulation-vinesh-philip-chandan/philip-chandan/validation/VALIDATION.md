@@ -116,13 +116,15 @@ Metrics written to `data/processed/validation-philip-chandan/validation_metrics.
 
 Load baseline MR from `raw-extract-philip-chandan/` with the matching radiologist `.les` overlay. Only **baseline** slugs have `.les` for rev2 primaries.
 
+The viewer splits stacked **VIBRANT** volumes into temporal DCE phases (4 × ~88 slices for rev2 primaries), loads optional **pre-contrast S1 (Ax T1)**, and can show a **subtraction** layer (active phase − resampled pre-contrast). Use the **Expert mask** dock button to toggle the `.les` overlay (same pattern as brain-cancer-sim `view_volume_napari.py`).
+
 ```bash
 cd breast-cancer-sim
 
 # List slugs that have a local .les file
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py --list
 
-# Luminal A baseline (VIBRANT S2)
+# Luminal A baseline (VIBRANT S2) — auto-jumps to expert lesion slice
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \
   --slug luminal_a_TCGA-AR-A1AX_baseline
 
@@ -130,16 +132,22 @@ cd breast-cancer-sim
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \
   --slug basal_TCGA-AR-A1AQ_baseline
 
-# Also overlay Otsu for comparison
+# Also overlay Otsu for comparison (active phase only)
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \
   --slug luminal_a_TCGA-AR-A1AX_baseline --otsu
 
 # Cuboid shell only (see MR inside annotation box; no filled lesion blocking view)
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \
   --slug luminal_a_TCGA-AR-A1AX_baseline --cuboid
+
+# Skip pre-contrast download / subtraction
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \
+  --slug luminal_a_TCGA-AR-A1AX_baseline --no-precontrast
 ```
 
-Arrays are `(Z, Y, X)` with `scale=(dz, dy, dx)` from the raw extract sidecar. MR is percentile-normalized for display (same as validation QC).
+**Dock widgets:** `DCE controls` (phase picker, subtraction, pre-contrast, MIP row, CAD markers, jump-to-lesion), `Expert mask` (show/hide `.les` on detail + hanging panes).
+
+**Layout:** Left = detail viewer with overlays. Right = **hanging protocol** — four linked subtraction (or DCE) phases side-by-side, MIP row beneath, yellow **CAD-style** enhancement peaks (lime = expert centroid). TCIA does not ship vendor CAD; markers are computed from local maxima on subtraction volumes (QC only).
 
 Alternative: export NIfTI via SimpleITK for **ITK-SNAP** / **3D Slicer** / Fiji.
 

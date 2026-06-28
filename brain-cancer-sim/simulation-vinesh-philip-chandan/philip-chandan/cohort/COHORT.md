@@ -11,20 +11,64 @@ Patient picks for longitudinal glioma MRI + expert segmentation. Genomics alignm
 
 ## Candidate datasets
 
-See repo root [`DATASETS.md`](../../../DATASETS.md).
+See repo root [`DATASETS.md`](../../../DATASETS.md). Registry keys live in [`datasets.py`](datasets.py).
 
-| Dataset | Access | Notes |
-|---------|--------|-------|
-| UCSF Longitudinal Glioma | TBD | Primary spike target |
-| MU-Glioma-Post | TBD | Fallback |
-| Yale Brain Mets | TBD | Metastases branch if glioma blocked |
+| Dataset key | Access | Notes |
+|-------------|--------|-------|
+| `ucsf_longitudinal_glioma` | UCSF portal | Primary spike target (UCSF-ALPTDG) |
+| `mu_glioma_post` | TCIA NIfTI | **~11 GB** bulk download via Faspex; see `download_mu_glioma_post.py` |
+| `lumiere` | Figshare | Longitudinal GBM + RANO + auto segmentations |
+| `yale_brain_mets` | TBD | Metastases branch if glioma blocked |
 
-## Workflow
+## Discovery workflow
 
-1. Run `cohort_discovery.py` *(TODO)* against local inventory or dataset manifest.
-2. Edit `cohort.json` — bump `version` when IDs change.
-3. Notify Praneeth (genomics), Vinesh (paths), Vihari (manifest keys).
+From `brain-cancer-sim/`:
+
+```bash
+# List candidate datasets from DATASETS.md
+python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py list-datasets
+
+# After downloading NIfTI into data/raw/<dataset>/...
+python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py scan-local --dataset mu_glioma_post
+python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py find-longitudinal --dataset mu_glioma_post
+
+# Suggest first spike patient once data is on disk
+python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py recommend-pair
+
+# Validate cohort.json before notifying Praneeth / Vinesh
+python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py audit
+python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py show PATIENT_ID --dataset mu_glioma_post
+```
+
+### On-disk layout (NIfTI datasets)
+
+```
+data/raw/mu_glioma_post/<patient_id>/
+├── Timepoint_1/
+│   ├── t1c.nii.gz
+│   └── seg.nii.gz
+└── Timepoint_2/
+    ├── t1c.nii.gz
+    └── seg.nii.gz
+
+data/raw/lumiere/<patient_id>/   # Figshare extract
+data/raw/ucsf_alptdg/<patient_id>/
+```
+
+Download MU-Glioma-Post:
+
+```bash
+python simulation-vinesh-philip-chandan/philip-chandan/download_mu_glioma_post.py --metadata-only
+python simulation-vinesh-philip-chandan/philip-chandan/download_mu_glioma_post.py --imaging
+```
+
+Full imaging bundle is **~11 GB** via TCIA Faspex (requires `ascli` + `ascli config ascp install`).
 
 ## Slug convention
 
 `{disease}_{dataset}_{patient_id}_{timepoint}` — e.g. `glioma_ucsf_P001_baseline`.
+
+## After patient lock
+
+1. Edit `cohort.json` — add real `patient_id`, timepoints, bump `version`.
+2. Notify Praneeth (genomics), Vinesh (paths), Vihari (manifest keys).

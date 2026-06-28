@@ -12,9 +12,11 @@ matplotlib
 plotly
 pyvista
 streamlit
+scikit-image
 
 # QC (optional napari viewer — same pattern as breast validation/)
 napari[pyqt6]
 
 # Testing
 pytest
+fpdf2

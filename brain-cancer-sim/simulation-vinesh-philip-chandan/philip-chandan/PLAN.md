@@ -17,6 +17,7 @@ Brain-cancer-sim is forked from the breast layout but **imaging code is written 
 | [`../../DATASETS.md`](../../DATASETS.md) | Candidate longitudinal MRI datasets |
 | [`../handoff_contract.json`](../handoff_contract.json) | Versioned Philip-Chandan ↔ Vinesh contract |
 | [`VALIDATION.md`](VALIDATION.md) | QC + napari inspection guide |
+| [`report.md`](report.md) / [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) | Phase 0 pipeline narrative (regenerate: `generate_pipeline_report.py`) |
 | [`cohort/COHORT.md`](cohort/COHORT.md) | Patient picks and discovery notes |
 
 **Spike target (TBD):** one UCSF Longitudinal Glioma patient · baseline MR + expert mask
@@ -99,8 +100,9 @@ See [`../../DATASETS.md`](../../DATASETS.md). Recommended first spike:
 | Priority | Dataset | Why |
 |----------|---------|-----|
 | **1** | UCSF Longitudinal Glioma | Repeated scans + expert segmentations; best growth-model fit |
-| **2** | MU-Glioma-Post | Similar; post-treatment longitudinal |
-| **3** | Yale Brain Mets | Metastases variant if glioma access blocked |
+| **2** | MU-Glioma-Post | Similar; post-treatment longitudinal; **~11 GB** on TCIA |
+| **3** | LUMIERE | Longitudinal GBM + RANO ratings + auto segmentations (Figshare) |
+| **4** | Yale Brain Mets | Metastases variant if glioma access blocked |
 
 **Unlike breast:** we use **NIfTI + expert masks**, not TCIA DICOM + Otsu. Do not copy `tcia_extractor.py` — follow the API shape only.
 
@@ -213,8 +215,8 @@ flowchart LR
 | `nifti_extractor.py` | **TODO** | nibabel load; `(Z, Y, X)` convention |
 | `export_raw_extract.py` | **TODO** | Contract JSON sidecar |
 | `qc_slice_plot.py` | **TODO** | Mid-slice MR + mask overlay |
-| `download_ucsf.py` | **TODO** | Dataset-specific fetch script |
-| `cohort/cohort_discovery.py` | **TODO** | Validate picks before editing `cohort.json` |
+| `download_mu_glioma_post.py` | **ready** | Metadata via HTTPS; imaging via TCIA Faspex (~11 GB) |
+| `cohort/cohort_discovery.py` | **ready** | TCIA + local inventory; validate picks before editing `cohort.json` |
 | `../vinesh/prepare_pde_input.py` | **TODO** | Vinesh owns; resample expert mask → PDE grid |
 
 **Working today:** `view_volume_napari.py --demo` (synthetic); solver smoke tests in `../vinesh/test_solver.py`.

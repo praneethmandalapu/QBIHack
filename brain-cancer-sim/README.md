@@ -56,3 +56,12 @@ streamlit run app-vihari/app.py
 | Streamlit tab shell | Dataset download scripts |
 
 Do **not** import from `../breast-cancer-sim/` at runtime — each project is self-contained.
+
+## TODO
+
+| Item | Owner | Notes |
+|------|-------|-------|
+| **CGGA** (Chinese Glioma Genome Atlas) | Praneeth | METABRIC-like external validation for glioma genomics — train on **TCGA-GBM / TCGA-LGG**, hold out **CGGA** for cross-cohort checks (mirrors breast METABRIC + TCGA-BRCA). No TCIA imaging link; pairs with imaging cohort picks via molecular labels (IDH, grade, MGMT), not shared patient IDs. |
+| Imaging spike (UCSF-ALPTDG, MU-Glioma-Post, or LUMIERE) | Philip-Chandan | Longitudinal MRI + masks — see [`DATASETS.md`](DATASETS.md), [`philip-chandan/PLAN.md`](simulation-vinesh-philip-chandan/philip-chandan/PLAN.md) |
+| Genomics risk model | Praneeth | Patient table, features, XGBoost/SHAP — see [`models-praneeth/README.md`](models-praneeth/README.md) |
+| PDE input prep | Vinesh | `prepare_pde_input.py` — resample expert mask → solver grid |

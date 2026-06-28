@@ -1,0 +1,51 @@
+{
+  "slug": "glioma_ucsf_100002_baseline",
+  "runs": [
+    {
+      "grid_size": 64,
+      "shape": [
+        64,
+        64,
+        64
+      ],
+      "tumor_voxels": 8137,
+      "nbytes": 1048576,
+      "load_raw_s": 0.006399957928806543,
+      "load_mask_s": 0.14438237505964935,
+      "prep_s": 0.10385275003500283,
+      "write_s": 0.0018360000103712082,
+      "prep_total_s": 0.2564710830338299,
+      "npy_path": "data/processed/pde-input-vinesh/g64/glioma_ucsf_100002_baseline.npy",
+      "json_path": "data/processed/pde-input-vinesh/g64/glioma_ucsf_100002_baseline.json",
+      "solve_s": 0.3329183750320226,
+      "n_frames": 51,
+      "frame_bytes": 53477376,
+      "volume_t0_mm3": 262144.0,
+      "volume_tend_mm3": 5738.0,
+      "slug": "glioma_ucsf_100002_baseline"
+    },
+    {
+      "grid_size": 128,
+      "shape": [
+        128,
+        128,
+        128
+      ],
+      "tumor_voxels": 8137,
+      "nbytes": 8388608,
+      "load_raw_s": 0.0036317079793661833,
+      "load_mask_s": 0.024958542082458735,
+      "prep_s": 0.04581745807081461,
+      "write_s": 0.0025320419808849692,
+      "prep_total_s": 0.0769397501135245,
+      "npy_path": "data/processed/pde-input-vinesh/g128/glioma_ucsf_100002_baseline.npy",
+      "json_path": "data/processed/pde-input-vinesh/g128/glioma_ucsf_100002_baseline.json",
+      "solve_s": 3.0196954999119043,
+      "n_frames": 51,
+      "frame_bytes": 427819008,
+      "volume_t0_mm3": 2097152.0,
+      "volume_tend_mm3": 5738.0,
+      "slug": "glioma_ucsf_100002_baseline"
+    }
+  ]
+}

@@ -412,6 +412,8 @@ Optional code cleanup (not blocking): PyRadiomics stretch — see [`stretch/STRE
 
 Isolated pipeline under [`stretch/`](stretch/). Does **not** modify sprint handoff (`tcia_extractor.py`, `vinesh/`). Reads raw extracts only; writes to `data/processed/radiomics-philip-chandan/` and `data/qc/radiomics-philip-chandan/`.
 
+**Breast tumor segmentation:** automated lesion segmentation benchmark (Otsu, nnU-Net, vs `.les` ground truth) — [`segmentation/PLAN.md`](segmentation/PLAN.md).
+
 ### Status
 
 | Phase | Item | Status |

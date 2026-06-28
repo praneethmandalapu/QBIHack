@@ -3,11 +3,13 @@
   "description": "Philip-Chandan ↔ Vinesh array handoff contract for brain-cancer-sim. Expert segmentation masks (not Otsu) feed the PDE initial condition.",
   "spike_patient": {
     "dataset": "UCSF Longitudinal Glioma",
-    "patient_id": "TBD",
+    "patient_id": "100002",
     "disease": "Glioma",
-    "grade": "TBD",
+    "grade": "2",
+    "idh_status": "mut",
+    "mgmt_status": "positive",
     "timepoint": "baseline",
-    "slug": "glioma_ucsf_TBD_baseline"
+    "slug": "glioma_ucsf_100002_baseline"
   },
   "raw_extract": {
     "producer": "philip-chandan",
@@ -38,6 +40,8 @@
     "output_dir": "data/processed/pde-input-vinesh",
     "axis_order": ["Z", "Y", "X"],
     "dtype": "float32",
+    "default_grid_size": 64,
+    "grid_size_options": [64, 128],
     "max_shape": [64, 64, 64],
     "target_spacing_mm": [1.0, 1.0, 1.0],
     "value_range": [0.0, 1.0],
