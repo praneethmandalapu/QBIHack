@@ -22,7 +22,11 @@ ARRAY CONTRACT (agree with Philip/Chandan + Jasim before swapping in real data):
 """
 
 import numpy as np
-from scipy.ndimage import laplace
+
+try:
+    from scipy.ndimage import laplace as _scipy_laplace
+except Exception:  # pragma: no cover - exercised when scipy is unavailable
+    _scipy_laplace = None
 
 
 # Default physical parameters. These are placeholders tuned to look reasonable
@@ -38,6 +42,24 @@ DEFAULT_PARAMS: dict = {
                                   # <-- SWAP IN PHILIP'S VALUE: read from DICOM
                                   #     PixelSpacing + SliceThickness in extract_volume().
 }
+
+
+def _laplace(volume: np.ndarray) -> np.ndarray:
+    """3D nearest-edge Laplacian with a NumPy fallback for lightweight demos."""
+    if _scipy_laplace is not None:
+        return _scipy_laplace(volume, mode="nearest")
+
+    padded = np.pad(volume, 1, mode="edge")
+    center = padded[1:-1, 1:-1, 1:-1]
+    return (
+        padded[:-2, 1:-1, 1:-1]
+        + padded[2:, 1:-1, 1:-1]
+        + padded[1:-1, :-2, 1:-1]
+        + padded[1:-1, 2:, 1:-1]
+        + padded[1:-1, 1:-1, :-2]
+        + padded[1:-1, 1:-1, 2:]
+        - 6.0 * center
+    )
 
 
 def _check_cfl(D: float, dt: float, spacing) -> None:
@@ -102,7 +124,7 @@ def solve_growth(
 
     for _ in range(timesteps):
         # Diffusion term: D * laplacian(u), corrected for voxel spacing.
-        diffusion = D * laplace(u, mode="nearest") / dx2
+        diffusion = D * _laplace(u) / dx2
         # Logistic reaction term: growth that saturates at carrying capacity 1.
         reaction = rho * u * (1.0 - u)
         # Death term: drug-induced cell kill (delta = 0 when no drug applied).
