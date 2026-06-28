@@ -26,6 +26,7 @@ from dce_phases import (  # noqa: E402
     mip_as_volume,
     phase_ranges_from_dicom,
     resolve_phase_ranges,
+    select_phases,
     split_dce_phases,
 )
 
@@ -82,3 +83,18 @@ def test_phase_ranges_from_local_dicom() -> None:
 
     resolved = resolve_phase_ranges(volume_shape=(352, 256, 256), dicom_dir=dicom_dir)
     assert [phase.z_start for phase in resolved] == [0, 88, 176, 264]
+
+
+def test_select_phases_keeps_p1_p3_only() -> None:
+    phases = [
+        DcePhase(index=1, z_start=0, z_end=116, acquisition_time=""),
+        DcePhase(index=2, z_start=116, z_end=232, acquisition_time=""),
+        DcePhase(index=3, z_start=232, z_end=348, acquisition_time=""),
+        DcePhase(index=4, z_start=348, z_end=400, acquisition_time=""),
+        DcePhase(index=5, z_start=400, z_end=464, acquisition_time=""),
+    ]
+    volumes = split_dce_phases(np.zeros((464, 2, 2), dtype=np.float32), phases)
+    picked_phases, picked_volumes = select_phases(phases, volumes, (1, 2, 3))
+    assert [p.index for p in picked_phases] == [1, 2, 3]
+    assert len(picked_volumes) == 3
+    assert picked_volumes[0].shape[0] == 116

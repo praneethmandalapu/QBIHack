@@ -16,24 +16,26 @@ sys.path.insert(0, str(SPIKE_ROOT))
 
 from handoff_contract import (  # noqa: E402
     contract_version,
+    default_grid_size,
     max_shape,
     pde_input_spec,
     target_spacing_mm,
 )
 from spike_paths import (  # noqa: E402
+    REPO_ROOT,
     SPIKE_PATIENT,
     ensure_spike_dirs,
     pde_input_metadata,
     pde_input_npy,
-    raw_extract_metadata,
-    raw_extract_npy,
+    resolve_raw_extract_metadata,
+    resolve_raw_extract_npy,
 )
 
 
 def load_raw_extract(slug: str | None = None) -> tuple[np.ndarray, dict]:
     name = slug or SPIKE_PATIENT["slug"]
-    npy_path = raw_extract_npy(name)
-    json_path = raw_extract_metadata(name)
+    npy_path = resolve_raw_extract_npy(name)
+    json_path = resolve_raw_extract_metadata(name)
     if not npy_path.exists() or not json_path.exists():
         raise FileNotFoundError(
             f"Missing raw extract. Ask Philip-Chandan to run export_raw_extract.py "
@@ -164,15 +166,18 @@ def save_pde_input(
 ) -> tuple[Path, Path]:
     ensure_spike_dirs()
     name = slug or SPIKE_PATIENT["slug"]
-    npy_path = pde_input_npy(name)
-    json_path = pde_input_metadata(name)
+    grid = default_grid_size()
+    npy_path = pde_input_npy(name, grid_size=grid)
+    json_path = pde_input_metadata(name, grid_size=grid)
+    npy_path.parent.mkdir(parents=True, exist_ok=True)
 
     pde_spec = pde_input_spec()
     np.save(npy_path, volume.astype(np.float32))
     metadata = {
         "contract_version": contract_version(),
         "slug": name,
-        "source_raw_extract": str(raw_extract_npy(name).relative_to(SPIKE_ROOT.parent)),
+        "grid_size": grid,
+        "source_raw_extract": str(resolve_raw_extract_npy(name).relative_to(REPO_ROOT)),
         "shape": list(volume.shape),
         "dtype": pde_spec["dtype"],
         "axis_order": pde_spec["axis_order"],

@@ -26,6 +26,9 @@ matplotlib
 pyvista
 plotly
 napari[pyqt6]
+# Optional napari QC: Tools-menu threshold / CC / seeded watershed on single layers.
+# Replace with a lighter in-repo widget later if we stop using manual nsbatwm steps.
+napari-segment-blobs-and-things-with-membranes
 
 # App & LLM
 streamlit

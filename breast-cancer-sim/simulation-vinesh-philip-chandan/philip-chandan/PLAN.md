@@ -61,8 +61,12 @@ breast-cancer-sim/
 │   │       ├── 2002-09-12/        # spike baseline DICOM
 │   │       └── 2003-09-24/        # follow-up (optional until spike green)
 │   ├── processed/
-│   │   ├── raw-extract-philip-chandan/   # your raw .npy + .json handoff
-│   │   ├── pde-input-vinesh/             # Vinesh PDE-ready .npy + .json
+│   │   ├── raw-extract-philip-chandan/   # raw .npy + .json per {tcga_id}/{timepoint}
+│   │   │   ├── TCGA-AR-A1AX/
+│   │   │   │   ├── baseline.{npy,json}
+│   │   │   │   └── followup.{npy,json}
+│   │   │   └── manifest.json
+│   │   ├── pde-input-vinesh/             # Vinesh PDE-ready {tcga_id}/g64/{timepoint}
 │   │   └── radiomics-philip-chandan/     # stretch: masks + features CSV (gitignored locally)
 │   └── qc/
 │       ├── slice-plots-philip-chandan/
@@ -485,33 +489,37 @@ For baseline cases with `.les`, we build a **motion-corrected tumor mask** by al
 
 | Step | ROI | Shape intent |
 |------|-----|----------------|
-| Registration | P1 `.les` local z-band, **full in-plane Y/X** | Same slab grid for P1–P4 after rigid align |
-| Metrics + mask | Same z-band, **tight `.les` Y/X bbox** | Bright-fraction curves and final mask |
+| Registration | P1 `.les` local z-band, **full in-plane Y/X** | Same slab grid for **P1–P3** after rigid align (late DCE tail P4+ skipped) |
+| Metrics + mask | Same z-band, **tight `.les` Y/X bbox** | Center-connected curves and final mask on **P2–P3** |
 
-P1 anchors local z (e.g. 19–26 on A1AX); P2–P4 use the same slice indices even though expert FCM voxels only exist on P1.
+P1 anchors local z (e.g. 19–26 on A1AX, 78–84 on A1AQ); P2–P3 use the same slice indices even though expert FCM voxels only exist on P1. Series with >4 DCE groups (e.g. A1AQ P4/P5) are truncated to **`ALIGNED_BBOX_REGISTRATION_PHASES = (1, 2, 3)`** before align/napari/plots.
 
 **Pipeline:**
 
 ```
 load VIBRANT + .les
+  → keep P1–P3 only (skip late DCE phases)
   → extract P1 z-band slab (full Y/X) per phase
-  → rigid register P2–P4 slabs → P1 grid
-  → inside .les bbox on aligned slabs: sweep threshold (0.05 step)
-  → plot % bbox voxels ≥ threshold for P1–P4 (horizontal line = .les fill ~34%)
-  → pick post-contrast phase (P2–P4) + threshold where curve crosses .les fill
-  → connected component inside bbox, seeded by expert Y/X footprint
-  → embed mask in full `(Z,Y,X)` stack at global .les indices
+  → rigid register P2–P3 slabs → P1 grid
+  → inside .les bbox on aligned P2–P3 slabs: center-connected fraction vs threshold
+  → elbow on connected curve (not raw bright fraction); optional gap stub (0–10 voxels)
+  → embed singly-connected center region in full `(Z,Y,X)` stack at global .les indices
+  → optional: 2D hole-fill necrotic core in `.les` cuboid (rim-enhancing lesions)
 ```
 
-**Commands** (from `breast-cancer-sim/`, shared venv):
+**Optional manual QC:** `napari-segment-blobs-and-things-with-membranes` (in `requirements.txt`, replace later) adds **Tools → Segmentation** threshold/CC/watershed on a single layer — use on a cropped phase slab if you want to compare with our dock.
 
 ```bash
-# Napari QC — aligned z-band slabs + registration metrics + bbox threshold slider
+# Napari QC — aligned z-band slabs + bbox threshold slider + export
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_aligned_cuboid_napari.py \
-  --slug luminal_a_TCGA-AR-A1AX_baseline
+  --slug luminal_a_TCGA-AR-A1AX_baseline --show-postcontrast-bright
+
+# Sequential queue — skips slugs already exported (checkpoint JSON)
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/run_aligned_bbox_napari_queue.py
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/run_aligned_bbox_napari_queue.py --status
 ```
 
-Right dock **Bbox threshold**: one slider (0–1) thresholds voxels inside the bbox on the selected phase; overlay shown on **P1 only** (P2–P4 are clean aligned tissue). **Bbox margin** expands Y/X; **Jump to steepest drop** snaps to the knee of the bright-fraction curve. Launch also **regenerates** the overlay + 2×2 grid PNGs under `data/qc/segmentation-philip-chandan/` (use `--no-plots` to skip).
+Right dock: **P2/P3 only** (P4+ excluded from align + plots). Center-connected region from bbox center; **Connectivity gap** stub (0=strict). **Jump to elbow** on connected curve. **Export mask → .npy** writes full-stack mask locally. P1 shows selected-phase mask; optional red overlay on P2–P3.
 
 ```bash
 # Full workflow: align → threshold curves PNG → aligned_bbox_tumor mask (.npy local)
@@ -521,6 +529,10 @@ Right dock **Bbox threshold**: one slider (0–1) thresholds voxels inside the b
 # Plot/table only (no mask write)
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/run_aligned_bbox_workflow.py \
   --slug luminal_a_TCGA-AR-A1AX_baseline --no-mask
+
+# Rim enhancement: fill necrotic core inside exported mask (.npy local; updates JSON sidecar)
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/fill_necrotic_core.py \
+  --slug basal_TCGA-AR-A1AQ_baseline
 ```
 
 **Outputs** (git: PNG + JSON only; `.npy` stays local):
@@ -530,8 +542,18 @@ Right dock **Bbox threshold**: one slider (0–1) thresholds voxels inside the b
 | Threshold curve PNG | `data/qc/segmentation-philip-chandan/{slug}_aligned_bbox_bright_vs_threshold.png` |
 | Tumor mask volume | `data/processed/segmentation-philip-chandan/{slug}_aligned_bbox_tumor_mask.npy` |
 | Mask sidecar | `data/processed/segmentation-philip-chandan/{slug}_aligned_bbox_tumor_mask.json` |
+| Export queue log | `data/processed/segmentation-philip-chandan/.aligned_bbox_napari.state.json` |
 
-**Modules:** [`validation/cuboid_phase_registration.py`](validation/cuboid_phase_registration.py), [`validation/les_cuboid_brightness.py`](validation/les_cuboid_brightness.py), [`validation/aligned_bbox_tumor.py`](validation/aligned_bbox_tumor.py), [`validation/run_aligned_bbox_workflow.py`](validation/run_aligned_bbox_workflow.py).
+**Modules:** [`validation/cuboid_phase_registration.py`](validation/cuboid_phase_registration.py), [`validation/les_cuboid_brightness.py`](validation/les_cuboid_brightness.py), [`validation/aligned_bbox_tumor.py`](validation/aligned_bbox_tumor.py), [`validation/run_aligned_bbox_workflow.py`](validation/run_aligned_bbox_workflow.py), [`validation/run_aligned_bbox_napari_queue.py`](validation/run_aligned_bbox_napari_queue.py), [`validation/fill_necrotic_core.py`](validation/fill_necrotic_core.py).
+
+**Status (rev2 baselines):** Both primaries have aligned-bbox mask JSON + QC PNGs in git; **`.npy` volumes stay local**.
+
+| Slug | Phase @ thresh | Bbox voxels | Notes |
+|------|----------------|-------------|-------|
+| `luminal_a_TCGA-AR-A1AX_baseline` | P2 @ 0.35 | ~1.8k | Center-connected; napari export |
+| `basal_TCGA-AR-A1AQ_baseline` | P2 @ 0.412 | ~4.7k | Rim lesion; **+387** voxels from 2D necrotic-core fill |
+
+**Next:** wire aligned masks into stretch `prep_volume.py` for radiomics; Vinesh handoff if PDE needs binary ROI.
 
 Pre-alignment cuboid curves (no registration) remain in [`validation/view_les_napari.py`](validation/view_les_napari.py) brightness dock and [`validation/plot_les_cuboid_histograms.py`](validation/plot_les_cuboid_histograms.py).
 
@@ -612,13 +634,16 @@ Examples:
 | `luminal_a_TCGA-AR-A1AX_followup` | **done** | `[552, 512, 512]` | `[2.2, 0.5273, 0.5273]` |
 | `basal_TCGA-AR-A1AQ_followup` | **done** | `[448, 256, 256]` | `[3.0, 0.9375, 0.9375]` |
 
-Output paths (unchanged layout):
+Output paths (patient-nested volumes; slugs unchanged for CLI/QC/segmentation):
 
 ```
-data/processed/raw-extract-philip-chandan/{slug}.npy
-data/processed/raw-extract-philip-chandan/{slug}.json
+data/processed/raw-extract-philip-chandan/{tcga_id}/{timepoint}.npy
+data/processed/raw-extract-philip-chandan/{tcga_id}/{timepoint}.json
+data/processed/pde-input-vinesh/{tcga_id}/g64/{timepoint}.npy
 data/qc/slice-plots-philip-chandan/{slug}_mid-z.png
 ```
+
+Regenerate manifest after export: `python philip-chandan/generate_manifest.py`. One-time migration from flat slug files: `python philip-chandan/migrate_patient_volume_layout.py`.
 
 ### Scale-up tasks (Philip-Chandan)
 
@@ -629,7 +654,7 @@ data/qc/slice-plots-philip-chandan/{slug}_mid-z.png
 | 3 | **Validate Basal series** | **done** |
 | 4 | **Export Basal raw extract** | **done** — `basal_TCGA-AR-A1AQ_baseline` |
 | 5 | **QC plot Basal** | **done** |
-| 6 | **`manifest.json`** | **done** — v1.1.0, four volumes |
+| 6 | **`manifest.json`** | **done** — v1.2.0, four volumes + `patients[]` index |
 | 7 | **Follow-up LumA** | **done** — `2003-09-24`, slug `..._followup` |
 | 8 | **Follow-up Basal** | **done** — `2003-05-07` |
 | 9 | **Sync Praneeth** | **done** — confirmed rev2 IDs (`TCGA-AR-A1AX`, `TCGA-AR-A1AQ`) |
@@ -652,7 +677,7 @@ flowchart TD
 ### Jasim handoff workflow
 
 1. ~~**Share data**~~ — **done** — [`../../pde-handoff-vinesh.zip`](../../pde-handoff-vinesh.zip) shared with Jasim.
-2. **Manifest** — `data/processed/raw-extract-philip-chandan/manifest.json` (v1.1.0): each entry has `subtype`, `timepoint`, `slug`, `pde_npy`, `shape`, `spacing_mm`.
+2. **Manifest** — `data/processed/raw-extract-philip-chandan/manifest.json` (v1.2.0): `patients[]` + per-volume `slug`, nested `raw_npy` / `pde_npy`, `shape`, `spacing_mm`.
 3. **Static render test** — load `pde_npy` (64³ float32, `[0,1]`, tumor `> 0`); axis **(Z, Y, X)** per [`../handoff_contract.json`](../handoff_contract.json).
 4. **Animation** — Vinesh runs `solve_growth()` → `list[np.ndarray]` of frames; contract in [`../vinesh/INTERFACE.md`](../vinesh/INTERFACE.md) (continuous density, not label map).
 5. **Verify** — Jasim confirms no axis flip; isosurface at ~0.5 looks like a tumor blob. **Status: testing.**
@@ -692,8 +717,17 @@ Write to `data/processed/raw-extract-philip-chandan/manifest.json` (or `data/pro
 
 ```json
 {
-  "version": "1.0.0",
+  "version": "1.2.0",
   "contract_version": "1.0.0",
+  "patients": [
+    {
+      "tcga_id": "TCGA-AR-A1AX",
+      "subtype": "Luminal A",
+      "baseline_slug": "luminal_a_TCGA-AR-A1AX_baseline",
+      "followup_slug": "luminal_a_TCGA-AR-A1AX_followup",
+      "interval_days": 377
+    }
+  ],
   "volumes": [
     {
       "slug": "luminal_a_TCGA-AR-A1AX_baseline",
@@ -701,9 +735,9 @@ Write to `data/processed/raw-extract-philip-chandan/manifest.json` (or `data/pro
       "tcga_id": "TCGA-AR-A1AX",
       "timepoint": "baseline",
       "study_date": "2002-09-12",
-      "raw_npy": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy",
-      "raw_json": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.json",
-      "pde_npy": "data/processed/pde-input-vinesh/luminal_a_TCGA-AR-A1AX_baseline.npy",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/TCGA-AR-A1AX/g64/baseline.npy",
       "shape": [352, 256, 256],
       "spacing_mm": [3.0, 0.8594, 0.8594],
       "qc_plot": "data/qc/slice-plots-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline_mid-z.png"

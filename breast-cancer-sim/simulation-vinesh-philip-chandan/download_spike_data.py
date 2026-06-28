@@ -15,8 +15,8 @@ Spike case (from ``handoff_contract.json``):
 
 **Vinesh (Option B):** you normally only need the raw extract, not DICOM::
 
-    data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy
-    data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.json
+    data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.npy
+    data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.json
 
 Ask Philip-Chandan to share those two files (Drive/Slack), or run this script with
 ``--export-raw`` after downloading DICOM locally.

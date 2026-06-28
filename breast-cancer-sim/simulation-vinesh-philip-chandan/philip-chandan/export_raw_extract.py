@@ -19,6 +19,7 @@ from spike_paths import (  # noqa: E402
     ensure_spike_dirs,
     raw_extract_metadata,
     raw_extract_npy,
+    slug_to_tcga_timepoint,
 )
 from tcia_extractor import (  # noqa: E402
     extract_volume_with_spacing_for_timepoint,
@@ -49,8 +50,10 @@ def export_raw_extract(
     )
 
     output_slug = slug or SPIKE_PATIENT["slug"]
+    _, timepoint = slug_to_tcga_timepoint(output_slug)
     npy_path = raw_extract_npy(output_slug)
     json_path = raw_extract_metadata(output_slug)
+    npy_path.parent.mkdir(parents=True, exist_ok=True)
 
     tmp_npy = npy_path.with_suffix(".tmp.npy")
     np.save(tmp_npy, volume)
@@ -62,6 +65,7 @@ def export_raw_extract(
         "slug": output_slug,
         "tcga_id": tcga_id,
         "subtype": subtype,
+        "timepoint": timepoint,
         "study_date": study_date,
         "source_dicom_dir": str(dicom_dir.relative_to(SPIKE_ROOT.parent)),
         "shape": list(volume.shape),

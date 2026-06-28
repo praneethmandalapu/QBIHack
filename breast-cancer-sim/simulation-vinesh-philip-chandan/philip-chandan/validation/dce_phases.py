@@ -134,6 +134,27 @@ def split_dce_phases(volume: np.ndarray, phases: list[DcePhase]) -> list[np.ndar
     return [volume[phase.z_start : phase.z_end] for phase in phases]
 
 
+def select_phases(
+    phases: list[DcePhase],
+    phase_volumes: list[np.ndarray],
+    indices: tuple[int, ...],
+) -> tuple[list[DcePhase], list[np.ndarray]]:
+    """Keep only ``indices`` (e.g. P1–P3); preserve ascending phase order."""
+    wanted = set(indices)
+    selected_phases: list[DcePhase] = []
+    selected_volumes: list[np.ndarray] = []
+    for phase, volume in zip(phases, phase_volumes, strict=True):
+        if phase.index in wanted:
+            selected_phases.append(phase)
+            selected_volumes.append(volume)
+    missing = wanted - {phase.index for phase in selected_phases}
+    if missing:
+        have = [phase.index for phase in phases]
+        raise ValueError(f"Requested DCE phases {sorted(missing)} not in series (have {have})")
+    pairs = sorted(zip(selected_phases, selected_volumes), key=lambda item: item[0].index)
+    return [phase for phase, _ in pairs], [volume for _, volume in pairs]
+
+
 def resample_volume(
     volume: np.ndarray,
     spacing_mm: list[float],

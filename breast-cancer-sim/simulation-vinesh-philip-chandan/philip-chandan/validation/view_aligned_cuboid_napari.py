@@ -1,11 +1,11 @@
-"""Napari viewer: P1 .les z-band (full Y/X) with P2–P4 rigidly aligned + metrics."""
+"""Napari viewer: P1 .les z-band (full Y/X) with P2–P3 rigidly aligned + metrics."""
 
 from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 VALIDATION_DIR = Path(__file__).resolve().parent
 PHILIP_CHANDAN_DIR = VALIDATION_DIR.parent
@@ -19,6 +19,7 @@ import napari  # noqa: E402
 import numpy as np  # noqa: E402
 
 from aligned_bbox_threshold_dock import add_bbox_threshold_dock  # noqa: E402
+from aligned_bbox_tumor import write_aligned_bbox_tumor_mask  # noqa: E402
 from clinical_layout import link_viewers  # noqa: E402
 from cuboid_phase_registration import (  # noqa: E402
     align_phase_z_bands_to_p1,
@@ -29,9 +30,11 @@ from cuboid_phase_registration import (  # noqa: E402
 from dce_phases import (  # noqa: E402
     resolve_dce_dicom_dir_for_study,
     resolve_phase_ranges,
+    select_phases,
     split_dce_phases,
 )
 from les_cuboid_brightness import (  # noqa: E402
+    ALIGNED_BBOX_REGISTRATION_PHASES,
     plot_aligned_bbox_bright_fraction_grid,
     plot_aligned_bbox_bright_fraction_vs_threshold,
 )
@@ -93,7 +96,8 @@ def setup_aligned_slab_grid(
     spacing_mm: tuple[float, float, float],
     z_band_local: tuple[int, int],
     show_raw: bool = False,
-) -> tuple[list[Any], dict[int, Any], dict[int, Any]]:
+    show_postcontrast_bright: bool = False,
+) -> tuple[list[Any], dict[int, Any], dict[int, Any], dict[int, Any]]:
     from napari._qt.qt_viewer import QtViewer
     from napari.components.viewer_model import ViewerModel
     from qtpy.QtWidgets import QGridLayout, QLabel, QWidget
@@ -102,6 +106,7 @@ def setup_aligned_slab_grid(
     phase_viewers: list[Any] = []
     threshold_layers: dict[int, Any] = {}
     boundary_layers: dict[int, Any] = {}
+    postcontrast_bright_layers: dict[int, Any] = {}
 
     grid = QGridLayout()
     grid.setSpacing(4)
@@ -138,6 +143,16 @@ def setup_aligned_slab_grid(
                 opacity=0.5,
             )
             threshold_layers[phase.index] = threshold_layer
+        elif phase.index in (2, 3):
+            bright_layer = phase_model.add_labels(
+                np.zeros(slab_shape, dtype=np.uint8),
+                name="bright voxels",
+                scale=scale,
+                opacity=0.65,
+                visible=show_postcontrast_bright,
+            )
+            bright_layer.color = {1: "red"}
+            postcontrast_bright_layers[phase.index] = bright_layer
         phase_viewers.append(phase_model)
 
         header = QLabel(title)
@@ -151,7 +166,7 @@ def setup_aligned_slab_grid(
     grid_widget = QWidget()
     grid_widget.setLayout(grid)
     viewer.window._qt_window.setCentralWidget(grid_widget)
-    return phase_viewers, threshold_layers, boundary_layers
+    return phase_viewers, threshold_layers, boundary_layers, postcontrast_bright_layers
 
 
 def view_aligned_cuboids(
@@ -161,6 +176,8 @@ def view_aligned_cuboids(
     registration_iterations: int = 200,
     save_plots: bool = True,
     threshold_step: float = 0.05,
+    show_postcontrast_bright: bool = False,
+    on_mask_exported: Callable[[dict[str, Any]], None] | None = None,
 ) -> None:
     entry = find_volume(slug=slug)
     tcga_id = entry["tcga_id"]
@@ -197,6 +214,11 @@ def view_aligned_cuboids(
     )
     phases = resolve_phase_ranges(volume_shape=volume.shape, dicom_dir=dicom_dir)
     phase_volumes = split_dce_phases(volume, phases)
+    phases, phase_volumes = select_phases(
+        phases,
+        phase_volumes,
+        ALIGNED_BBOX_REGISTRATION_PHASES,
+    )
 
     _, les_meta = load_les_mask(les_path, volume.shape)
     result = align_phase_z_bands_to_p1(
@@ -218,6 +240,7 @@ def view_aligned_cuboids(
         f"{slug}\n"
         f"  series: {series_desc!r} (S{dce_index})\n"
         f"  P1 .les local z-band: {result.z_band_local[0]}–{result.z_band_local[1]}\n"
+        f"  phases: P{', P'.join(str(p.index) for p in phases)} (register P2–P3 → P1)\n"
         f"  slab shape (Z,Y,X): {slab_shape} — full in-plane Y/X\n"
         f"  spacing_mm: {spacing_mm}\n"
         f"  mode: {'raw slabs' if show_raw else 'aligned to P1 slab grid'}\n"
@@ -237,7 +260,7 @@ def view_aligned_cuboids(
             print(f"  saved plot: {path}")
 
     viewer = napari.Viewer(title=f"{slug} — aligned P1 z-band slabs")
-    _phase_viewers, threshold_layers, boundary_layers = setup_aligned_slab_grid(
+    _phase_viewers, threshold_layers, boundary_layers, postcontrast_bright_layers = setup_aligned_slab_grid(
         viewer,
         phases=phases,
         slabs_aligned=result.slabs_aligned,
@@ -247,18 +270,42 @@ def view_aligned_cuboids(
         spacing_mm=scale,
         z_band_local=result.z_band_local,
         show_raw=show_raw,
+        show_postcontrast_bright=show_postcontrast_bright,
     )
     if not show_raw:
+        def _export_mask(threshold: float, phase_index: int, gap_voxels: int) -> str:
+            _, meta = write_aligned_bbox_tumor_mask(
+                slug,
+                result,
+                phases,
+                les_meta,
+                volume.shape,
+                phase_index=phase_index,
+                threshold=threshold,
+                gap_voxels=gap_voxels,
+                extra_metadata={
+                    "tcga_id": tcga_id,
+                    "study_date": study_date,
+                    "spacing_mm": list(spacing_mm),
+                    "export_source": "view_aligned_cuboid_napari",
+                },
+            )
+            if on_mask_exported is not None:
+                on_mask_exported(meta)
+            return str(meta["mask_npy"])
+
         add_bbox_threshold_dock(
             viewer,
             phases=phases,
             slabs_aligned=result.slabs_aligned,
             expert_slab=result.expert_slab,
             les_meta=les_meta,
-            phase_viewers=_phase_viewers,
             threshold_layers=threshold_layers,
             boundary_layers=boundary_layers,
+            postcontrast_bright_layers=postcontrast_bright_layers,
             initial_phase=2,
+            show_postcontrast_bright=show_postcontrast_bright,
+            export_mask=_export_mask,
         )
     napari.run()
 
@@ -280,6 +327,11 @@ def main() -> None:
         type=float,
         default=0.05,
         help="Threshold step for saved PNG curves (default 0.05)",
+    )
+    parser.add_argument(
+        "--show-postcontrast-bright",
+        action="store_true",
+        help="Show bbox voxels ≥ threshold in red on P2–P4 panels (toggle in dock too)",
     )
     parser.add_argument("--list", action="store_true", help="List slugs with .les")
     args = parser.parse_args()
@@ -305,6 +357,7 @@ def main() -> None:
         registration_iterations=args.registration_iterations,
         save_plots=not args.no_plots,
         threshold_step=args.threshold_step,
+        show_postcontrast_bright=args.show_postcontrast_bright,
     )
 
 

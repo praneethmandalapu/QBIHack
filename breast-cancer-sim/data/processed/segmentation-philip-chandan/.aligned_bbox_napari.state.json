@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "script": "run_aligned_bbox_napari_queue",
+  "run_id": "20144ee4-5113-4254-91c7-330ebfe63599",
+  "run_status": "completed",
+  "started_at": "2026-06-28T20:54:50+00:00",
+  "updated_at": "2026-06-28T20:54:50+00:00",
+  "config_fingerprint": "6f805abe5f13c4f594400326b5c6bdd88aa734e9a09c28c7d47450169fd03115",
+  "config": {
+    "cohort_version": "rev2",
+    "workflow": "aligned_bbox_napari_export",
+    "slugs": [
+      "basal_TCGA-AR-A1AQ_baseline"
+    ],
+    "show_postcontrast_bright": true,
+    "registration_iterations": 200,
+    "threshold_step": 0.05,
+    "save_plots": true
+  },
+  "current_job_id": null,
+  "current_job_started_at": null,
+  "jobs": [
+    {
+      "job_id": "basal_TCGA-AR-A1AQ_baseline",
+      "status": "completed",
+      "started_at": "2026-06-28T20:59:06+00:00",
+      "finished_at": "2026-06-28T21:01:47+00:00",
+      "duration_sec": 160.5,
+      "outputs": {
+        "mask_npy": "/Users/fio/Projects/QBIHack/breast-cancer-sim/data/processed/segmentation-philip-chandan/basal_TCGA-AR-A1AQ_baseline_aligned_bbox_tumor_mask.npy",
+        "mask_json": "/Users/fio/Projects/QBIHack/breast-cancer-sim/data/processed/segmentation-philip-chandan/basal_TCGA-AR-A1AQ_baseline_aligned_bbox_tumor_mask.json",
+        "export_source": "view_aligned_cuboid_napari",
+        "selected_phase": "2",
+        "threshold": "0.412",
+        "gap_voxels": "0"
+      },
+      "error": null
+    }
+  ],
+  "summary": {
+    "pending": 0,
+    "running": 0,
+    "completed": 1,
+    "failed": 0,
+    "skipped": 0
+  }
+}

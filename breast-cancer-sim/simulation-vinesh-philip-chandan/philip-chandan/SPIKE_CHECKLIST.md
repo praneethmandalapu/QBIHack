@@ -13,9 +13,11 @@ Parent plan: [`../HANDOFF_SPIKE.md`](../HANDOFF_SPIKE.md)
 | Artifact | Path |
 |----------|------|
 | DICOM | `data/raw/tcia/luminal_a/TCGA-AR-A1AX/2002-09-12/` |
-| Raw volume | `data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy` |
-| Raw metadata | `data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.json` |
+| Raw volume | `data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.npy` |
+| Raw metadata | `data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.json` |
 | QC plot | `data/qc/slice-plots-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline_mid-z.png` |
+
+Slug `luminal_a_TCGA-AR-A1AX_baseline` is unchanged for CLI, QC, and segmentation filenames.
 
 ---
 
@@ -50,9 +52,10 @@ assert r['ok'], r['errors']
 ```bash
 python simulation-vinesh-philip-chandan/spike_paths.py
 python simulation-vinesh-philip-chandan/philip-chandan/export_raw_extract.py
+python simulation-vinesh-philip-chandan/philip-chandan/generate_manifest.py
 ```
 
-Ping Vinesh when `{slug}.npy` and `{slug}.json` land in `raw-extract-philip-chandan/`.
+Ping Vinesh when `TCGA-AR-A1AX/baseline.npy` and `.json` land in `raw-extract-philip-chandan/`.
 
 **Out of scope for you (Option B):** normalize, resample, crop, `solve_growth`.
 
@@ -71,5 +74,5 @@ Open the PNG under `data/qc/slice-plots-philip-chandan/`. Confirm anatomy looks 
 ## Handoff message template (Slack)
 
 > Raw extract for spike is ready.
-> `data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy`
-> + `.json` (`contract_version` **1.0.0**, spacing_mm, shape). Your turn: `prepare_pde_input.py` → `pde-input-vinesh/`.
+> `data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.npy`
+> + `.json` (`contract_version` **1.0.0**, spacing_mm, shape). Your turn: `prepare_pde_input.py` → `pde-input-vinesh/TCGA-AR-A1AX/g64/baseline.npy`.

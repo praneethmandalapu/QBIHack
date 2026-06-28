@@ -1,4 +1,4 @@
-"""Tumor mask from aligned P1 z-band slabs + bbox threshold curve."""
+"""Tumor mask from aligned P1 z-band slabs + center-connected bbox threshold."""
 
 from __future__ import annotations
 
@@ -8,16 +8,19 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-from scipy.ndimage import label
 
 from cuboid_phase_registration import ZBandAlignmentResult
 from dce_phases import DcePhase
 from les_cuboid_brightness import (
+    POSTCONTRAST_ANALYSIS_PHASES,
     bbox_yx_slices,
     bright_fraction_curves_by_phase,
-    compute_aligned_bbox_brightness_table,
+    center_connected_mask_in_bbox,
+    compute_aligned_bbox_connected_table,
+    elbow_threshold,
     extract_bbox_from_slab,
     les_fraction_in_bbox_slab,
+    normalized_bbox_volume_in_slab,
 )
 
 PHILIP_CHANDAN_DIR = Path(__file__).resolve().parent.parent
@@ -31,98 +34,47 @@ class AlignedTumorSelection:
     phase_index: int
     threshold: float
     les_fraction: float
-    bright_fraction_at_threshold: float
-
-
-def threshold_for_target_fraction(
-    thresholds: np.ndarray,
-    fractions: np.ndarray,
-    target: float,
-) -> float:
-    """Interpolate threshold where ``fractions`` crosses ``target`` (monotone decreasing)."""
-    if thresholds.size == 0:
-        return 0.5
-    if target >= float(fractions[0]):
-        return float(thresholds[0])
-    if target <= float(fractions[-1]):
-        return float(thresholds[-1])
-
-    for index in range(len(thresholds) - 1):
-        f0, f1 = float(fractions[index]), float(fractions[index + 1])
-        t0, t1 = float(thresholds[index]), float(thresholds[index + 1])
-        if f0 >= target >= f1:
-            if abs(f0 - f1) <= 1e-12:
-                return t0
-            return t0 + (target - f0) / (f1 - f0) * (t1 - t0)
-    return float(thresholds[-1])
+    connected_fraction_at_threshold: float
+    gap_voxels: int = 0
 
 
 def pick_phase_and_threshold(
     curves: dict[int, tuple[np.ndarray, np.ndarray]],
-    les_fraction: float,
     *,
-    candidate_phases: tuple[int, ...] = (2, 3, 4),
+    candidate_phases: tuple[int, ...] = POSTCONTRAST_ANALYSIS_PHASES,
 ) -> AlignedTumorSelection:
-    """Pick post-contrast phase with strongest drop from peak to les-matched threshold."""
+    """Pick P2/P3 with largest connected-region drop (peak − value at elbow)."""
     best: AlignedTumorSelection | None = None
-    best_enhancement = -1.0
+    best_drop = -1.0
 
     for phase_index in candidate_phases:
         if phase_index not in curves:
             continue
         thresholds, fractions = curves[phase_index]
-        thresh = threshold_for_target_fraction(thresholds, fractions, les_fraction)
+        if thresholds.size == 0:
+            continue
+        thresh, _ = elbow_threshold(thresholds, fractions)
         idx = int(np.argmin(np.abs(thresholds - thresh)))
-        bright_at = float(fractions[idx]) if fractions.size else les_fraction
-        enhancement = float(fractions[0] - bright_at) if fractions.size else 0.0
-        if enhancement > best_enhancement:
-            best_enhancement = enhancement
+        at_elbow = float(fractions[idx])
+        drop = float(fractions[0] - at_elbow) if fractions.size else 0.0
+        if drop > best_drop:
+            best_drop = drop
             best = AlignedTumorSelection(
                 phase_index=phase_index,
                 threshold=thresh,
-                les_fraction=les_fraction,
-                bright_fraction_at_threshold=bright_at,
+                les_fraction=0.0,
+                connected_fraction_at_threshold=at_elbow,
             )
 
     if best is not None:
         return best
 
-    thresholds, fractions = curves.get(1, (np.array([0.5]), np.array([1.0])))
-    thresh = threshold_for_target_fraction(thresholds, fractions, les_fraction)
-    idx = int(np.argmin(np.abs(thresholds - thresh)))
     return AlignedTumorSelection(
-        phase_index=1,
-        threshold=thresh,
-        les_fraction=les_fraction,
-        bright_fraction_at_threshold=float(fractions[idx]) if fractions.size else les_fraction,
+        phase_index=candidate_phases[0],
+        threshold=0.5,
+        les_fraction=0.0,
+        connected_fraction_at_threshold=0.0,
     )
-
-
-def _expert_footprint_yx(expert_bbox: np.ndarray) -> np.ndarray:
-    return expert_bbox.any(axis=0)
-
-
-def _pick_component(
-    candidate: np.ndarray,
-    intensity: np.ndarray,
-    expert_footprint_yx: np.ndarray,
-) -> np.ndarray:
-    labels, n = label(candidate)
-    if n == 0:
-        return np.zeros_like(candidate, dtype=np.uint8)
-
-    best_label = 0
-    best_score = (-1, -1.0)
-    for comp_label in range(1, n + 1):
-        comp = labels == comp_label
-        comp_yx = comp.any(axis=0)
-        overlap = int(np.logical_and(comp_yx, expert_footprint_yx).sum())
-        mean_int = float(intensity[comp].mean()) if comp.any() else 0.0
-        score = (overlap, mean_int)
-        if score > best_score:
-            best_score = score
-            best_label = comp_label
-    return (labels == best_label).astype(np.uint8)
 
 
 def segment_tumor_in_aligned_bbox(
@@ -133,15 +85,18 @@ def segment_tumor_in_aligned_bbox(
     phase_index: int | None = None,
     threshold: float | None = None,
     threshold_step: float = 0.05,
-    candidate_phases: tuple[int, ...] = (2, 3, 4),
+    gap_voxels: int = 0,
+    candidate_phases: tuple[int, ...] = POSTCONTRAST_ANALYSIS_PHASES,
 ) -> tuple[np.ndarray, AlignedTumorSelection, dict[str, Any]]:
-    """Binary mask inside bbox coords (z-band × y × x) on aligned slabs."""
-    rows = compute_aligned_bbox_brightness_table(
+    """Center-connected mask inside bbox on aligned slab (z-band × y × x)."""
+    rows = compute_aligned_bbox_connected_table(
         alignment.slabs_aligned,
         phases,
         les_meta,
         alignment.expert_slab,
         threshold_step=threshold_step,
+        gap_voxels=gap_voxels,
+        phase_filter=candidate_phases,
     )
     curves = bright_fraction_curves_by_phase(rows)
     les_frac, les_voxels, cuboid_voxels = les_fraction_in_bbox_slab(
@@ -150,11 +105,7 @@ def segment_tumor_in_aligned_bbox(
     )
 
     if phase_index is None or threshold is None:
-        selection = pick_phase_and_threshold(
-            curves,
-            les_frac,
-            candidate_phases=candidate_phases,
-        )
+        selection = pick_phase_and_threshold(curves, candidate_phases=candidate_phases)
         phase_index = phase_index or selection.phase_index
         threshold = threshold if threshold is not None else selection.threshold
     else:
@@ -164,29 +115,28 @@ def segment_tumor_in_aligned_bbox(
             phase_index=phase_index,
             threshold=threshold,
             les_fraction=les_frac,
-            bright_fraction_at_threshold=float(fractions[idx]) if fractions.size else 0.0,
+            connected_fraction_at_threshold=float(fractions[idx]) if fractions.size else 0.0,
+            gap_voxels=gap_voxels,
         )
 
     slab = alignment.slabs_aligned[phase_index]
-    bbox = extract_bbox_from_slab(slab, les_meta)
-    from les_cuboid_brightness import _normalize_roi
-
-    norm_bbox = _normalize_roi(bbox.ravel()).reshape(bbox.shape)
-    candidate = norm_bbox >= float(threshold)
-
-    y_sl, x_sl = bbox_yx_slices(les_meta)
-    expert_bbox = alignment.expert_slab[:, y_sl, x_sl].astype(bool)
-    footprint = _expert_footprint_yx(expert_bbox)
-    mask_bbox = _pick_component(candidate, bbox, footprint)
+    norm_bbox = normalized_bbox_volume_in_slab(slab, les_meta)
+    mask_bbox = center_connected_mask_in_bbox(
+        norm_bbox,
+        float(threshold),
+        gap_voxels=gap_voxels,
+    )
 
     detail = {
         "phase_index": phase_index,
         "threshold": float(threshold),
+        "gap_voxels": int(gap_voxels),
         "les_fraction": les_frac,
         "les_voxels": les_voxels,
         "bbox_voxels": cuboid_voxels,
         "mask_voxels": int(mask_bbox.sum()),
-        "candidate_voxels": int(candidate.sum()),
+        "segmentation": "center_connected_from_bbox_center",
+        "analysis_phases": list(candidate_phases),
     }
     return mask_bbox.astype(np.uint8), selection, detail
 
@@ -213,6 +163,7 @@ def write_aligned_bbox_tumor_mask(
     *,
     phase_index: int | None = None,
     threshold: float | None = None,
+    gap_voxels: int = 0,
     extra_metadata: dict[str, Any] | None = None,
 ) -> tuple[np.ndarray, dict[str, Any]]:
     """Write ``{slug}_aligned_bbox_tumor_mask.npy`` + JSON under segmentation outputs."""
@@ -222,6 +173,7 @@ def write_aligned_bbox_tumor_mask(
         les_meta,
         phase_index=phase_index,
         threshold=threshold,
+        gap_voxels=gap_voxels,
     )
     full_mask = embed_bbox_mask_in_full_volume(bbox_mask, les_meta, full_shape)
 
@@ -238,7 +190,9 @@ def write_aligned_bbox_tumor_mask(
         "z_band_local": list(alignment.z_band_local),
         "selected_phase": selection.phase_index,
         "threshold": selection.threshold,
+        "gap_voxels": selection.gap_voxels,
         "les_fraction": selection.les_fraction,
+        "connected_fraction_at_threshold": selection.connected_fraction_at_threshold,
         "mask_npy": str(mask_path),
         **detail,
         **(extra_metadata or {}),

@@ -1,7 +1,8 @@
 {
   "contract_version": "1.0.0",
   "slug": "basal_TCGA-AR-A1AQ_baseline",
-  "source_raw_extract": "data/processed/raw-extract-philip-chandan/basal_TCGA-AR-A1AQ_baseline.npy",
+  "grid_size": 64,
+  "source_raw_extract": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AQ/baseline.npy",
   "shape": [
     64,
     64,

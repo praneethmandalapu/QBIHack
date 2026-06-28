@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 SEGMENTATION_DIR = Path(__file__).resolve().parent
@@ -9,7 +10,15 @@ PHILIP_CHANDAN_DIR = SEGMENTATION_DIR.parent
 SPIKE_ROOT = PHILIP_CHANDAN_DIR.parent
 REPO_ROOT = SPIKE_ROOT.parent
 
-RAW_EXTRACT_DIR = REPO_ROOT / "data" / "processed" / "raw-extract-philip-chandan"
+sys.path.insert(0, str(SPIKE_ROOT))
+
+from spike_paths import (  # noqa: E402
+    RAW_EXTRACT_PHILIP_CHANDAN,
+    resolve_raw_extract_metadata,
+    resolve_raw_extract_npy,
+)
+
+RAW_EXTRACT_DIR = RAW_EXTRACT_PHILIP_CHANDAN
 MANIFEST_PATH = RAW_EXTRACT_DIR / "manifest.json"
 
 # Segmentation outputs (gitignored via data/)
@@ -40,11 +49,11 @@ def ensure_segmentation_dirs() -> None:
 
 
 def raw_extract_npy(slug: str) -> Path:
-    return RAW_EXTRACT_DIR / f"{slug}.npy"
+    return resolve_raw_extract_npy(slug)
 
 
 def raw_extract_json(slug: str) -> Path:
-    return RAW_EXTRACT_DIR / f"{slug}.json"
+    return resolve_raw_extract_metadata(slug)
 
 
 def mask_npy(slug: str, method: str) -> Path:

@@ -1,7 +1,8 @@
 {
   "contract_version": "1.0.0",
-  "slug": "luminal_a_TCGA-AR-A1AX_baseline",
-  "source_raw_extract": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy",
+  "slug": "basal_TCGA-AR-A1AQ_followup",
+  "grid_size": 64,
+  "source_raw_extract": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AQ/followup.npy",
   "shape": [
     64,
     64,
@@ -29,8 +30,8 @@
     ">0": "initial tumor burden"
   },
   "upstream": {
-    "tcga_id": "TCGA-AR-A1AX",
-    "study_date": "2002-09-12",
+    "tcga_id": "TCGA-AR-A1AQ",
+    "study_date": "2003-05-07",
     "raw_contract_version": "1.0.0"
   }
 }

@@ -114,8 +114,8 @@ Per slug ``{subtype_slug}_{tcga_id}_{timepoint_label}``:
 
 | File | Path |
 |------|------|
-| Raw volume | ``data/processed/raw-extract-philip-chandan/{slug}.npy`` |
-| Sidecar | ``data/processed/raw-extract-philip-chandan/{slug}.json`` |
+| Raw volume | ``data/processed/raw-extract-philip-chandan/{tcga_id}/{timepoint}.npy`` |
+| Sidecar | ``data/processed/raw-extract-philip-chandan/{tcga_id}/{timepoint}.json`` |
 | QC plot | ``data/qc/slice-plots-philip-chandan/{slug}_mid-z.png`` |
 | QC overlay | ``data/qc/slice-plots-philip-chandan/{slug}_mid-z-overlay.png`` |
 | Checkpoint | ``data/processed/raw-extract-philip-chandan/.export_all_raw.state.json`` |
@@ -153,7 +153,7 @@ from batch_job_state import (  # noqa: E402
 )
 from export_raw_extract import export_raw_extract  # noqa: E402
 from qc_slice_plot import save_middle_slice_overlay_plot, save_middle_slice_plot  # noqa: E402
-from spike_paths import RAW_EXTRACT_PHILIP_CHANDAN  # noqa: E402
+from spike_paths import RAW_EXTRACT_PHILIP_CHANDAN, resolve_raw_extract_npy  # noqa: E402
 from tcia_extractor import (  # noqa: E402
     iter_cohort_patients,
     list_timepoints,
@@ -294,7 +294,7 @@ def _run_qc(job: ExportJob, *, skip_qc: bool) -> None:
     import numpy as np
 
     study_date = str(job.timepoint["study_date"])
-    npy_path = RAW_EXTRACT_PHILIP_CHANDAN / f"{job.slug}.npy"
+    npy_path = resolve_raw_extract_npy(job.slug)
     volume = np.load(npy_path)
     plot_path = save_middle_slice_plot(
         job.patient["tcga_id"],

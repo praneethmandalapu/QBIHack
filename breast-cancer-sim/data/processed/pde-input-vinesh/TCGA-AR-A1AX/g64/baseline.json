@@ -1,7 +1,8 @@
 {
   "contract_version": "1.0.0",
-  "slug": "luminal_a_TCGA-AR-A1AX_followup",
-  "source_raw_extract": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_followup.npy",
+  "slug": "luminal_a_TCGA-AR-A1AX_baseline",
+  "grid_size": 64,
+  "source_raw_extract": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.npy",
   "shape": [
     64,
     64,
@@ -30,7 +31,7 @@
   },
   "upstream": {
     "tcga_id": "TCGA-AR-A1AX",
-    "study_date": "2003-09-24",
+    "study_date": "2002-09-12",
     "raw_contract_version": "1.0.0"
   }
 }

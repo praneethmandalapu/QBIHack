@@ -9,7 +9,8 @@
   },
   "raw_extract": {
     "producer": "philip-chandan",
-    "output_dir": "data/processed/raw-extract-philip-chandan",
+    "output_dir": "data/processed/raw-extract-philip-chandan/{tcga_id}",
+    "basename": "{timepoint}",
     "axis_order": ["Z", "Y", "X"],
     "dtype": "float32",
     "normalize": false,
@@ -30,7 +31,10 @@
   },
   "pde_input": {
     "producer": "vinesh",
-    "output_dir": "data/processed/pde-input-vinesh",
+    "output_dir": "data/processed/pde-input-vinesh/{tcga_id}/g{grid_size}",
+    "basename": "{timepoint}",
+    "default_grid_size": 64,
+    "grid_size_options": [64],
     "axis_order": ["Z", "Y", "X"],
     "dtype": "float32",
     "max_shape": [64, 64, 64],
