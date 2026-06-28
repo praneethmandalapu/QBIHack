@@ -19,7 +19,8 @@
     "pam50",
     "risk",
     "growth_multiplier",
-    "cohort_role"
+    "cohort_role",
+    "er_status"
   ],
   "regenerate": "breast-cancer-sim/.venv/bin/python visualization-jasim/risk/export_risk.py"
 }

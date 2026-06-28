@@ -283,11 +283,11 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
   <!-- ===================== BREAST ===================== -->
   <section class="tabpanel" data-tab="breast" hidden>
     <div class="cluster reveal">
-      <div class="cell c-5"><span class="lab">Subtype</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="xk-subtype">—</span><span class="sub">TCGA <b id="xk-tcga">—</b></span></div>
-      <div class="cell c-4"><span class="lab">Study</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="xk-study">—</span><span class="sub">DCE-MRI acquisition</span></div>
-      <div class="cell c-3"><span class="lab">Model grid</span><span class="val">64³</span><span class="sub">isotropic voxels</span></div>
-      <div class="cell c-5"><span class="lab">Enhancing fraction</span><span class="val"><span id="xk-frac">—</span><span class="u">%</span></span><span class="sub">high-signal · windowed</span></div>
-      <div class="cell c-4"><span class="lab">Acquired matrix</span><span class="val" style="font-size:clamp(1.2rem,2.6vw,1.7rem)" id="xk-matrix">—</span><span class="sub"><b id="xk-spacing">—</b> spacing</span></div>
+      <div class="cell c-5"><span class="lab">PAM50 subtype</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="xk-subtype">—</span><span class="sub">TCGA-BRCA · patient <b id="xk-tcga">—</b></span></div>
+      <div class="cell c-4"><span class="lab">Subtype growth rate</span><span class="val" id="xk-gm">—</span><span class="sub">median multiplier · TCGA</span></div>
+      <div class="cell c-3"><span class="lab">ER status</span><span class="val" style="font-size:clamp(1.3rem,3vw,1.9rem)" id="xk-er">—</span><span class="sub">IHC · this case</span></div>
+      <div class="cell c-5"><span class="lab">Snapshot burden</span><span class="val"><span id="xk-burden">—</span><span class="u">%</span></span><span class="sub">enhancing · windowed</span></div>
+      <div class="cell c-4"><span class="lab">Subtype high risk</span><span class="val"><span id="xk-hirisk">—</span></span><span class="sub">risk ≥ 0.5 · TCGA cohort</span></div>
       <div class="cell c-3"><span class="lab">Genomic risk</span><span class="val" id="xk-risk">—</span><span class="sub">OncoPulse · 0–1 scale</span></div>
     </div>
 
@@ -304,9 +304,6 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
           <span class="seg-l">Case</span>
           <button class="mode on" data-xcase="luminal_a">Luminal A</button>
           <button class="mode" data-xcase="basal">Basal-like</button>
-          <span class="seg-l sp">Study</span>
-          <button class="mode on" data-xstudy="study1">I</button>
-          <button class="mode" data-xstudy="study2">II</button>
         </div>
         <div class="stage" id="breastStage">
           <div class="reticle" id="xReticle">—</div>
@@ -365,7 +362,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
 <script>
 const GRID={x:__GRID_X__,y:__GRID_Y__,z:__GRID_Z__}, CSCALE=__CSCALE__, BRAIN_CSCALE=__BRAIN_CSCALE__, OPAC=__OPAC__, LAYOUT3D=__LAYOUT3D__;
 const BRAIN=__BRAIN__, BRAIN_SLICES=__BRAIN_SLICES__, COHORT=__COHORT__;
-const BR_VOLS=__BR_VOLS__, BR_SLICES=__BR_SLICES__, BR_META=__BR_META__, BR_CASES=__BR_CASES__;
+const BR_VOLS=__BR_VOLS__, BR_SLICES=__BR_SLICES__, BR_META=__BR_META__, BR_CASES=__BR_CASES__, BREAST=__BREAST__;
 const CFG={responsive:true,displayModeBar:false};
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function fmtRisk(v){ return (v==null||v===''||Number.isNaN(Number(v)))?'N/A':Number(v).toFixed(3); }
@@ -443,8 +440,8 @@ function brainInit(){
 }
 
 /* ---------- BREAST ---------- */
-let xCase='luminal_a', xStudy='study1', xMode='volumetric';
-function xSlug(){ return BR_CASES[xCase][xStudy]; }
+let xCase='luminal_a', xMode='volumetric';
+function xSlug(){ return BR_CASES[xCase].slug; }
 function xTrace(){ const val=BR_VOLS[xSlug()];
   if(xMode==='isosurface') return isoTrace(val,0.5,0.45,0.95);
   if(xMode==='cutaway'){ const c=val.map((d,i)=>GRID.y[i]>=16?0:d); return volTrace(c); }
@@ -452,15 +449,18 @@ function xTrace(){ const val=BR_VOLS[xSlug()];
 }
 function xDraw(){ Plotly.react('breast3d',[xTrace()],LAYOUT3D,CFG).then(()=>{if(activeViz==='breast3d')startSpin();}); }
 function xSlices(){ const f=BR_SLICES[xSlug()]; Plotly.react('breastSlices',f.data,f.layout,CFG); }
-function xKPIs(){ const m=BR_META[xSlug()];
-  document.getElementById('xk-subtype').textContent=m.subtype; document.getElementById('xk-tcga').textContent=m.tcga;
-  document.getElementById('xk-study').textContent=m.study; document.getElementById('xk-frac').textContent=m.frac.toFixed(0);
-  document.getElementById('xk-matrix').textContent=m.matrix; document.getElementById('xk-spacing').textContent=m.spacing+' mm';
-  document.getElementById('xk-risk').textContent=fmtRisk(m.risk);
-  document.getElementById('xReticle').innerHTML=`${m.tcga}<br>${m.subtype}<br>STUDY ${m.study}`;
+function xKPIs(){ const reg=BREAST[xCase];
+  document.getElementById('xk-subtype').textContent=reg.label;
+  document.getElementById('xk-tcga').textContent=reg.tcga;
+  document.getElementById('xk-gm').textContent=reg.gm==null?'—':'×'+Number(reg.gm).toFixed(2);
+  document.getElementById('xk-er').textContent=reg.er;
+  document.getElementById('xk-burden').textContent=Number(reg.burden).toFixed(1);
+  document.getElementById('xk-hirisk').textContent=reg.high_risk_pct+'%';
+  document.getElementById('xk-risk').textContent=fmtRisk(reg.risk);
+  document.getElementById('xReticle').innerHTML=`${reg.tcga}<br>${reg.label}<br>ISO 0.50`;
 }
 function xSet(kind,val,btn,sel){ document.querySelectorAll(sel).forEach(x=>x.classList.remove('on')); btn.classList.add('on');
-  if(kind==='case')xCase=val; else if(kind==='study')xStudy=val; else xMode=val;
+  if(kind==='case')xCase=val; else xMode=val;
   if(kind==='mode'){ xDraw(); } else { xKPIs(); xSlices(); xDraw(); }
 }
 let breastReady=false;
@@ -471,7 +471,6 @@ function breastInit(){
     stage.addEventListener('mouseenter',()=>{if(activeViz==='breast3d')stopSpin();});
     stage.addEventListener('mouseleave',()=>{if(activeViz==='breast3d')startSpin();});
     document.querySelectorAll('[data-xcase]').forEach(b=>b.addEventListener('click',()=>xSet('case',b.dataset.xcase,b,'[data-xcase]')));
-    document.querySelectorAll('[data-xstudy]').forEach(b=>b.addEventListener('click',()=>xSet('study',b.dataset.xstudy,b,'[data-xstudy]')));
     document.querySelectorAll('[data-xmode]').forEach(b=>b.addEventListener('click',()=>xSet('mode',b.dataset.xmode,b,'[data-xmode]')));
   } else { ['breast3d','breastSlices'].forEach(id=>{const g=document.getElementById(id);if(g&&g.data)Plotly.Plots.resize(g);}); }
 }

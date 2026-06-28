@@ -42,6 +42,13 @@ def _roles(cohort: dict) -> dict[str, str]:
     return roles
 
 
+# cBioPortal IHC values verified in cohort discovery for rev2 primaries.
+ER_STATUS = {
+    "TCGA-AR-A1AX": "Positive",
+    "TCGA-AR-A1AQ": "Negative",
+}
+
+
 def main() -> int:
     cohort = json.loads(COHORT.read_text())
     roles = _roles(cohort)
@@ -58,6 +65,7 @@ def main() -> int:
                 "risk": round(scored["risk"], 5),
                 "growth_multiplier": round(growth_multiplier(bc), 5),
                 "cohort_role": roles.get(bc, "primary"),
+                "er_status": ER_STATUS.get(bc, ""),
             }
         )
 
@@ -72,6 +80,7 @@ def main() -> int:
                 "risk",
                 "growth_multiplier",
                 "cohort_role",
+                "er_status",
             ],
         )
         writer.writeheader()

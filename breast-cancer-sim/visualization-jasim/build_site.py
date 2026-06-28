@@ -60,7 +60,21 @@ def load_risk_lookup(path: Path) -> dict[str, float]:
     return out
 
 
+def load_breast_patient_rows(path: Path) -> dict[str, dict[str, str]]:
+    """tcga_id -> handoff row from visualization-jasim/risk/patients.csv."""
+    if not path.is_file():
+        return {}
+    out: dict[str, dict[str, str]] = {}
+    with path.open(newline="") as fh:
+        for row in csv.DictReader(fh):
+            pid = (row.get("patient_id") or "").strip()
+            if pid:
+                out[pid] = row
+    return out
+
+
 BREAST_RISK = load_risk_lookup(RISK_DIR / "patients.csv")
+BREAST_PATIENTS = load_breast_patient_rows(RISK_DIR / "patients.csv")
 BRAIN_RISK = load_risk_lookup(BRAIN_RISK_DIR / "patients.csv")
 
 
@@ -76,13 +90,48 @@ def theme_2d(fig):
 # --------------------------------------------------------------------------- #
 # BRAIN — longitudinal glioma growth (one real patient per IDH regime)
 # --------------------------------------------------------------------------- #
+FEATURES_CSV = BRAIN / "data/processed/brain_patient_features.csv"
+_rows = list(csv.DictReader(FEATURES_CSV.open(newline="")))
+BRAIN_PATIENTS = {r["subjectid"]: r for r in _rows}
+_wt = [x for x in _rows if x["idh"] == "WT"]
+_mut = [x for x in _rows if x["idh"] and x["idh"] != "WT"]
+
+
+def _grew_pct(g):
+    v = [x for x in g if x["actually_grew"] in ("True", "False")]
+    return round(100 * sum(1 for x in v if x["actually_grew"] == "True") / len(v)) if v else 0
+
+
+COHORT = {
+    "n": len(_rows), "wt": len(_wt), "mut": len(_mut),
+    "wt_grew": _grew_pct(_wt), "mut_grew": _grew_pct(_mut),
+    "wt_gm": round(stx.median(float(x["growth_multiplier"]) for x in _wt), 2),
+    "mut_gm": round(stx.median(float(x["growth_multiplier"]) for x in _mut), 2),
+    "g4": sum(1 for x in _rows if x["grade"] == "4.0"),
+    "g3": sum(1 for x in _rows if x["grade"] == "3.0"),
+    "g2": sum(1 for x in _rows if x["grade"] == "2.0"),
+}
+
+
+def _patient_grade(patient_id: str) -> str:
+    raw = (BRAIN_PATIENTS.get(patient_id) or {}).get("grade", "")
+    if not raw:
+        return "—"
+    try:
+        return str(int(float(raw)))
+    except ValueError:
+        return raw
+
+
 BRAIN_META = {
     "aggressive": {"label": "IDH-wildtype", "tag": "aggressive", "idh": "WT",
                    "patient_id": bf.SCENARIOS["aggressive"]["patient_id"],
-                   "grade": "4", "gm": 1.57, "grew": 70},
+                   "grade": _patient_grade(bf.SCENARIOS["aggressive"]["patient_id"]),
+                   "gm": COHORT["wt_gm"], "grew": COHORT["wt_grew"]},
     "indolent": {"label": "IDH-mutant", "tag": "indolent", "idh": "mutant",
                  "patient_id": bf.SCENARIOS["indolent"]["patient_id"],
-                 "grade": "2", "gm": 0.92, "grew": 55},
+                 "grade": _patient_grade(bf.SCENARIOS["indolent"]["patient_id"]),
+                 "gm": COHORT["mut_gm"], "grew": COHORT["mut_grew"]},
 }
 bf.ensure_frames(FRAMES)   # regenerate gitignored demo stacks (100118 + 100002)
 BRAIN = {}
@@ -109,48 +158,57 @@ for key, m in BRAIN_META.items():
     }
     BRAIN_SLICES[key] = theme_2d(r.render_slices(arr[-1], (1.0, 1.0, 1.0)))
 
-# real UCSF cohort summary (298 patients)
-_rows = list(csv.DictReader(open(REPO / "brain-cancer-sim/data/processed/brain_patient_features.csv")))
-_wt = [x for x in _rows if x["idh"] == "WT"]
-_mut = [x for x in _rows if x["idh"] and x["idh"] != "WT"]
-
-
-def _grew_pct(g):
-    v = [x for x in g if x["actually_grew"] in ("True", "False")]
-    return round(100 * sum(1 for x in v if x["actually_grew"] == "True") / len(v)) if v else 0
-
-
-COHORT = {
-    "n": len(_rows), "wt": len(_wt), "mut": len(_mut),
-    "wt_grew": _grew_pct(_wt), "mut_grew": _grew_pct(_mut),
-    "wt_gm": round(stx.median(float(x["growth_multiplier"]) for x in _wt), 2),
-    "mut_gm": round(stx.median(float(x["growth_multiplier"]) for x in _mut), 2),
-    "g4": sum(1 for x in _rows if x["grade"] == "4.0"),
-    "g3": sum(1 for x in _rows if x["grade"] == "3.0"),
-    "g2": sum(1 for x in _rows if x["grade"] == "2.0"),
-}
-
 # --------------------------------------------------------------------------- #
 # BREAST — real TCGA-BRCA snapshot volumes (no growth)
 # --------------------------------------------------------------------------- #
-BR_SLUGS = ["luminal_a_TCGA-AR-A1AX_baseline", "luminal_a_TCGA-AR-A1AX_followup",
-            "basal_TCGA-AR-A1AQ_baseline", "basal_TCGA-AR-A1AQ_followup"]
+TCGA_FEATURES = BREAST / "data/processed/tcga_patient_features.csv"
+_tcga_rows = list(csv.DictReader(TCGA_FEATURES.open(newline=""))) if TCGA_FEATURES.is_file() else []
+GM_LO, GM_HI = 0.8, 1.8
+
+
+def _risk_gm(risk: float) -> float:
+    return GM_LO + (GM_HI - GM_LO) * risk
+
+
+def _pam50_cohort(pam50: str) -> dict[str, int | float | None]:
+    rows = [r for r in _tcga_rows if r.get("pam50") == pam50]
+    if not rows:
+        return {"n": 0, "gm": None, "high_risk_pct": 0}
+    gms = [_risk_gm(float(r["risk"])) for r in rows]
+    hi = sum(1 for r in rows if float(r["risk"]) >= 0.5)
+    return {
+        "n": len(rows),
+        "gm": round(stx.median(gms), 2),
+        "high_risk_pct": round(100 * hi / len(rows)),
+    }
+
+
+BR_SLUGS = ["luminal_a_TCGA-AR-A1AX_baseline", "basal_TCGA-AR-A1AQ_baseline"]
 BR_CASES = {
-    "luminal_a": {"label": "Luminal A", "tcga": "TCGA-AR-A1AX",
-                  "study1": "luminal_a_TCGA-AR-A1AX_baseline", "study2": "luminal_a_TCGA-AR-A1AX_followup"},
-    "basal": {"label": "Basal-like", "tcga": "TCGA-AR-A1AQ",
-              "study1": "basal_TCGA-AR-A1AQ_baseline", "study2": "basal_TCGA-AR-A1AQ_followup"},
+    "luminal_a": {"label": "Luminal A", "tcga": "TCGA-AR-A1AX", "pam50": "BRCA_LumA",
+                  "slug": "luminal_a_TCGA-AR-A1AX_baseline"},
+    "basal": {"label": "Basal-like", "tcga": "TCGA-AR-A1AQ", "pam50": "BRCA_Basal",
+              "slug": "basal_TCGA-AR-A1AQ_baseline"},
 }
 BR_VOLS, BR_SLICES, BR_META = {}, {}, {}
-for s in BR_SLUGS:
+BREAST = {}
+for case_id, case in BR_CASES.items():
+    s = case["slug"]
+    tcga = case["tcga"]
     v, e = r.load_pde_volume(s)
     BR_VOLS[s] = np.round(r.downsample(v, 2).ravel(), 2).tolist()
     BR_SLICES[s] = theme_2d(r.render_slices(v, (1.0, 1.0, 1.0)))
-    BR_META[s] = {"subtype": e["subtype"], "tcga": e["tcga_id"], "study": e["study_date"],
-                  "frac": round(100.0 * float((v > 0.5).mean()), 1),
-                  "matrix": "×".join(str(x) for x in e["shape"]),
-                  "spacing": " × ".join(f"{x:.2f}" for x in e["spacing_mm"]),
-                  "risk": BREAST_RISK.get(e["tcga_id"])}
+    handoff = BREAST_PATIENTS.get(tcga, {})
+    cohort = _pam50_cohort(case["pam50"])
+    er = (handoff.get("er_status") or "—").strip()
+    frac = round(100.0 * float((v > 0.5).mean()), 1)
+    meta = {
+        "label": case["label"], "tcga": tcga, "pam50": case["pam50"], "slug": s,
+        "er": er, "gm": cohort["gm"], "high_risk_pct": cohort["high_risk_pct"],
+        "burden": frac, "risk": BREAST_RISK.get(tcga),
+    }
+    BR_META[s] = meta
+    BREAST[case_id] = meta
 
 LAYOUT3D = {
     "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)",
@@ -178,6 +236,7 @@ repl = {
     "__BRAIN__": json.dumps(brain_payload), "__BRAIN_SLICES__": slices_brain, "__COHORT__": json.dumps(COHORT),
     "__BR_VOLS__": json.dumps(BR_VOLS), "__BR_SLICES__": slices_breast,
     "__BR_META__": json.dumps(BR_META), "__BR_CASES__": json.dumps(BR_CASES),
+    "__BREAST__": json.dumps(BREAST),
 }
 html = TEMPLATE
 for k, v in repl.items():
@@ -188,4 +247,4 @@ out.write_text(html, encoding="utf-8")
 print(f"wrote {out}  ({out.stat().st_size / 1e6:.1f} MB)")
 print(f"brain: aggressive peak {BRAIN['aggressive']['peak']}% · indolent peak {BRAIN['indolent']['peak']}%")
 print(f"cohort: n={COHORT['n']} WT grew {COHORT['wt_grew']}% (GM {COHORT['wt_gm']}) · mut grew {COHORT['mut_grew']}% (GM {COHORT['mut_gm']})")
-print("breast:", ", ".join(f"{BR_META[s]['subtype'][:3]}/{BR_META[s]['study']}={BR_META[s]['frac']}%" for s in BR_SLUGS))
+print("breast:", ", ".join(f"{BR_META[s]['label'][:3]}/{BR_META[s]['tcga']} burden={BR_META[s]['burden']}%" for s in BR_SLUGS))
