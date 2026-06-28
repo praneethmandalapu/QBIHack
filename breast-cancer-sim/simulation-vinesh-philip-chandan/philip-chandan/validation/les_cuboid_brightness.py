@@ -14,6 +14,8 @@ from prep_volume import normalize_volume
 
 # Post-contrast phases used for aligned-bbox threshold analysis (P4 excluded).
 POSTCONTRAST_ANALYSIS_PHASES = (2, 3)
+# Napari + rigid align: P1 (.les anchor) and early post-contrast only — skip late DCE tail.
+ALIGNED_BBOX_REGISTRATION_PHASES = (1, 2, 3)
 MAX_CONNECTIVITY_GAP_VOXELS = 10
 
 

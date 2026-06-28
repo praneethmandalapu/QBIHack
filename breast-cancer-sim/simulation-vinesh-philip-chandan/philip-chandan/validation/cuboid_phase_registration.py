@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import warnings
 from dataclasses import dataclass
 from typing import Any
 
@@ -16,6 +17,9 @@ from les_cuboid_brightness import (
 )
 from load_les_mask import load_les_cuboid_boundary, load_les_mask
 from prep_volume import normalize_volume
+
+# SimpleITK Mattes MI + Gaussian smoothing needs >=4 samples per axis.
+MIN_SITK_REG_VOXELS = 4
 
 
 @dataclass(frozen=True)
@@ -82,6 +86,136 @@ def _euler_magnitude_deg(transform: sitk.Euler3DTransform) -> tuple[tuple[float,
     return deg, magnitude
 
 
+def _sitk_spacing_yx(spacing_zyx: tuple[float, float, float] | list[float]) -> tuple[float, float]:
+    _dz, dy, dx = (float(s) for s in spacing_zyx)
+    return (dx, dy)
+
+
+def _identity_slab_metrics(
+    fixed: np.ndarray,
+    moving: np.ndarray,
+    *,
+    moving_phase: int,
+) -> CuboidAlignmentMetrics:
+    ncc = normalized_cross_correlation(fixed, moving)
+    mse = mean_squared_error(fixed, moving)
+    return CuboidAlignmentMetrics(
+        moving_phase=moving_phase,
+        translation_mm=(0.0, 0.0, 0.0),
+        rotation_deg=(0.0, 0.0, 0.0),
+        rotation_magnitude_deg=0.0,
+        ncc_before=ncc,
+        ncc_after=ncc,
+        mse_before=mse,
+        mse_after=mse,
+        optimizer_iterations=0,
+        optimizer_metric_value=0.0,
+    )
+
+
+def _too_thin_for_3d_registration(volume: np.ndarray) -> bool:
+    return int(volume.shape[0]) < MIN_SITK_REG_VOXELS
+
+
+def _array_to_sitk_2d(slice_yx: np.ndarray, spacing_yx: tuple[float, float]) -> sitk.Image:
+    image = sitk.GetImageFromArray(slice_yx.astype(np.float32))
+    image.SetSpacing(spacing_yx)
+    return image
+
+
+def _register_rigid_inplane(
+    fixed: np.ndarray,
+    moving: np.ndarray,
+    spacing_zyx: tuple[float, float, float],
+    *,
+    moving_phase: int,
+    number_of_iterations: int,
+) -> tuple[np.ndarray, CuboidAlignmentMetrics]:
+    """2D rigid registration when the z-band is thinner than SimpleITK 3D allows."""
+    spacing_yx = _sitk_spacing_yx(spacing_zyx)
+    fixed_slice = fixed[fixed.shape[0] // 2]
+    fixed_img = _array_to_sitk_2d(fixed_slice, spacing_yx)
+
+    moving_ref = moving[moving.shape[0] // 2]
+    ncc_before = normalized_cross_correlation(fixed_slice, moving_ref)
+    mse_before = mean_squared_error(fixed_slice, moving_ref)
+
+    aligned_slices: list[np.ndarray] = []
+    last_transform: sitk.Euler2DTransform | None = None
+    last_metric = 0.0
+
+    for z_index in range(moving.shape[0]):
+        moving_img = _array_to_sitk_2d(moving[z_index], spacing_yx)
+        registration = sitk.ImageRegistrationMethod()
+        registration.SetMetricAsMattesMutualInformation(numberOfHistogramBins=32)
+        registration.SetMetricSamplingStrategy(registration.RANDOM)
+        registration.SetMetricSamplingPercentage(0.25)
+        registration.SetInterpolator(sitk.sitkLinear)
+        registration.SetOptimizerAsRegularStepGradientDescent(
+            learningRate=1.0,
+            minStep=1e-4,
+            numberOfIterations=number_of_iterations,
+            relaxationFactor=0.5,
+            gradientMagnitudeTolerance=1e-8,
+        )
+        registration.SetOptimizerScalesFromPhysicalShift()
+
+        initial = sitk.CenteredTransformInitializer(
+            fixed_img,
+            moving_img,
+            sitk.Euler2DTransform(),
+            sitk.CenteredTransformInitializerFilter.GEOMETRY,
+        )
+        registration.SetInitialTransform(initial, inPlace=False)
+        final_transform = registration.Execute(fixed_img, moving_img)
+        last_transform = final_transform
+        last_metric = float(registration.GetMetricValue())
+
+        aligned_img = sitk.Resample(
+            moving_img,
+            fixed_img,
+            final_transform,
+            sitk.sitkLinear,
+            0.0,
+            moving_img.GetPixelID(),
+        )
+        aligned_slices.append(sitk.GetArrayFromImage(aligned_img).astype(np.float32))
+
+    aligned = np.stack(aligned_slices, axis=0).astype(np.float32)
+    aligned_ref = aligned[aligned.shape[0] // 2]
+    ncc_after = normalized_cross_correlation(fixed_slice, aligned_ref)
+    mse_after = mean_squared_error(fixed_slice, aligned_ref)
+
+    if last_transform is None:
+        return moving.copy(), _identity_slab_metrics(fixed, moving, moving_phase=moving_phase)
+
+    euler2d = sitk.Euler2DTransform()
+    if isinstance(last_transform, sitk.CompositeTransform):
+        for index in range(last_transform.GetNumberOfTransforms()):
+            component = last_transform.GetNthTransform(index)
+            if isinstance(component, sitk.Euler2DTransform):
+                euler2d = component
+                break
+    elif isinstance(last_transform, sitk.Euler2DTransform):
+        euler2d = last_transform
+
+    angle_deg = math.degrees(float(euler2d.GetAngle()))
+    tx, ty = (float(v) for v in euler2d.GetTranslation())
+    metrics = CuboidAlignmentMetrics(
+        moving_phase=moving_phase,
+        translation_mm=(tx, ty, 0.0),
+        rotation_deg=(0.0, 0.0, angle_deg),
+        rotation_magnitude_deg=abs(angle_deg),
+        ncc_before=ncc_before,
+        ncc_after=ncc_after,
+        mse_before=mse_before,
+        mse_after=mse_after,
+        optimizer_iterations=number_of_iterations,
+        optimizer_metric_value=last_metric,
+    )
+    return aligned, metrics
+
+
 def register_rigid_slab(
     fixed: np.ndarray,
     moving: np.ndarray,
@@ -91,26 +225,28 @@ def register_rigid_slab(
     number_of_iterations: int = 200,
 ) -> tuple[np.ndarray, CuboidAlignmentMetrics]:
     """Rigidly register ``moving`` z-band slab onto ``fixed`` (P1 grid, full Y/X)."""
-    fixed_img = _array_to_sitk(fixed, spacing_zyx)
-    moving_img = _array_to_sitk(moving, spacing_zyx)
-
     ncc_before = normalized_cross_correlation(fixed, moving)
     mse_before = mean_squared_error(fixed, moving)
 
     if moving_phase == 1 or np.allclose(fixed, moving):
-        metrics = CuboidAlignmentMetrics(
-            moving_phase=moving_phase,
-            translation_mm=(0.0, 0.0, 0.0),
-            rotation_deg=(0.0, 0.0, 0.0),
-            rotation_magnitude_deg=0.0,
-            ncc_before=ncc_before,
-            ncc_after=ncc_before,
-            mse_before=mse_before,
-            mse_after=mse_before,
-            optimizer_iterations=0,
-            optimizer_metric_value=0.0,
+        return moving.copy(), _identity_slab_metrics(fixed, moving, moving_phase=moving_phase)
+
+    if _too_thin_for_3d_registration(fixed) or _too_thin_for_3d_registration(moving):
+        warnings.warn(
+            f"P{moving_phase} z-band slab shape {moving.shape} (fixed {fixed.shape}) "
+            f"is thinner than {MIN_SITK_REG_VOXELS} slices — using in-plane 2D registration.",
+            stacklevel=2,
         )
-        return moving.copy(), metrics
+        return _register_rigid_inplane(
+            fixed,
+            moving,
+            spacing_zyx,
+            moving_phase=moving_phase,
+            number_of_iterations=number_of_iterations,
+        )
+
+    fixed_img = _array_to_sitk(fixed, spacing_zyx)
+    moving_img = _array_to_sitk(moving, spacing_zyx)
 
     registration = sitk.ImageRegistrationMethod()
     registration.SetMetricAsMattesMutualInformation(numberOfHistogramBins=32)
@@ -184,7 +320,7 @@ def align_phase_z_bands_to_p1(
     *,
     number_of_iterations: int = 200,
 ) -> ZBandAlignmentResult:
-    """Extract P1 .les z-band with full Y/X per phase; register P2–P4 slabs → P1."""
+    """Extract P1 .les z-band with full Y/X per phase; register P2–P3 slabs → P1."""
     reference = phases[0]
     spacing = tuple(float(s) for s in spacing_mm)
     z_sl = phase_z_band_slice(les_meta, reference, reference_phase=reference)

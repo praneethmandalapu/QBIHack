@@ -1,11 +1,11 @@
-"""Napari viewer: P1 .les z-band (full Y/X) with P2–P4 rigidly aligned + metrics."""
+"""Napari viewer: P1 .les z-band (full Y/X) with P2–P3 rigidly aligned + metrics."""
 
 from __future__ import annotations
 
 import argparse
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 VALIDATION_DIR = Path(__file__).resolve().parent
 PHILIP_CHANDAN_DIR = VALIDATION_DIR.parent
@@ -30,9 +30,11 @@ from cuboid_phase_registration import (  # noqa: E402
 from dce_phases import (  # noqa: E402
     resolve_dce_dicom_dir_for_study,
     resolve_phase_ranges,
+    select_phases,
     split_dce_phases,
 )
 from les_cuboid_brightness import (  # noqa: E402
+    ALIGNED_BBOX_REGISTRATION_PHASES,
     plot_aligned_bbox_bright_fraction_grid,
     plot_aligned_bbox_bright_fraction_vs_threshold,
 )
@@ -175,6 +177,7 @@ def view_aligned_cuboids(
     save_plots: bool = True,
     threshold_step: float = 0.05,
     show_postcontrast_bright: bool = False,
+    on_mask_exported: Callable[[dict[str, Any]], None] | None = None,
 ) -> None:
     entry = find_volume(slug=slug)
     tcga_id = entry["tcga_id"]
@@ -211,6 +214,11 @@ def view_aligned_cuboids(
     )
     phases = resolve_phase_ranges(volume_shape=volume.shape, dicom_dir=dicom_dir)
     phase_volumes = split_dce_phases(volume, phases)
+    phases, phase_volumes = select_phases(
+        phases,
+        phase_volumes,
+        ALIGNED_BBOX_REGISTRATION_PHASES,
+    )
 
     _, les_meta = load_les_mask(les_path, volume.shape)
     result = align_phase_z_bands_to_p1(
@@ -232,6 +240,7 @@ def view_aligned_cuboids(
         f"{slug}\n"
         f"  series: {series_desc!r} (S{dce_index})\n"
         f"  P1 .les local z-band: {result.z_band_local[0]}–{result.z_band_local[1]}\n"
+        f"  phases: P{', P'.join(str(p.index) for p in phases)} (register P2–P3 → P1)\n"
         f"  slab shape (Z,Y,X): {slab_shape} — full in-plane Y/X\n"
         f"  spacing_mm: {spacing_mm}\n"
         f"  mode: {'raw slabs' if show_raw else 'aligned to P1 slab grid'}\n"
@@ -281,6 +290,8 @@ def view_aligned_cuboids(
                     "export_source": "view_aligned_cuboid_napari",
                 },
             )
+            if on_mask_exported is not None:
+                on_mask_exported(meta)
             return str(meta["mask_npy"])
 
         add_bbox_threshold_dock(

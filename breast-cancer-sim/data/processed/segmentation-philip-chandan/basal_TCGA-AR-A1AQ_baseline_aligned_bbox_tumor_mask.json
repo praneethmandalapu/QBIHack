@@ -1,0 +1,51 @@
+{
+  "slug": "basal_TCGA-AR-A1AQ_baseline",
+  "method": "aligned_bbox_tumor",
+  "role": "predicted",
+  "shape_zyx": [
+    464,
+    256,
+    256
+  ],
+  "z_band_local": [
+    78,
+    84
+  ],
+  "selected_phase": 2,
+  "threshold": 0.412,
+  "gap_voxels": 0,
+  "les_fraction": 0.31387362637362637,
+  "connected_fraction_at_threshold": 0.5032051282051282,
+  "mask_npy": "/Users/fio/Projects/QBIHack/breast-cancer-sim/data/processed/segmentation-philip-chandan/basal_TCGA-AR-A1AQ_baseline_aligned_bbox_tumor_mask.npy",
+  "phase_index": 2,
+  "les_voxels": 2742,
+  "bbox_voxels": 8736,
+  "mask_voxels": 4683,
+  "segmentation": "center_connected_from_bbox_center",
+  "analysis_phases": [
+    2,
+    3
+  ],
+  "tcga_id": "TCGA-AR-A1AQ",
+  "study_date": "2001-11-21",
+  "spacing_mm": [
+    3.0,
+    0.859375,
+    0.859375
+  ],
+  "export_source": "view_aligned_cuboid_napari",
+  "y_start": 107,
+  "y_end": 145,
+  "x_start": 133,
+  "x_end": 164,
+  "z_start": 78,
+  "z_end": 84,
+  "necrotic_core_fill": {
+    "method": "binary_fill_holes",
+    "mode": "2d",
+    "cuboid_voxels_before": 4296,
+    "cuboid_voxels_after": 4683,
+    "core_voxels_filled": 387,
+    "export_source": "fill_necrotic_core.py"
+  }
+}

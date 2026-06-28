@@ -19,6 +19,23 @@ from cuboid_phase_registration import align_phase_z_bands_to_p1  # noqa: E402
 from dce_phases import DcePhase  # noqa: E402
 
 
+def test_register_rigid_slab_uses_inplane_when_z_thin() -> None:
+    from cuboid_phase_registration import register_rigid_slab
+
+    fixed = np.zeros((7, 32, 32), dtype=np.float32)
+    fixed[3, 10:22, 10:22] = 1.0
+    moving = np.roll(fixed[3:4], shift=2, axis=2)
+    aligned, metrics = register_rigid_slab(
+        fixed,
+        moving,
+        spacing_zyx=(3.0, 1.0, 1.0),
+        moving_phase=4,
+        number_of_iterations=40,
+    )
+    assert aligned.shape == moving.shape
+    assert metrics.ncc_after >= metrics.ncc_before
+
+
 def test_align_z_band_improves_ncc_after_shift() -> None:
     les_meta = {"y_start": 0, "y_end": 3, "x_start": 0, "x_end": 3, "z_start": 2, "z_end": 5}
     p1 = DcePhase(index=1, z_start=0, z_end=8, acquisition_time="")
