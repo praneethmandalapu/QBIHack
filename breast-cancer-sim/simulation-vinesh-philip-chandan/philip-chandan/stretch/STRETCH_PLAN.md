@@ -25,8 +25,13 @@ Living doc for post-sprint work. Sprint pipeline is complete; this folder is **i
 
 | File | Use |
 |------|-----|
-| `vinesh/calibrate.py::isolate_tumor` | Mask logic mirrored in `prep_volume.py` |
-| `vinesh/prepare_pde_input.py` | **Not** used as radiomics input (64³ crop) |
+| `vinesh/prepare_pde_input.py` | **Not** used as radiomics input (64³ crop) — PDE prep only |
+
+## ROI masks (no Otsu)
+
+- **Baseline:** TCIA `.les` via [`load_les_mask.py`](load_les_mask.py) or aligned-bbox export ([`../validation/run_aligned_bbox_workflow.py`](../validation/run_aligned_bbox_workflow.py))
+- **Follow-up:** aligned-bbox or nnU-Net ([`../segmentation/PLAN.md`](../segmentation/PLAN.md)) — no TCIA `.les`
+- Global Otsu **retired** (see [`../validation/VALIDATION.md`](../validation/VALIDATION.md))
 
 ## Dual backend (Phase 3)
 
@@ -36,6 +41,8 @@ Living doc for post-sprint work. Sprint pipeline is complete; this folder is **i
 
 ## Next steps
 
-1. Run `qc_mask_overlay.py` on all four slugs; confirm mask covers tumor, not whole breast
-2. Run `run_all_radiomics.py` → `features_all.csv`
-3. Run `compare_longitudinal.py` → `features_longitudinal.csv` for Praneeth (join on `tcga_id`)
+1. Wire aligned-bbox / `.les` masks in `prep_volume.py` (Otsu retired)
+2. Run `qc_mask_overlay.py` on all four slugs; confirm mask covers tumor, not whole breast
+3. Run `run_all_radiomics.py` → `features_all.csv` (basal first; LumA follow-up after mask)
+4. Run `compare_longitudinal.py` → `features_longitudinal.csv` for Praneeth (join on `tcga_id`)
+5. Write `PRANEETH_HANDOFF.md` and share CSV

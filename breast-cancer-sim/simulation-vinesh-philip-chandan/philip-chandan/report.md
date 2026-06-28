@@ -1,9 +1,9 @@
 # Philip-Chandan Imaging Pipeline — Report
 
-QBIHack breast-cancer-sim · TCGA-BRCA longitudinal MRI from cohort discovery through raw export and documented Otsu handoff to Vinesh.
+QBIHack breast-cancer-sim · TCGA-BRCA longitudinal MRI from cohort discovery through raw export, napari tumor ROI, and expert-mask PDE handoff to Vinesh.
 
 **PDF:** [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) (regenerate with `generate_pipeline_report.py`)  
-**Handoff contract:** [`../handoff_contract.json`](../handoff_contract.json) v1.0.0  
+**Handoff contract:** [`../handoff_contract.json`](../handoff_contract.json) v1.1.0  
 **Cohort:** [`cohort/cohort.json`](cohort/cohort.json) rev2
 
 ---
@@ -16,7 +16,8 @@ Philip-Chandan owns **Person 5: Radiomics Pipeline** in this folder. For the spr
 2. **Download** — DICOM into `data/raw/tcia/`  
 3. **Validate** — structural DICOM checks + visual slice QC  
 4. **Export** — raw float32 `.npy` + JSON sidecars for Vinesh (Option B: no normalize/resample here)  
-5. **Document downstream Otsu** — QC figures for Vinesh `prepare_pde_input.py` (resample, normalize, Otsu, crop to 64³)
+5. **Tumor ROI** — napari aligned-bbox workflow inside TCIA expert bounding boxes (center annotation + manual threshold)  
+6. **PDE handoff** — publish expert masks → Vinesh `prepare_pde_input.py` (resample, normalize, crop to 64³)
 
 **Out of scope (sprint):** PyRadiomics feature extraction (`stretch/`), PDE solve, 3D render, Streamlit UI.
 
@@ -137,34 +138,68 @@ Per slug `{subtype_slug}_{tcga_id}_{timepoint}`:
 
 ---
 
-## 6. Otsu tumor segmentation — `vinesh/prepare_pde_input.py` (Vinesh)
+## 6. Tumor ROI — TCIA center annotation and napari aligned-bbox workflow
 
-After raw handoff, Vinesh runs:
+TCGA-Breast-Radiogenomics `.les` files are **not** hand-traced 3D contours. Radiologists marked an approximate **tumor center**; fuzzy c-means auto-segmentation produced sparse FCM voxels inside a small **bounding cuboid** (~31–34% fill for rev2 baselines). The useful prior is the **center + bounding box**, not the sparse dots alone.
 
-1. Resample to isotropic **1 mm** (`scipy.ndimage.zoom`)  
-2. Min-max normalize to **[0, 1]**  
-3. **Otsu threshold** (`skimage.filters.threshold_otsu`) on normalized voxels  
-4. Keep **continuous** intensity inside tumor; set background to **0**  
+Global Otsu on the full breast fails badly against these masks (Section 8). Production ROI uses the **aligned-bbox napari workflow**:
+
+1. Split stacked VIBRANT into DCE phases; rigidly align P2–P3 z-band slabs to phase 1  
+2. Inside the tight `.les` Y/X bbox on aligned P2–P3: sweep threshold; keep **center-connected** bright region from expert center  
+3. In napari (`view_aligned_cuboid_napari.py`): adjust threshold, jump to elbow, export mask → local `.npy`  
+4. `publish_expert_mask.py` → `data/processed/segmentations/{slug}_mask.nii.gz` + `segmentation_path` on raw JSON sidecar  
+
+| Rev2 baseline | Phase @ threshold | Mask voxels | Notes |
+|---------------|-------------------|-------------|-------|
+| `TCGA-AR-A1AX` (Luminal A) | P2 @ 0.35 | ~1,798 | Center-connected napari export |
+| `TCGA-AR-A1AQ` (Basal-like) | P2 @ 0.412 | ~4,683 | Rim lesion; necrotic-core fill (+387 vox) |
+
+```bash
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_aligned_cuboid_napari.py \
+  --slug luminal_a_TCGA-AR-A1AX_baseline
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/publish_expert_mask.py \
+  --slug luminal_a_TCGA-AR-A1AX_baseline
+```
+
+**Figures 4–5 (PDF):** Aligned-bbox threshold curve; napari mask overlays on baseline primaries.
+
+---
+
+## 7. PDE simulation input — `vinesh/prepare_pde_input.py` (Vinesh)
+
+After expert mask publish, Vinesh runs:
+
+1. Load raw MR + expert mask from `segmentations/{slug}_mask.nii.gz`  
+2. Resample to isotropic **1 mm** (`scipy.ndimage.zoom`)  
+3. Min-max normalize to **[0, 1]**  
+4. Keep **continuous** intensity inside expert mask; set background to **0**  
 5. Crop/pad to **max 64³** centered on tumor center of mass  
 
 Continuous values (not binary) are required so the PDE logistic term `rho*u*(1-u)` can grow the tumor.
 
-### Otsu QC — `qc_otsu_plot.py`
+### PDE prep QC — `qc_otsu_plot.py`
 
 Documents the same pipeline as `prepare_pde_input.py` (via `prepare_pde_stages()`):
 
 | Output | Path |
 |--------|------|
-| Normalized slice + Otsu contour (pre-crop) | `data/qc/otsu-segmentation-vinesh/{slug}_otsu-norm-overlay.png` |
+| Normalized slice + expert mask contour (pre-crop) | `data/qc/otsu-segmentation-vinesh/{slug}_otsu-norm-overlay.png` |
 | PDE input slice (post-crop 64³) | `data/qc/otsu-segmentation-vinesh/{slug}_pde-input-mid-z.png` |
 
 ```bash
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/qc_otsu_plot.py --slug luminal_a_TCGA-AR-A1AX_baseline
+.venv/bin/python simulation-vinesh-philip-chandan/vinesh/prepare_pde_input.py --slug luminal_a_TCGA-AR-A1AX_baseline
 ```
 
-PDE outputs: `data/processed/pde-input-vinesh/{slug}.npy` + `.json`.
+PDE outputs: `data/processed/pde-input-vinesh/{tcga_id}/g64/{timepoint}.npy` + `.json`.
 
-**Figures 4–5 (PDF):** Otsu on normalized volume (spike baseline); baseline PDE inputs LumA vs Basal.
+**Figures 6–7 (PDF):** Expert mask on normalized volume; baseline PDE inputs LumA vs Basal.
+
+---
+
+## 8. Why global Otsu was retired — validation vs `.les`
+
+Early sprint used global Otsu + largest connected component. Benchmarking against TCIA radiologist `.les` masks (baseline VIBRANT only) showed Dice ≈ 0 and Otsu area **620–2,650×** expert volume — wrong region, not just wrong size. This motivated the napari aligned-bbox workflow (Section 6). See [`validation/VALIDATION.md`](validation/VALIDATION.md) and PDF Figure 8.
 
 ---
 
@@ -174,7 +209,8 @@ PDE outputs: `data/processed/pde-input-vinesh/{slug}.npy` + `.json`.
 |-------|-------|-------------|
 | Cohort | Philip-Chandan | `cohort.json` rev2 |
 | Raw extract | Philip-Chandan | `.npy` + JSON, `(Z,Y,X)` float32, not normalized |
-| PDE input | Vinesh | 64³, 1 mm, [0,1], tumor > 0 |
+| Tumor ROI | Philip-Chandan | Napari aligned-bbox → `segmentations/{slug}_mask.nii.gz` |
+| PDE input | Vinesh | 64³, 1 mm, [0,1], continuous density inside expert mask |
 | Simulation | Vinesh | `solve_growth()` frames |
 | Render | Jasim | 3D view from PDE/solver output |
 | UI | Vinesh/Philip | Subtype/timepoint toggle from manifest |
@@ -186,6 +222,7 @@ PDE outputs: `data/processed/pde-input-vinesh/{slug}.npy` + `.json`.
 ```bash
 cd breast-cancer-sim
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/publish_expert_mask.py --slug luminal_a_TCGA-AR-A1AX_baseline
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/qc_otsu_plot.py --slug luminal_a_TCGA-AR-A1AX_baseline
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/generate_pipeline_report.py
 ```

@@ -26,8 +26,9 @@ Breast **lesion** segmentation on DCE-MRI is hard: small enhancing masses, heter
 
 | Method | Rev2 baseline | Follow-up | Segmentation quality |
 |--------|---------------|-----------|----------------------|
-| **Otsu + largest CC** | Dice **0** vs `.les` | ~18M voxels (LumA) | **Rejected** — whole-breast bright regions; not in this benchmark |
 | **TCIA `.les`** | ~1.3k–2.7k voxels, expert | **Not published** | Ground truth for evaluation |
+| **Aligned-bbox** | ~1.8k–4.7k voxels | pending | **Current** classical workflow — see [`../validation/run_aligned_bbox_workflow.py`](../validation/run_aligned_bbox_workflow.py) |
+| ~~**Otsu + largest CC**~~ | Dice **0** vs `.les` | rejected | **Retired** — whole-breast bright regions |
 | **nnU-Net (MAMA-MIA)** | pending | pending | **Next** — primary automated method |
 
 Existing validation: [`../validation/VALIDATION.md`](../validation/VALIDATION.md), [`../PIPELINE_REPORT.pdf`](../PIPELINE_REPORT.pdf) Section 7.
@@ -197,7 +198,7 @@ Pin download URL + checksum in `methods/nnunet_mama_mia.py` once verified.
 | Slug | Dice | Area (pred / `.les`) | Selected phase | Notes |
 |------|------|----------------------|----------------|-------|
 | `luminal_a_TCGA-AR-A1AX_baseline` | **0.233** | 5.0× | 1 | Cuboid ROI + local threshold; volume capped at 5× expert |
-| `basal_TCGA-AR-A1AQ_baseline` | **0.211** | 5.0× | 1 | Beats global Otsu (Dice 0.0) |
+| `basal_TCGA-AR-A1AQ_baseline` | **0.211** | 5.0× | 1 | Cuboid ROI + local threshold |
 
 Run: `segment.py --method cuboid_enhancement` then `run_benchmark.py --all-primary`. Napari QC: `view_les_napari.py --slug … --cuboid-enhancement`.
 
@@ -289,7 +290,7 @@ Use `breast-cancer-sim/.venv/bin/python` per project venv rules.
 
 | Consumer | How they might use masks |
 |----------|-------------------------|
-| **PDE / Vinesh** | Replace Otsu initial burden — requires handoff contract discussion |
+| **PDE / Vinesh** | PDE inputs delivered; optional binary ROI handoff if solver contract changes |
 | **Radiomics / stretch** | ROI input — separate team decision |
 | **Jasim / UI** | Tumor surface overlay on full-res MR |
 | **Praneeth** | Imaging phenotype joins — only after segmentation validated |
