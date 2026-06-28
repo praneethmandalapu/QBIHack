@@ -4,6 +4,8 @@ brain-cancer-sim/data/raw/
 # Large pooled training matrix (~11MB, reproducible via build_features.py)
 breast-cancer-sim/data/processed/train_matrix.csv
 # Derived artifacts in data/processed/ ARE tracked -- they are the team handoff.
+# Full-resolution breast MR volumes exceed GitHub's 100MB limit; regenerate via export pipeline.
+breast-cancer-sim/data/processed/raw-extract-philip-chandan/*.npy
 
 # Philip-Chandan → Vinesh handoff packages (share via Drive/Slack, not git)
 breast-cancer-sim/pde-handoff*.zip

@@ -1,0 +1,1 @@
+slug,tcga_id,subtype,timepoint,method,reference_method,dice,reference_volume_mm3,predicted_volume_mm3,relative_volume_error,reference_voxels,predicted_voxels,area_fraction_pred_over_ref,les_file,annotated_series,volume_source,reference_overlay_png,predicted_overlay_png

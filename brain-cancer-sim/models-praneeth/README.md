@@ -39,4 +39,6 @@ Build a per-patient `risk -> growth_multiplier` the same way as breast:
 Expose it through a `neuropulse.py` loader mirroring `breast-cancer-sim/oncopulse.py`
 (`get_patient(id) -> {risk, idh, grade}`, `growth_multiplier(id)`).
 
-**Validation cohort:** add **CGGA** (Chinese Glioma Genome Atlas) as the METABRIC-like holdout — train on TCGA-GBM / TCGA-LGG (GDC or cBioPortal), evaluate generalization on CGGA. See repo-level TODO in [`../README.md`](../README.md).
+**Validation cohort:** add **CGGA** (Chinese Glioma Genome Atlas) as the METABRIC-like
+holdout — train on TCGA-GBM / TCGA-LGG (GDC or cBioPortal), evaluate generalization
+on CGGA. See repo-level TODO in [`../README.md`](../README.md).

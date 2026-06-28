@@ -1,0 +1,36 @@
+{
+  "contract_version": "1.0.0",
+  "slug": "luminal_a_TCGA-AR-A1AX_followup",
+  "source_raw_extract": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_followup.npy",
+  "shape": [
+    64,
+    64,
+    64
+  ],
+  "dtype": "float32",
+  "axis_order": [
+    "Z",
+    "Y",
+    "X"
+  ],
+  "spacing_mm": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "value_range": [
+    0.0,
+    1.0
+  ],
+  "background_value": 0.0,
+  "tumor_burden_rule": "values strictly greater than background_value",
+  "value_semantics": {
+    "0.0": "background/healthy",
+    ">0": "initial tumor burden"
+  },
+  "upstream": {
+    "tcga_id": "TCGA-AR-A1AX",
+    "study_date": "2003-09-24",
+    "raw_contract_version": "1.0.0"
+  }
+}

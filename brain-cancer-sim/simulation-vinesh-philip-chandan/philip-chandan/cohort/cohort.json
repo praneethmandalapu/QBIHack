@@ -1,7 +1,8 @@
 {
   "version": "rev1-ucsf",
-  "description": "Brain imaging cohort from the UCSF Longitudinal Postoperative Diffuse Glioma dataset (UCSF-LPTDG). Primary pair contrasts an aggressive IDH-WT glioblastoma (grows) vs an indolent IDH-mutant lower-grade glioma (stable/shrinks) \u2014 the genomics->growth seam.",
-  "data_root": "brain-cancer-sim/data/raw/ucsf_glioma/  (gitignored; extract from UCSF zip)",
+  "description": "Brain imaging cohort from the UCSF Longitudinal Postoperative Diffuse Glioma dataset (UCSF-LPTDG). Primary pair contrasts an aggressive IDH-WT glioblastoma (grows) vs an indolent IDH-mutant lower-grade glioma (stable/shrinks) — the genomics->growth seam.",
+  "preferred_datasets": ["ucsf_longitudinal_glioma", "mu_glioma_post", "lumiere"],
+  "data_root": "brain-cancer-sim/data/raw/ucsf_alptdg/  (gitignored; extract from UCSF portal)",
   "segmentation_label_scheme": {
     "1": "NCR (necrotic core)",
     "2": "SNFH (edema / non-enhancing FLAIR hyperintensity)",
@@ -18,6 +19,32 @@
     "seg"
   ],
   "genomics_handoff": "Per-patient idh_status/grade/mgmt are the bridge to the brain risk model (see brain-cancer-sim/models-praneeth/). IDH-WT + high grade -> high growth_multiplier; IDH-mut -> low.",
+  "primary": [
+    {
+      "patient_id": "100002",
+      "dataset_key": "ucsf_longitudinal_glioma",
+      "disease": "Glioma",
+      "grade": "2",
+      "idh_status": "mut",
+      "mgmt_status": "positive",
+      "diagnosis": "Oligodendroglioma",
+      "timepoints": [
+        {
+          "label": "baseline",
+          "study_date": "time1",
+          "mr_path": "data/raw/ucsf_alptdg/100002/100002_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100002/100002_time1_seg.nii.gz"
+        },
+        {
+          "label": "followup",
+          "study_date": "time2",
+          "mr_path": "data/raw/ucsf_alptdg/100002/100002_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100002/100002_time2_seg.nii.gz"
+        }
+      ],
+      "notes": "UCSF-ALPTDG integration spike — IDH-mut oligodendroglioma grade 2, MGMT positive."
+    }
+  ],
   "patients": [
     {
       "patient_id": "100118",
@@ -38,14 +65,14 @@
         {
           "label": "baseline",
           "relative_day": 0,
-          "mr_path": "data/raw/ucsf_glioma/100118/100118_time1_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100118/100118_time1_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100118/100118_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100118/100118_time1_seg.nii.gz"
         },
         {
           "label": "followup",
           "relative_day": 56,
-          "mr_path": "data/raw/ucsf_glioma/100118/100118_time2_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100118/100118_time2_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100118/100118_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100118/100118_time2_seg.nii.gz"
         }
       ],
       "backup": false,
@@ -70,14 +97,14 @@
         {
           "label": "baseline",
           "relative_day": 0,
-          "mr_path": "data/raw/ucsf_glioma/100192/100192_time1_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100192/100192_time1_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100192/100192_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100192/100192_time1_seg.nii.gz"
         },
         {
           "label": "followup",
           "relative_day": 83,
-          "mr_path": "data/raw/ucsf_glioma/100192/100192_time2_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100192/100192_time2_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100192/100192_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100192/100192_time2_seg.nii.gz"
         }
       ],
       "backup": false,
@@ -102,14 +129,14 @@
         {
           "label": "baseline",
           "relative_day": 0,
-          "mr_path": "data/raw/ucsf_glioma/100260/100260_time1_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100260/100260_time1_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100260/100260_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100260/100260_time1_seg.nii.gz"
         },
         {
           "label": "followup",
           "relative_day": 63,
-          "mr_path": "data/raw/ucsf_glioma/100260/100260_time2_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100260/100260_time2_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100260/100260_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100260/100260_time2_seg.nii.gz"
         }
       ],
       "backup": true,
@@ -134,14 +161,14 @@
         {
           "label": "baseline",
           "relative_day": 0,
-          "mr_path": "data/raw/ucsf_glioma/100220/100220_time1_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100220/100220_time1_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100220/100220_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100220/100220_time1_seg.nii.gz"
         },
         {
           "label": "followup",
           "relative_day": 27,
-          "mr_path": "data/raw/ucsf_glioma/100220/100220_time2_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100220/100220_time2_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100220/100220_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100220/100220_time2_seg.nii.gz"
         }
       ],
       "backup": true,
@@ -166,14 +193,14 @@
         {
           "label": "baseline",
           "relative_day": 0,
-          "mr_path": "data/raw/ucsf_glioma/100134/100134_time1_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100134/100134_time1_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100134/100134_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100134/100134_time1_seg.nii.gz"
         },
         {
           "label": "followup",
           "relative_day": 105,
-          "mr_path": "data/raw/ucsf_glioma/100134/100134_time2_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100134/100134_time2_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100134/100134_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100134/100134_time2_seg.nii.gz"
         }
       ],
       "backup": true,
@@ -198,18 +225,21 @@
         {
           "label": "baseline",
           "relative_day": 0,
-          "mr_path": "data/raw/ucsf_glioma/100130/100130_time1_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100130/100130_time1_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100130/100130_time1_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100130/100130_time1_seg.nii.gz"
         },
         {
           "label": "followup",
           "relative_day": 182,
-          "mr_path": "data/raw/ucsf_glioma/100130/100130_time2_t1ce.nii.gz",
-          "segmentation_path": "data/raw/ucsf_glioma/100130/100130_time2_seg.nii.gz"
+          "mr_path": "data/raw/ucsf_alptdg/100130/100130_time2_t1ce.nii.gz",
+          "segmentation_path": "data/raw/ucsf_alptdg/100130/100130_time2_seg.nii.gz"
         }
       ],
       "backup": true,
       "notes": "IDH-mut grade 3.0; WT volume change -30% over 182d."
     }
-  ]
+  ],
+  "backups": {
+    "Glioma": []
+  }
 }
