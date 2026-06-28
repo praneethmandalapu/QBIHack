@@ -134,6 +134,23 @@ See [`../../DATASETS.md`](../../DATASETS.md). Recommended first spike:
 - PyRadiomics on cropped tumor ROI (optional; mirror breast `stretch/` layout).
 - Longitudinal validation: simulated volume vs follow-up scan.
 
+### Phase 3 — MedPy cleanup *(low priority — after end-to-end)*
+
+**Do not start until:** spike → `solve_growth()` verified → Jasim render sign-off → Vihari toggle wired (checklist above green).
+
+**Package:** `medpy` is already in [`../../requirements.txt`](../../requirements.txt). Swap internals only; preserve handoff contract shapes and test signatures.
+
+| Priority | File | Current brittle pattern | MedPy replacement | Owner |
+|----------|------|-------------------------|-------------------|-------|
+| 1 | `../vinesh/prepare_pde_input.py` | `scipy.ndimage.zoom` + manual spacing factors | `medpy.filter.resample` (MR: bspline; mask: nearest) | Vinesh — coordinate before merge |
+| 2 | `../vinesh/prepare_pde_input.py` | Hand-rolled `_crop_or_pad_centered` | `medpy.filter.bounding_box` + `medpy.filter.pad` | Vinesh |
+| 3 | Breast `stretch/prep_volume.py` + `vinesh/calibrate.py` | Duplicated Otsu + largest-CC (`skimage` + `scipy.label`) | `medpy.filter.otsu` + `largest_connected_component` — one shared helper | Philip-Chandan (breast only; not brain v1) |
+| 4 | Breast `stretch/validate_segmentation.py` | Hand-rolled `dice_coefficient` / `volume_mm3` | `medpy.metric.dc`; optional `hd95` / `assd` for `.les` report | Philip-Chandan |
+
+**Keep as-is (MedPy does not help):** nibabel load in `nifti_extractor.py`, `mask_seeding.py` distance ramp (`scipy.ndimage`), PDE Laplacian in `tumor_pde_solver.py`, napari WW/WL/CLAHE in `view_volume_napari.py`, TCIA/cohort download.
+
+**Migration rule:** same as breast library table — swap internals, not filenames; bump [`../handoff_contract.json`](../handoff_contract.json) `version` only if resample/crop outputs change.
+
 ---
 
 ## Handoff contract (locked v1.0.0)
