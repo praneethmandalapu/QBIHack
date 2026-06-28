@@ -10,12 +10,14 @@ Run (macOS/Linux):
 
     python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py --list
     python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \\
-        --slug luminal_a_TCGA-AR-A1AX_baseline --phases-only --cuboid-enhancement
+        --slug luminal_a_TCGA-AR-A1AX_baseline --phases-only
 
     python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \\
-        --slug luminal_a_TCGA-AR-A1AX_baseline --cuboid-enhancement --wide --collapse-controls
+        --slug luminal_a_TCGA-AR-A1AX_baseline --wide --collapse-controls
 
 Optional: add --mip for the bottom maximum-intensity-projection row beneath P1–P4.
+Phases-only mode shows .les expert voxels + cuboid bounding box and a docked table of
+bright-voxel fraction inside the bbox for each normalized threshold (default step 0.05).
 
 Run (Windows):
     cd breast-cancer-sim
@@ -62,6 +64,11 @@ from dce_phases import (  # noqa: E402
     resolve_phase_ranges,
     split_dce_phases,
 )
+from les_cuboid_brightness import (  # noqa: E402
+    CuboidBrightnessRow,
+    compute_cuboid_brightness_table,
+    format_brightness_table,
+)
 from load_les_mask import (  # noqa: E402
     find_les_files,
     load_les_cuboid_boundary,
@@ -87,8 +94,10 @@ class BreastDisplayState:
     subtraction_layer: Any | None = None
     precontrast_layer: Any | None = None
     expert_layer: Any | None = None
+    boundary_layer: Any | None = None
     prediction_layer: Any | None = None
     expert_mask_full: np.ndarray | None = None
+    boundary_mask_full: np.ndarray | None = None
     prediction_mask_full: np.ndarray | None = None
     cuboid_boundary: bool = False
     hanging: dict[str, Any] = field(default_factory=dict)
@@ -149,23 +158,88 @@ def _configure_viewer_chrome(viewer: napari.Viewer, *, wide: bool) -> None:
             dock.setVisible(False)
 
 
-def add_overlay_toggle_button(viewer: napari.Viewer, *overlay_layers: Any) -> None:
-    """Dock button to show/hide expert (and optional) overlay layers."""
+def add_overlay_toggle_button(
+    viewer: napari.Viewer,
+    button_label: str,
+    *overlay_layers: Any,
+) -> None:
+    """Dock button to show/hide overlay label layers."""
     if not overlay_layers:
         return
 
     from qtpy.QtWidgets import QPushButton
 
-    button = QPushButton("Hide expert mask")
+    hide_text = f"Hide {button_label}"
+    show_text = f"Show {button_label}"
+    button = QPushButton(hide_text)
 
     def toggle() -> None:
         visible = not overlay_layers[0].visible
         for layer in overlay_layers:
             layer.visible = visible
-        button.setText("Hide expert mask" if visible else "Show expert mask")
+        button.setText(hide_text if visible else show_text)
 
     button.clicked.connect(toggle)
-    viewer.window.add_dock_widget(button, area="right", name="Expert mask")
+    viewer.window.add_dock_widget(button, area="right", name=button_label)
+
+
+def add_brightness_fraction_dock(
+    viewer: napari.Viewer,
+    rows: list[CuboidBrightnessRow],
+    *,
+    threshold_step: float,
+) -> None:
+    """Docked table: bright fraction inside .les cuboid for each phase × threshold."""
+    from qtpy.QtWidgets import (
+        QHeaderView,
+        QLabel,
+        QTableWidget,
+        QTableWidgetItem,
+        QVBoxLayout,
+        QWidget,
+    )
+
+    widget = QWidget()
+    layout = QVBoxLayout(widget)
+    layout.addWidget(
+        QLabel(
+            "Bright fraction = voxels ≥ threshold inside .les cuboid "
+            f"(1–99% normalized per phase; step={threshold_step:.2f}). "
+            "Les frac = expert .les voxels / cuboid voxels."
+        )
+    )
+
+    table = QTableWidget(len(rows), 7)
+    table.setHorizontalHeaderLabels(
+        [
+            "Phase",
+            "Threshold",
+            "Bright frac",
+            "Bright vox",
+            "Cuboid vox",
+            "Les frac",
+            "Les vox",
+        ]
+    )
+    header = table.horizontalHeader()
+    header.setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)
+
+    for row_index, row in enumerate(rows):
+        values = [
+            f"P{row.phase_index}",
+            f"{row.threshold:.2f}",
+            f"{row.bright_fraction:.3f}",
+            str(row.bright_voxels),
+            str(row.cuboid_voxels),
+            f"{row.les_fraction:.3f}",
+            str(row.les_voxels),
+        ]
+        for col_index, text in enumerate(values):
+            table.setItem(row_index, col_index, QTableWidgetItem(text))
+
+    table.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+    layout.addWidget(table)
+    viewer.window.add_dock_widget(widget, area="bottom", name="Cuboid brightness")
 
 
 def _phase_label(phase: DcePhase) -> str:
@@ -185,6 +259,13 @@ def _build_subtraction_volumes(
     target_shape = phase_volumes[0].shape
     pre_resampled = resample_volume(pre_volume, pre_spacing, target_shape, spacing_mm)
     return [compute_subtraction(phase, pre_resampled) for phase in phase_volumes]
+
+
+def _update_boundary_layer(state: BreastDisplayState) -> None:
+    if state.boundary_layer is None or state.boundary_mask_full is None:
+        return
+    phase = state.phases[state.active_phase - 1]
+    state.boundary_layer.data = mask_for_phase(state.boundary_mask_full, phase)
 
 
 def _update_expert_layer(state: BreastDisplayState) -> None:
@@ -217,6 +298,7 @@ def _refresh_display_layers(state: BreastDisplayState) -> None:
         state.precontrast_layer.visible = state.show_precontrast
 
     _update_expert_layer(state)
+    _update_boundary_layer(state)
     _update_prediction_layer(state)
 
 
@@ -339,6 +421,7 @@ def view_slug(
     no_hanging: bool = False,
     phases_only: bool = False,
     show_mip_row: bool = False,
+    threshold_step: float = 0.05,
     wide: bool = False,
     collapse_controls: bool = False,
 ) -> None:
@@ -404,18 +487,24 @@ def view_slug(
         (precontrast[0], precontrast[1]) if precontrast is not None else None,
     )
 
+    expert_mask, meta = load_les_mask(les_path, volume.shape)
+    boundary_mask, boundary_meta = load_les_cuboid_boundary(les_path, volume.shape)
+
+    expert_name = f".les expert ({meta['lesion_voxels']:,} vox)"
+    boundary_name = (
+        f".les cuboid bbox "
+        f"(y[{boundary_meta['y_start']},{boundary_meta['y_end']}] "
+        f"x[{boundary_meta['x_start']},{boundary_meta['x_end']}] "
+        f"z[{boundary_meta['z_start']},{boundary_meta['z_end']}])"
+    )
+
     if cuboid_boundary:
-        overlay_mask, meta = load_les_cuboid_boundary(les_path, volume.shape)
-        overlay_name = (
-            f".les cuboid shell "
-            f"(y[{meta['y_start']},{meta['y_end']}] "
-            f"x[{meta['x_start']},{meta['x_end']}] "
-            f"z[{meta['z_start']},{meta['z_end']}])"
-        )
-        overlay_detail = f"boundary={meta['boundary_voxels']:,} vox"
+        overlay_mask = boundary_mask
+        overlay_name = boundary_name
+        overlay_detail = f"boundary={boundary_meta['boundary_voxels']:,} vox"
     else:
-        overlay_mask, meta = load_les_mask(les_path, volume.shape)
-        overlay_name = f".les expert ({meta['lesion_voxels']:,} vox)"
+        overlay_mask = expert_mask
+        overlay_name = expert_name
         overlay_detail = f"lesion={meta['lesion_voxels']:,} vox"
 
     active_phase = 1
@@ -448,18 +537,16 @@ def view_slug(
 
     show_subtraction = bool(subtraction_volumes)
 
+    brightness_rows = compute_cuboid_brightness_table(
+        phase_volumes,
+        phases,
+        meta,
+        expert_mask,
+        threshold_step=threshold_step,
+    )
+    print("\nCuboid bright fraction sweep:\n" + format_brightness_table(brightness_rows))
+
     if phases_only:
-        prediction_mask_full: np.ndarray | None = None
-        if show_cuboid_enhancement:
-            from seg_paths import mask_npy  # noqa: WPS433
-
-            pred_path = mask_npy(slug, "cuboid_enhancement")
-            if pred_path.exists():
-                prediction_mask_full = np.load(pred_path).astype(np.uint8)
-                print(f"  overlay: {pred_path} ({int(prediction_mask_full.sum()):,} vox)")
-            else:
-                print(f"  cuboid_enhancement mask not found: {pred_path}")
-
         viewer = napari.Viewer(title=f"{slug} — P1–P4")
         _configure_viewer_chrome(viewer, wide=wide)
         hanging = setup_phases_only_view(
@@ -468,17 +555,17 @@ def view_slug(
             phases=phases,
             subtraction_volumes=[],
             spacing_mm=scale,
-            expert_mask_full=overlay_mask,
-            expert_layer_name=overlay_name,
-            prediction_mask_full=prediction_mask_full,
+            expert_mask_full=expert_mask,
+            expert_layer_name=expert_name,
+            boundary_mask_full=boundary_mask,
+            boundary_layer_name=boundary_name,
             show_mip_row=show_mip_row,
         )
-        overlay_layers = [
-            *hanging.get("expert_layers", []),
-            *hanging.get("prediction_layers", []),
-        ]
-        if overlay_layers:
-            add_overlay_toggle_button(viewer, *overlay_layers)
+        if hanging.get("expert_layers"):
+            add_overlay_toggle_button(viewer, "Expert .les", *hanging["expert_layers"])
+        if hanging.get("boundary_layers"):
+            add_overlay_toggle_button(viewer, "Cuboid bbox", *hanging["boundary_layers"])
+        add_brightness_fraction_dock(viewer, brightness_rows, threshold_step=threshold_step)
         if lesion_z is not None:
             point = [0.0, 0.0, 0.0]
             point[0] = float(lesion_z)
@@ -497,6 +584,7 @@ def view_slug(
         show_mip_row=show_mip_row,
         precontrast_display=precontrast_display,
         expert_mask_full=overlay_mask,
+        boundary_mask_full=boundary_mask if not cuboid_boundary else None,
         cuboid_boundary=cuboid_boundary,
     )
 
@@ -542,6 +630,15 @@ def view_slug(
         opacity=0.85 if cuboid_boundary else 0.55,
     )
 
+    if not cuboid_boundary:
+        phase_boundary = mask_for_phase(boundary_mask, phases[active_phase - 1])
+        state.boundary_layer = viewer.add_labels(
+            phase_boundary,
+            name=boundary_name,
+            scale=scale,
+            opacity=0.85,
+        )
+
     if show_otsu:
         detail_volume = (
             subtraction_volumes[active_phase - 1]
@@ -573,25 +670,38 @@ def view_slug(
             print(f"  cuboid_enhancement mask not found: {pred_path}")
 
     if not no_hanging:
-        prediction_for_hanging: np.ndarray | None = state.prediction_mask_full
         state.hanging = setup_clinical_hanging_protocol(
             viewer,
             phase_volumes=phase_volumes,
             phases=phases,
             subtraction_volumes=subtraction_volumes if show_subtraction else [],
             spacing_mm=scale,
-            expert_mask_full=overlay_mask,
-            expert_layer_name=overlay_name,
-            prediction_mask_full=prediction_for_hanging,
+            expert_mask_full=expert_mask if not cuboid_boundary else None,
+            expert_layer_name=expert_name,
+            boundary_mask_full=boundary_mask,
+            boundary_layer_name=boundary_name,
             show_mip_row=state.show_mip_row,
         )
 
-    add_overlay_toggle_button(
-        viewer,
-        state.expert_layer,
-        *state.hanging.get("expert_layers", []),
-        *state.hanging.get("prediction_layers", []),
-    )
+    if state.expert_layer is not None:
+        add_overlay_toggle_button(
+            viewer,
+            "Expert .les",
+            state.expert_layer,
+            *state.hanging.get("expert_layers", []),
+        )
+    if state.boundary_layer is not None or state.hanging.get("boundary_layers"):
+        boundary_layers = [state.boundary_layer] if state.boundary_layer is not None else []
+        add_overlay_toggle_button(
+            viewer,
+            "Cuboid bbox",
+            *boundary_layers,
+            *state.hanging.get("boundary_layers", []),
+        )
+    if show_cuboid_enhancement and state.prediction_layer is not None:
+        add_overlay_toggle_button(viewer, "cuboid_enhancement", state.prediction_layer)
+
+    add_brightness_fraction_dock(viewer, brightness_rows, threshold_step=threshold_step)
 
     add_breast_display_controls(viewer, state, collapse_controls=collapse_controls)
     _jump_to_lesion(viewer, state)
@@ -652,6 +762,12 @@ def main() -> None:
         help="Start with the DCE controls dock collapsed (click Show controls to expand)",
     )
     parser.add_argument(
+        "--threshold-step",
+        type=float,
+        default=0.05,
+        help="Normalized threshold step for cuboid bright-fraction table (default 0.05)",
+    )
+    parser.add_argument(
         "--list",
         action="store_true",
         help="List baseline slugs that have a local .les file",
@@ -687,6 +803,7 @@ def main() -> None:
         no_hanging=args.no_hanging,
         phases_only=args.phases_only,
         show_mip_row=args.mip,
+        threshold_step=args.threshold_step,
         wide=args.wide,
         collapse_controls=args.collapse_controls,
     )

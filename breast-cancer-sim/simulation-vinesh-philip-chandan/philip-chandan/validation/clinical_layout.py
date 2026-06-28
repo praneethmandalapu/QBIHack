@@ -60,7 +60,8 @@ def _build_phase_grid(
     spacing_mm: tuple[float, float, float],
     expert_mask_full: np.ndarray | None,
     expert_layer_name: str,
-    prediction_mask_full: np.ndarray | None,
+    boundary_mask_full: np.ndarray | None,
+    boundary_layer_name: str,
     show_mip_row: bool,
 ) -> tuple[Any, dict[str, Any]]:
     """Build a 4-column grid of linked phase viewers (optional MIP row beneath)."""
@@ -79,7 +80,7 @@ def _build_phase_grid(
     mip_headers: list[Any] = []
     mip_qt_widgets: list[Any] = []
     expert_layers: list[Any] = []
-    prediction_layers: list[Any] = []
+    boundary_layers: list[Any] = []
 
     grid = QGridLayout()
     grid.setSpacing(4)
@@ -115,16 +116,16 @@ def _build_phase_grid(
                 )
                 expert_layers.append(expert_layer)
 
-        if prediction_mask_full is not None:
-            phase_pred = mask_for_phase(prediction_mask_full, phase)
-            if phase_pred.any():
-                pred_layer = phase_model.add_labels(
-                    phase_pred,
-                    name="cuboid_enhancement",
+        if boundary_mask_full is not None:
+            phase_boundary = mask_for_phase(boundary_mask_full, phase)
+            if phase_boundary.any():
+                boundary_layer = phase_model.add_labels(
+                    phase_boundary,
+                    name=boundary_layer_name,
                     scale=spacing_mm,
-                    opacity=0.4,
+                    opacity=0.85,
                 )
-                prediction_layers.append(pred_layer)
+                boundary_layers.append(boundary_layer)
 
         mip_model = ViewerModel(title=f"MIP P{phase.index}")
         mip_qt = QtViewer(mip_model)
@@ -163,7 +164,7 @@ def _build_phase_grid(
         "mip_headers": mip_headers,
         "mip_qt_widgets": mip_qt_widgets,
         "expert_layers": expert_layers,
-        "prediction_layers": prediction_layers,
+        "boundary_layers": boundary_layers,
     }
 
 
@@ -176,7 +177,8 @@ def setup_phases_only_view(
     spacing_mm: tuple[float, float, float],
     expert_mask_full: np.ndarray | None,
     expert_layer_name: str,
-    prediction_mask_full: np.ndarray | None = None,
+    boundary_mask_full: np.ndarray | None = None,
+    boundary_layer_name: str = ".les cuboid bbox",
     show_mip_row: bool = False,
 ) -> dict[str, Any]:
     """Full-window P1–P4 grid (no detail pane)."""
@@ -189,7 +191,8 @@ def setup_phases_only_view(
         spacing_mm=spacing_mm,
         expert_mask_full=expert_mask_full,
         expert_layer_name=expert_layer_name,
-        prediction_mask_full=prediction_mask_full,
+        boundary_mask_full=boundary_mask_full,
+        boundary_layer_name=boundary_layer_name,
         show_mip_row=show_mip_row,
     )
 
@@ -210,7 +213,8 @@ def setup_clinical_hanging_protocol(
     spacing_mm: tuple[float, float, float],
     expert_mask_full: np.ndarray | None,
     expert_layer_name: str,
-    prediction_mask_full: np.ndarray | None = None,
+    boundary_mask_full: np.ndarray | None = None,
+    boundary_layer_name: str = ".les cuboid bbox",
     show_mip_row: bool = False,
 ) -> dict[str, Any]:
     """Split the window: detail viewer left, 4-up phases + optional MIP row right."""
@@ -224,7 +228,8 @@ def setup_clinical_hanging_protocol(
         spacing_mm=spacing_mm,
         expert_mask_full=expert_mask_full,
         expert_layer_name=expert_layer_name,
-        prediction_mask_full=prediction_mask_full,
+        boundary_mask_full=boundary_mask_full,
+        boundary_layer_name=boundary_layer_name,
         show_mip_row=show_mip_row,
     )
 
