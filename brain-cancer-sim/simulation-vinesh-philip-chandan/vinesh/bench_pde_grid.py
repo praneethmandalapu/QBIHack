@@ -26,8 +26,9 @@ from prepare_pde_input import (  # noqa: E402
 from run_growth import run_growth  # noqa: E402
 from spike_paths import (  # noqa: E402
     QC_PDE_PREP_VINESH,
-    pde_input_npy,
     ensure_spike_dirs,
+    pde_input_npy,
+    resolve_pde_input_npy,
 )
 from tumor_pde_solver import total_volume  # noqa: E402
 
@@ -82,7 +83,7 @@ def _time_prep(slug: str, grid_size: int) -> dict:
 
 
 def _time_solve(slug: str, grid_size: int) -> dict:
-    npy_path = pde_input_npy(slug, grid_size=grid_size)
+    npy_path = resolve_pde_input_npy(slug, grid_size=grid_size)
     vol = np.load(npy_path)
     spacing = (1.0, 1.0, 1.0)
 

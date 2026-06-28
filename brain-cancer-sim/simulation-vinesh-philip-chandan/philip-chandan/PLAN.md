@@ -1,6 +1,6 @@
 # Philip-Chandan — Brain MRI / Segmentation Pipeline Plan
 
-You own **Person 5: Imaging Pipeline** in this folder. Your job is to get **real starting tumor volumes** from longitudinal glioma MRI (with **expert segmentations**, not Otsu heuristics), process them into **clean 3D numpy arrays**, and hand them to **Vinesh** for PDE growth simulation.
+You own **Person 5: Imaging Pipeline** in this folder. Your job is to get **real starting tumor volumes** from longitudinal glioma MRI (with **expert segmentations**, not Otsu heuristics), process them into **clean 3D numpy arrays**, run **PDE prep** (`prepare_pde_input.py`), and hand solver-ready cubes to **Vinesh** for PDE growth simulation.
 
 Philip and Chandan work as **one unit** — same deliverables, same schedule, same code.
 
@@ -8,21 +8,37 @@ Pattern reference (breast, completed): `breast-cancer-sim/simulation-vinesh-phil
 
 ---
 
-## Current status — greenfield
+## Current status — Phase 0 spike green
 
-Brain-cancer-sim is forked from the breast layout but **imaging code is written fresh here**. Solver + viz are ported; cohort download and NIfTI export are **not started**.
+**Work from this section first.**
 
 | Doc | Purpose |
 |-----|---------|
 | [`../../DATASETS.md`](../../DATASETS.md) | Candidate longitudinal MRI datasets |
-| [`../handoff_contract.json`](../handoff_contract.json) | Versioned Philip-Chandan ↔ Vinesh contract |
+| [`../handoff_contract.json`](../handoff_contract.json) | Versioned Philip-Chandan ↔ Vinesh contract (`1.0.0`) |
 | [`VALIDATION.md`](VALIDATION.md) | QC + napari inspection guide |
-| [`report.md`](report.md) / [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) | Phase 0 pipeline narrative (regenerate: `generate_pipeline_report.py`) |
+| [`report.md`](report.md) / [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) | Live pipeline narrative (regenerate: `generate_pipeline_report.py`) |
 | [`cohort/COHORT.md`](cohort/COHORT.md) | Patient picks and discovery notes |
 
-**Spike target (TBD):** one UCSF Longitudinal Glioma patient · baseline MR + expert mask
+**Spike case:** UCSF-ALPTDG patient `100002` · IDH-mut grade 2 oligodendroglioma · slugs `glioma_ucsf_100002_{baseline,followup}`
 
-**Split:** You deliver **raw** MR extract + spacing + segmentation path to `data/processed/raw-extract-philip-chandan/`. Vinesh owns resample/crop/normalize → `data/processed/pde-input-vinesh/` and `solve_growth()`.
+**Scale-up order:**
+
+1. Baseline spike green — **done** (raw + PDE g64/g128 + solver smoke on `glioma_ucsf_100002_baseline`)
+2. Longitudinal pair on same patient (t1→t2) — **in progress** (raw follow-up done; Philip-Chandan PDE follow-up g128 + `manifest.json`; Vinesh `calibrate.py` pending)
+3. Second patient for demo toggle (`100118` IDH-WT GBM vs `100002`) — **not started**
+4. `manifest.json` v1.0.0 — **not started**
+5. Jasim render + Vihari toggle — **waiting on manifest + calibrated frames**
+
+**Split:** You deliver **raw** MR extract + spacing + segmentation path to `data/processed/raw-extract-philip-chandan/`, then run **`prepare_pde_input.py`** (resample/crop/normalize → `data/processed/pde-input-vinesh/`). Vinesh owns `run_growth()` and porting `calibrate.py`.
+
+### Who owns what next
+
+| Owner | Next action |
+|-------|-------------|
+| **Philip-Chandan** | Cohort-driven multi-timepoint export via `export_all_raw.py` (checkpointed); `prepare_pde_input.py` for all cohort slugs (g64 + g128); `manifest.json` with paired slugs + `interval_days` (228d for `100002`); napari QC |
+| **Vinesh** | Port `calibrate.py` + `make_growth_animation.py` (expert-mask seeding, not breast Otsu); `run_growth()` on Philip-Chandan PDE inputs |
+| **Praneeth / Jasim / Vihari** | Not blocking t1→t2 on patient 1 |
 
 ---
 
@@ -30,13 +46,13 @@ Brain-cancer-sim is forked from the breast layout but **imaging code is written 
 
 | Deliverable | Done when |
 |-------------|-----------|
-| **Dataset chosen + 1 patient downloaded** | UCSF (or MU-Glioma-Post) baseline MR + mask on disk |
-| **`nifti_extractor.py` implemented** | `extract_volume(nifti_path) → np.ndarray` works locally |
-| **Spike raw extract** | Raw `.npy` + `.json` in `data/processed/raw-extract-philip-chandan/` |
-| **Expert mask paired** | Mask in `data/processed/segmentations/` aligned to MR `(Z, Y, X)` |
-| **PDE-ready volume (via Vinesh)** | Vinesh writes `data/processed/pde-input-vinesh/` after your handoff |
-| **`manifest.json`** | Maps disease grade / timepoint → slug → paths + metadata |
-| **Handoff to Vinesh** | `solve_growth()` runs on real data without reformatting on Vinesh's side |
+| **Dataset chosen + 1 patient downloaded** | UCSF baseline MR + mask on disk — **done** (`100002`) |
+| **`nifti_extractor.py` implemented** | `extract_volume(nifti_path) → np.ndarray` works locally — **done** |
+| **Spike raw extract** | Raw `.npy` + `.json` in `data/processed/raw-extract-philip-chandan/` — **done** (baseline + follow-up) |
+| **Expert mask paired** | Mask in `data/processed/segmentations/` aligned to MR `(Z, Y, X)` — **done** |
+| **PDE-ready volume (your scope)** | You run `prepare_pde_input.py` → `data/processed/pde-input-vinesh/<patient_id>/g64/` — **done** (baseline g64/g128 + follow-up g64 on `100002`) |
+| **`manifest.json`** | Maps disease grade / timepoint → slug → paths + metadata — **not started** |
+| **Handoff to Vinesh** | `solve_growth()` runs on real data without reformatting on Vinesh's side — **done** (baseline smoke); calibrated t1→t2 pending |
 
 **Out of scope for v1:** PyRadiomics feature extraction, MS lesion datasets (see stretch below).
 
@@ -48,10 +64,11 @@ Brain-cancer-sim is forked from the breast layout but **imaging code is written 
 |------|-------------|
 | **Discovery & coordination** | Pick dataset + patients; align IDs with Praneeth (genomics); keep backups |
 | **Download & QC** | Pull NIfTI into `data/raw/`; visual slice checks; napari overlay |
-| **Extraction (your scope)** | NIfTI → 3D stack `(Z, Y, X)` float32; export via `export_raw_extract.py` *(stub)* |
+| **Extraction (your scope)** | NIfTI → 3D stack `(Z, Y, X)` float32; export via `export_raw_extract.py` |
 | **Segmentation pairing** | Load dataset expert masks; verify shape/spacing match MR |
-| **PDE prep (Vinesh scope)** | Resample, normalize, crop — `vinesh/prepare_pde_input.py` *(stub)* |
-| **Manifest & handoff** | `handoff_contract.json` now; full `manifest.json` after spike |
+| **Longitudinal handoff** | Export **both** timepoints per patient; document baseline/followup slug pair + `interval_days` in manifest |
+| **PDE prep (your scope)** | Resample, normalize, crop — run `../vinesh/prepare_pde_input.py` after each raw export; QC via `qc_pde_plot.py` |
+| **Manifest & handoff** | `handoff_contract.json` now; full `manifest.json` after spike pair green |
 
 ---
 
@@ -61,31 +78,45 @@ Brain-cancer-sim is forked from the breast layout but **imaging code is written 
 brain-cancer-sim/
 ├── DATASETS.md
 ├── data/                          # gitignored under data/raw/
-│   ├── raw/                       # downloaded NIfTI / DICOM
-│   │   └── ucsf_glioma/<patient_id>/
+│   ├── raw/
+│   │   └── ucsf_alptdg/<patient_id>/   # e.g. 100002_time1_t1ce.nii.gz
 │   ├── processed/
-│   │   ├── raw-extract-philip-chandan/   # your raw .npy + .json
-│   │   ├── segmentations/                # expert masks (.npy or .nii.gz)
-│   │   └── pde-input-vinesh/             # Vinesh PDE-ready .npy + .json
+│   │   ├── raw-extract-philip-chandan/   # raw .npy + .json per patient
+│   │   │   └── <patient_id>/             # e.g. 100002/baseline.npy + baseline.json
+│   │   ├── segmentations/                # expert masks (.nii.gz), flat slug names
+│   │   └── pde-input-vinesh/             # solver-ready cubes per patient
+│   │       └── <patient_id>/
+│   │           └── g64/                  # 64³ (g128/ optional per patient)
+│   │               ├── baseline.npy + baseline.json
+│   │               └── followup.npy + followup.json
 │   └── qc/
-│       └── slice-plots-philip-chandan/
+│       ├── slice-plots-philip-chandan/
+│       └── pde-prep-vinesh/
 ├── simulation-vinesh-philip-chandan/
 │   ├── handoff_contract.json
 │   ├── handoff_contract.py
+│   ├── spike_paths.py
 │   ├── philip-chandan/            # this folder
 │   │   ├── PLAN.md
-│   │   ├── view_volume_napari.py  # QC viewer (demo works today)
-│   │   ├── nifti_extractor.py     # TODO
-│   │   ├── export_raw_extract.py  # TODO
-│   │   ├── qc_slice_plot.py       # TODO
+│   │   ├── report.md
+│   │   ├── generate_pipeline_report.py
+│   │   ├── view_volume_napari.py
+│   │   ├── nifti_extractor.py
+│   │   ├── export_raw_extract.py
+│   │   ├── qc_slice_plot.py
+│   │   ├── qc_pde_plot.py
+│   │   ├── tests/
 │   │   └── cohort/
 │   │       ├── cohort.json
+│   │       ├── cohort_discovery.py
 │   │       └── COHORT.md
 │   └── vinesh/
 │       ├── tumor_pde_solver.py
 │       ├── growth_interventions.py
 │       ├── run_growth.py
-│       └── prepare_pde_input.py   # TODO
+│       ├── mask_seeding.py
+│       ├── prepare_pde_input.py
+│       └── calibrate.py             # TODO — port from breast
 ├── models-praneeth/               # genomics / risk models (stub)
 ├── visualization-jasim/
 └── app-vihari/
@@ -93,63 +124,85 @@ brain-cancer-sim/
 
 ---
 
-## Dataset selection (start here)
+## Dataset selection
 
-See [`../../DATASETS.md`](../../DATASETS.md). Recommended first spike:
+See [`../../DATASETS.md`](../../DATASETS.md). Primary spike uses UCSF; fallbacks if access blocked:
 
 | Priority | Dataset | Why |
 |----------|---------|-----|
-| **1** | UCSF Longitudinal Glioma | Repeated scans + expert segmentations; best growth-model fit |
+| **1** | UCSF Longitudinal Glioma | Repeated scans + expert segmentations; best growth-model fit — **active** |
 | **2** | MU-Glioma-Post | Similar; post-treatment longitudinal; **~11 GB** on TCIA |
 | **3** | LUMIERE | Longitudinal GBM + RANO ratings + auto segmentations (Figshare) |
 | **4** | Yale Brain Mets | Metastases variant if glioma access blocked |
 
 **Unlike breast:** we use **NIfTI + expert masks**, not TCIA DICOM + Otsu. Do not copy `tcia_extractor.py` — follow the API shape only.
 
+Demo contrast pair (Phase 1): `100002` (IDH-mut, grade 2, stable) vs `100118` (IDH-WT GBM, grade 4, +609% WT growth over 56d) — see [`cohort/cohort.json`](cohort/cohort.json).
+
 ---
 
 ## Suggested implementation order
 
-### Phase 0 — Spike bootstrap *(next)*
+```mermaid
+flowchart LR
+    P0[Phase0_BaselineSpike] --> P05[Phase05_LongitudinalT1T2]
+    P05 --> P1[Phase1_TwoPatientDemo]
+    P1 --> P2[Phase2_Stretch]
+    P2 --> P3[Phase3_MedPy]
+```
 
-1. Register / download one UCSF patient (baseline MR + segmentation).
-2. Scaffold `nifti_extractor.py`:
+### Phase 0 — Spike bootstrap *(complete)*
+
+1. Register / download one UCSF patient (baseline MR + segmentation) — **done** (`100002`).
+2. Implement `nifti_extractor.py` — **done**:
    ```python
    def extract_volume(nifti_path: Path) -> np.ndarray: ...  # (Z, Y, X) float32
    def extract_spacing(nifti_path: Path) -> tuple[float, float, float]: ...
    def load_expert_mask(mask_path: Path, mr_shape: tuple) -> np.ndarray: ...
    ```
-3. Implement `export_raw_extract.py` — write sidecar JSON per [`../handoff_contract.json`](../handoff_contract.json).
-4. QC with `view_volume_napari.py --slug <slug>` and `qc_slice_plot.py`.
-5. Hand off to Vinesh; stay paired until `solve_growth()` succeeds.
+3. Implement `export_raw_extract.py` — **done** (baseline via CLI; see Known gaps for multi-timepoint).
+4. QC with `view_volume_napari.py --slug <slug>` and `qc_slice_plot.py` — **done** (baseline).
+5. Hand off to Vinesh; stay paired until `solve_growth()` succeeds — **done** (baseline smoke).
+
+### Phase 0.5 — Longitudinal t1→t2 on `100002` *(next)*
+
+Export both timepoints so Vinesh can simulate growth from timepoint 1 to timepoint 2 (228 days; WT volume 8137 → 8365 mm³, ~+2.8%).
+
+1. **Philip-Chandan:** both raw extracts + masks — follow-up **done** on disk; cohort export via `export_all_raw.py` (checkpointed).
+2. **Philip-Chandan:** PDE prep for all slugs (`prepare_pde_input.py --slug ... --all-grids`); follow-up g128 still optional.
+3. **Vinesh:** port breast [`calibrate.py`](../vinesh/calibrate.py) — tune solver so simulated burden matches real follow-up (expert-mask seeding via `mask_seeding.py`, not breast Otsu `isolate_tumor`).
+4. **Optional:** growth animation GIF (breast `make_growth_animation.py` pattern).
+5. **Philip-Chandan:** document paired slugs + `interval_days` + calibrated params in `manifest.json`.
+
+When Philip-Chandan supply a follow-up scan, Vinesh calibrates growth so simulation reproduces baseline→followup change — same intent as breast `calibrate.py`.
 
 ### Phase 1 — Two-grade or two-patient demo
 
-- Pick **low vs high grade** (or IDH-wt vs IDH-mut if genomics align) for UI toggle.
-- Add follow-up timepoint for longitudinal comparison.
-- Publish `manifest.json` v1.0.0.
+- Export baseline (+ follow-up) for **`100118`** (IDH-WT GBM) alongside `100002`.
+- Publish `manifest.json` v1.0.0 — maps grade / IDH / timepoint → slug → paths.
+- Notify Praneeth (genomics labels), Jasim (render), Vihari (toggle).
 
 ### Phase 2 — Stretch (post-demo)
 
 - PyRadiomics on cropped tumor ROI (optional; mirror breast `stretch/` layout).
-- Longitudinal validation: simulated volume vs follow-up scan.
+- Longitudinal validation metrics: simulated volume vs follow-up scan (analysis after Phase 0.5 calibration works).
 
 ### Phase 3 — MedPy cleanup *(low priority — after end-to-end)*
 
-**Do not start until:** spike → `solve_growth()` verified → Jasim render sign-off → Vihari toggle wired (checklist above green).
+**Do not start until:** spike → calibrated t1→t2 verified → Jasim render sign-off → Vihari toggle wired (checklist below green).
 
 **Package:** `medpy` is already in [`../../requirements.txt`](../../requirements.txt). Swap internals only; preserve handoff contract shapes and test signatures.
 
 | Priority | File | Current brittle pattern | MedPy replacement | Owner |
 |----------|------|-------------------------|-------------------|-------|
-| 1 | `../vinesh/prepare_pde_input.py` | `scipy.ndimage.zoom` + manual spacing factors | `medpy.filter.resample` (MR: bspline; mask: nearest) | Vinesh — coordinate before merge |
-| 2 | `../vinesh/prepare_pde_input.py` | Hand-rolled `_crop_or_pad_centered` | `medpy.filter.bounding_box` + `medpy.filter.pad` | Vinesh |
+| 1 | `../vinesh/prepare_pde_input.py` | `scipy.ndimage.zoom` + manual spacing factors | `medpy.filter.resample` (MR: bspline; mask: nearest) | Philip-Chandan — coordinate with Vinesh before merge |
+| 2 | `../vinesh/prepare_pde_input.py` | Hand-rolled `_crop_or_pad_centered` | `medpy.filter.bounding_box` + `medpy.filter.pad` | Philip-Chandan |
 | 3 | Breast `stretch/prep_volume.py` + `vinesh/calibrate.py` | Duplicated Otsu + largest-CC (`skimage` + `scipy.label`) | `medpy.filter.otsu` + `largest_connected_component` — one shared helper | Philip-Chandan (breast only; not brain v1) |
 | 4 | Breast `stretch/validate_segmentation.py` | Hand-rolled `dice_coefficient` / `volume_mm3` | `medpy.metric.dc`; optional `hd95` / `assd` for `.les` report | Philip-Chandan |
 
 **Keep as-is (MedPy does not help):** nibabel load in `nifti_extractor.py`, `mask_seeding.py` distance ramp (`scipy.ndimage`), PDE Laplacian in `tumor_pde_solver.py`, napari WW/WL/CLAHE in `view_volume_napari.py`, TCIA/cohort download.
 
-**Migration rule:** same as breast library table — swap internals, not filenames; bump [`../handoff_contract.json`](../handoff_contract.json) `version` only if resample/crop outputs change.
+**Migration rule:** swap internals, not filenames; bump [`../handoff_contract.json`](../handoff_contract.json) `version` only if resample/crop outputs change.
 
 ---
 
@@ -161,8 +214,10 @@ Source: [`../handoff_contract.json`](../handoff_contract.json). Bump `"version"`
 |----------|--------------|
 | **Raw extract (you)** | `(Z, Y, X)` float32, not normalized; spacing in sidecar JSON |
 | **Segmentation** | Expert mask, same grid as MR; path in JSON `segmentation_path` |
-| **PDE input (Vinesh)** | max `[64, 64, 64]`, spacing `[1, 1, 1]` mm, values `[0, 1]`, tumor **> 0** |
+| **PDE input (you)** | `grid_size_options`: 64 or 128; spacing `[1, 1, 1]` mm; values `[0, 1]`; tumor **> 0** — produced by `prepare_pde_input.py` |
 | **Solver defaults** | `timesteps=50`, `dt=0.1`, glioma params in contract |
+
+**Note:** contract `spike_patient` lists **baseline only** (`glioma_ucsf_100002_baseline`). Paired longitudinal metadata (follow-up slug, `interval_days`) will live in **`manifest.json`** (optional future contract bump).
 
 ### Slug naming
 
@@ -170,16 +225,21 @@ Source: [`../handoff_contract.json`](../handoff_contract.json). Bump `"version"`
 {disease_slug}_{dataset_slug}_{patient_id}_{timepoint_label}
 ```
 
-Example: `glioma_ucsf_P001_baseline`
+Example: `glioma_ucsf_100002_baseline`
 
-Output paths:
+Output paths (patient-id layout; full slug retained in JSON metadata):
 
 ```
-data/processed/raw-extract-philip-chandan/{slug}.npy
-data/processed/raw-extract-philip-chandan/{slug}.json
+data/processed/raw-extract-philip-chandan/<patient_id>/{timepoint}.npy
+data/processed/raw-extract-philip-chandan/<patient_id>/{timepoint}.json
 data/processed/segmentations/{slug}_mask.nii.gz
-data/qc/slice-plots-philip-chandan/{slug}_mid-z.png
+data/qc/slice-plots-philip-chandan/{slug}_mid-z-overlay.png
+data/processed/pde-input-vinesh/<patient_id>/g64/{timepoint}.npy
+data/processed/pde-input-vinesh/<patient_id>/g64/{timepoint}.json
+data/processed/pde-input-vinesh/<patient_id>/g128/{timepoint}.npy   # optional
 ```
+
+Example for spike patient `100002` baseline: slug `glioma_ucsf_100002_baseline` → `100002/baseline.npy`.
 
 ---
 
@@ -188,18 +248,20 @@ data/qc/slice-plots-philip-chandan/{slug}_mid-z.png
 ```mermaid
 flowchart LR
     P[Praneeth: genomics / grade labels] --> PC[Philip-Chandan: download + extract]
-    PC --> NPY[.npy + manifest + masks]
-    NPY --> V[Vinesh: PDE prep + solver]
+    PC --> NPY[raw .npy + PDE prep + manifest + masks]
+    NPY --> V[Vinesh: solver + calibrate]
     V --> J[Jasim: render_3d]
     V --> UI[Vihari: Streamlit tabs]
 ```
 
 | Who | When | Message |
 |-----|------|---------|
-| **Praneeth** | Before patient lock | Confirmed patient IDs + molecular subtype / grade for demo toggle |
-| **Vinesh** | After contract read | Expected array shape; `prepare_pde_input.py` stub timeline |
-| **Jasim** | After first PDE input | Axis `(Z, Y, X)`; continuous density frames |
+| **Praneeth** | Before UI lock | Confirm `100118` vs `100002` IDs + IDH/grade for demo toggle (cohort already drafted) |
+| **Vinesh** | Now | Port `calibrate.py` for t1→t2 on `100002`; consume Philip-Chandan PDE inputs |
+| **Jasim** | After calibrated frames | Axis `(Z, Y, X)`; continuous density frames |
 | **Vihari** | After manifest | `subtype` or `slug` → `pde_npy` mapping |
+
+Live narrative: [`report.md`](report.md) / [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf).
 
 ---
 
@@ -207,36 +269,81 @@ flowchart LR
 
 **Phase 0 (spike)**
 
-- [ ] Dataset access confirmed (UCSF or fallback)
-- [ ] `cohort/cohort.json` populated with real patient ID
-- [ ] Baseline MR + mask on disk under `data/raw/`
-- [ ] `nifti_extractor.py` + unit test on sample NIfTI
-- [ ] Raw extract exported to `raw-extract-philip-chandan/`
-- [ ] Slice QC PNG saved
-- [ ] Vinesh PDE input for one slug
-- [ ] `solve_growth()` verified end-to-end
+- [x] Dataset access confirmed (UCSF)
+- [x] `cohort/cohort.json` populated with real patient ID (`100002`)
+- [x] Baseline MR + mask on disk under `data/raw/ucsf_alptdg/`
+- [x] `nifti_extractor.py` + unit test on sample NIfTI
+- [x] Baseline raw extract exported to `raw-extract-philip-chandan/`
+- [x] Baseline slice QC PNG saved
+- [x] PDE input for baseline slug via `prepare_pde_input.py` (g64 + g128)
+- [x] `solve_growth()` verified end-to-end on baseline
 
-**Demo-ready**
+**Phase 0.5 (longitudinal t1→t2 on `100002`)**
 
-- [ ] Two patients or two grades with baseline extracts
+- [x] Follow-up raw extract + mask (`glioma_ucsf_100002_followup`)
+- [x] Follow-up slice QC PNG
+- [x] Follow-up PDE input g64 (`100002/g64/followup.npy`)
+- [ ] Follow-up PDE input g128 (optional)
+- [ ] Cohort-driven export CLI (all timepoints from `cohort.json`)
+- [ ] Brain `calibrate.py` ported and run on baseline→followup pair
+- [ ] Document calibrated params + interval in manifest
+
+**Demo-ready** *(depends on Phase 0.5 + Phase 1)*
+
+- [ ] Two patients or two grades with baseline extracts (`100002` + `100118`)
 - [ ] `manifest.json` v1.0.0
 - [ ] Jasim render without axis flip
 - [ ] Vihari disease/grade toggle wired
 
 ---
 
-## Scripts to implement (stubs)
+## Scripts
 
 | File | Status | Notes |
 |------|--------|-------|
-| `nifti_extractor.py` | **TODO** | nibabel load; `(Z, Y, X)` convention |
-| `export_raw_extract.py` | **TODO** | Contract JSON sidecar |
-| `qc_slice_plot.py` | **TODO** | Mid-slice MR + mask overlay |
+| `nifti_extractor.py` | **done** | nibabel load; `(Z, Y, X)` convention |
+| `export_raw_extract.py` | **partial** | Core export works; CLI only baseline spike |
+| `export_all_raw.py` | **done** | Cohort + multi-timepoint export; checkpoint `.export_all_raw.state.json` |
+| `qc_slice_plot.py` | **done** | Mid-slice MR + mask overlay |
+| `view_volume_napari.py` | **done** | Clinical QC + `--pde-input` |
+| `qc_pde_plot.py` | **done** | PDE prep QC figures under `data/qc/pde-prep-vinesh/` |
+| `generate_pipeline_report.py` | **done** | → `PIPELINE_REPORT.pdf` |
 | `download_mu_glioma_post.py` | **ready** | Metadata via HTTPS; imaging via TCIA Faspex (~11 GB) |
 | `cohort/cohort_discovery.py` | **ready** | TCIA + local inventory; validate picks before editing `cohort.json` |
-| `../vinesh/prepare_pde_input.py` | **TODO** | Vinesh owns; resample expert mask → PDE grid |
+| `../vinesh/prepare_pde_input.py` | **done** (baseline + follow-up g64) | Philip-Chandan runs after each export; g128 follow-up optional |
+| `../vinesh/calibrate.py` | **TODO (Vinesh)** | Port from breast for t1→t2 calibration |
 
-**Working today:** `view_volume_napari.py --demo` (synthetic); solver smoke tests in `../vinesh/test_solver.py`.
+**Working today:** solver smoke tests in `../vinesh/test_solver.py`; napari `--demo` (synthetic) or `--slug glioma_ucsf_100002_baseline --pde-input` (real data).
+
+### Batch export — `export_all_raw.py`
+
+Loops `cohort.json` and calls `export_raw_extract()` + QC per slug. Checkpoint: `data/processed/raw-extract-philip-chandan/.export_all_raw.state.json`.
+
+```bash
+# All primary patients (resumes by default)
+python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary
+
+# Single patient
+python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --patient-id 100002
+
+# Clean restart
+python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary --fresh
+
+# Monitor progress
+jq '{status: .run_status, current: .current_job_id, summary: .summary}' \
+  data/processed/raw-extract-philip-chandan/.export_all_raw.state.json
+```
+
+Also: `--timepoints`, `--no-qc`, `--resume` / `--no-resume`, `--force`, `--retry-failed`, `--status-file PATH`.
+
+---
+
+## Known gaps
+
+1. **`export_raw_extract.py`** — single-spike CLI only; use `export_all_raw.py` for cohort batches (checkpointed).
+2. **`handoff_contract.json`** — `spike_patient` is baseline-only; paired longitudinal metadata belongs in `manifest.json`.
+3. **No brain `calibrate.py`** — blocks t1→t2 simulation despite follow-up raw extract on disk.
+4. **`report.md`** — “Next” line still lists follow-up as pending; optional sync in a separate edit.
 
 ---
 
@@ -248,8 +355,26 @@ python3.11 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
 # Solver smoke test
-python simulation-vinesh-philip-chandan/vinesh/test_solver.py
+.venv/bin/python simulation-vinesh-philip-chandan/vinesh/test_solver.py
 
 # Napari demo (no data required)
-python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py --demo
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py --demo
+
+# Export baseline spike (default)
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/export_raw_extract.py
+
+# PDE prep (Philip-Chandan) — baseline
+.venv/bin/python simulation-vinesh-philip-chandan/vinesh/prepare_pde_input.py --slug glioma_ucsf_100002_baseline --all-grids
+
+# Napari QC on real spike
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/view_volume_napari.py --slug glioma_ucsf_100002_baseline --pde-input
+```
+
+Regenerate pipeline PDF:
+
+```bash
+.venv/bin/python simulation-vinesh-philip-chandan/vinesh/prepare_pde_input.py --all-grids
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/qc_pde_plot.py --all-grids
+.venv/bin/python simulation-vinesh-philip-chandan/vinesh/bench_pde_grid.py
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/generate_pipeline_report.py
 ```

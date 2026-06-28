@@ -1,0 +1,31 @@
+{
+  "contract_version": "1.0.0",
+  "slug": "glioma_ucsf_longitudinal_glioma_(ucsf_lptdg)_100220_baseline",
+  "patient_id": "100220",
+  "dataset": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+  "disease": "Glioma",
+  "timepoint": "baseline",
+  "study_date": "day0",
+  "source_path": "data/raw/ucsf_alptdg/100220/100220_time1_t1ce.nii.gz",
+  "shape": [
+    155,
+    240,
+    240
+  ],
+  "dtype": "float32",
+  "spacing_mm": [
+    1.0,
+    1.0,
+    1.0
+  ],
+  "axis_order": [
+    "Z",
+    "Y",
+    "X"
+  ],
+  "normalize": false,
+  "value_semantics": {
+    "description": "Raw MR intensity; paired expert mask in data/processed/segmentations/"
+  },
+  "segmentation_path": "data/processed/segmentations/glioma_ucsf_longitudinal_glioma_(ucsf_lptdg)_100220_baseline_mask.nii.gz"
+}

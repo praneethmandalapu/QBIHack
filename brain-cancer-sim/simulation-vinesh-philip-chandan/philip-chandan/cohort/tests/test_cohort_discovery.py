@@ -12,6 +12,7 @@ from cohort.cohort_discovery import (
     analyze_patient_imaging_tcia,
     audit_cohort,
     build_patient_report,
+    discover_ucsf_cohort,
     find_longitudinal_local,
     find_longitudinal_tcia,
     list_tcia_patients,
@@ -209,3 +210,46 @@ def test_audit_cohort_stub(tmp_path: Path) -> None:
     assert len(result["reports"]) == 1
     assert result["reports"][0]["ok"] is True
     assert result["primary_ok"] is True
+
+
+def test_discover_ucsf_cohort_counts(tmp_path: Path) -> None:
+    cohort_path = tmp_path / "cohort.json"
+    cohort_path.write_text(
+        json.dumps(
+            {
+                "version": "test",
+                "primary": [{"patient_id": "100002", "dataset_key": "ucsf_longitudinal_glioma"}],
+                "patients": [{"patient_id": "100118", "dataset": "UCSF Longitudinal Glioma"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    master_csv = tmp_path / "master.csv"
+    master_csv.write_text(
+        "subjectid,idh,grade,mgmt,who_2021_diagnosis,wt_growth_pct\n"
+        "100002,mut,2.0,positive,Oligodendroglioma,2.8\n"
+        "100003,WT,4.0,positive,Glioblastoma,120.0\n"
+        "100004,mut,,,Astrocytoma,\n",
+        encoding="utf-8",
+    )
+
+    raw_root = tmp_path / "raw"
+    for patient_id in ("100002", "100003", "100004"):
+        patient_root = raw_root / "ucsf_alptdg" / patient_id
+        patient_root.mkdir(parents=True)
+        for tp in ("time1", "time2"):
+            (patient_root / f"{patient_id}_{tp}_t1ce.nii.gz").write_bytes(b"mr")
+            (patient_root / f"{patient_id}_{tp}_seg.nii.gz").write_bytes(b"seg")
+
+    result = discover_ucsf_cohort(
+        cohort_path=cohort_path,
+        master_csv=master_csv,
+        raw_root=raw_root,
+    )
+
+    assert result["counts"]["imaging_two_timepoint_expert_seg"] == 3
+    assert result["counts"]["same_id_genomics_idh_grade"] == 2
+    assert result["counts"]["in_cohort_json"] == 1
+    assert result["counts"]["missing_from_cohort_json"] == 1
+    assert result["missing_from_cohort_json"] == ["100003"]

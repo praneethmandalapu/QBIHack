@@ -31,7 +31,7 @@ sys.path.insert(0, str(VINESH_DIR))
 from prepare_pde_input import load_raw_extract  # noqa: E402
 from run_growth import run_growth  # noqa: E402
 from tumor_pde_solver import total_volume  # noqa: E402
-from spike_paths import pde_input_metadata, pde_input_npy  # noqa: E402
+from spike_paths import resolve_pde_input_metadata, resolve_pde_input_npy  # noqa: E402
 
 SPIKE = spike_patient()
 SPIKE_SLUG = SPIKE["slug"]
@@ -282,11 +282,11 @@ def build_report() -> ReportPDF:
             [45, 135],
         )
 
-    pde_meta_path = pde_input_metadata(SPIKE_SLUG)
+    pde_meta_path = resolve_pde_input_metadata(SPIKE_SLUG)
     pde_meta: dict | None = None
     if pde_meta_path.exists():
         pde_meta = json.loads(pde_meta_path.read_text(encoding="utf-8"))
-        pde_npy = pde_input_npy(SPIKE_SLUG)
+        pde_npy = resolve_pde_input_npy(SPIKE_SLUG)
         import numpy as np
 
         pde_vol = np.load(pde_npy) if pde_npy.exists() else None
@@ -470,7 +470,7 @@ def build_report() -> ReportPDF:
             width_mm=100,
         )
 
-    pde_npy = pde_input_npy(SPIKE_SLUG)
+    pde_npy = resolve_pde_input_npy(SPIKE_SLUG)
     if pde_npy.exists() and pde_meta is not None:
         import numpy as np
 

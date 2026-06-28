@@ -563,10 +563,10 @@ flowchart TD
 
 ### Batch export — `export_all_raw.py`
 
-Loops `cohort.json` and calls `export_raw_extract()` + QC plot per slug. Patient and timepoint scope mirror `download_tcia.py`.
+Loops `cohort.json` and calls `export_raw_extract()` + QC plot per slug. Patient and timepoint scope mirror `download_tcia.py`. Progress is checkpointed to `data/processed/raw-extract-philip-chandan/.export_all_raw.state.json` (resume by default; one slug flushed at a time with per-job timing).
 
 ```bash
-# All primary patients, every timepoint (default)
+# All primary patients, every timepoint (default; resumes if interrupted)
 python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary
 
 # Baselines only
@@ -578,9 +578,16 @@ python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py \
 
 # Skip QC PNGs for a faster re-export
 python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary --no-qc
+
+# Clean restart (delete checkpoint)
+python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary --fresh
+
+# Monitor a long run (another terminal)
+jq '{status: .run_status, current: .current_job_id, summary: .summary}' \
+  data/processed/raw-extract-philip-chandan/.export_all_raw.state.json
 ```
 
-`--timepoints` accepts `all` (default), a single label (`baseline`, `followup`), or comma-separated labels. Backups without `study_date` in cohort are skipped with a message.
+`--timepoints` accepts `all` (default), a single label (`baseline`, `followup`), or comma-separated labels. Backups without `study_date` in cohort are skipped with a message. Also: `--resume` / `--no-resume`, `--force`, `--retry-failed`, `--status-file PATH`.
 
 ### `manifest.json` schema (Philip-Chandan source of truth)
 

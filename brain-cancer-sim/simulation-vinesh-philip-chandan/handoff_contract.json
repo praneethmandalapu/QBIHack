@@ -13,7 +13,7 @@
   },
   "raw_extract": {
     "producer": "philip-chandan",
-    "output_dir": "data/processed/raw-extract-philip-chandan",
+    "output_dir": "data/processed/raw-extract-philip-chandan/{patient_id}/{timepoint}.npy",
     "axis_order": ["Z", "Y", "X"],
     "dtype": "float32",
     "normalize": false,
@@ -36,8 +36,8 @@
     ]
   },
   "pde_input": {
-    "producer": "vinesh",
-    "output_dir": "data/processed/pde-input-vinesh",
+    "producer": "philip-chandan",
+    "output_dir": "data/processed/pde-input-vinesh/{patient_id}/g{grid_size}/{timepoint}.npy",
     "axis_order": ["Z", "Y", "X"],
     "dtype": "float32",
     "default_grid_size": 64,

@@ -8,8 +8,19 @@ Usage (from brain-cancer-sim/):
   python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py audit
   python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py find-longitudinal --dataset mu_glioma_post
   python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py scan-local --dataset ucsf_longitudinal_glioma
+  python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py discover-ucsf
   python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py recommend-pair
   python simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort_discovery.py show PATIENT_ID --dataset mu_glioma_post --json
+
+Discovery log (UCSF-ALPTDG, refreshed via ``discover-ucsf``):
+  - Imaging eligible: 2 visit timepoints (baseline + followup) with expert ``*_seg.nii.gz``
+    masks on disk under ``data/raw/ucsf_alptdg/<patient_id>/``.
+  - Same-ID genomics eligible: imaging eligible **and** IDH + grade present for the same
+    ``subjectid`` in ``data/processed/ucsf_longitudinal_master.csv`` (from
+    ``models-praneeth/clean_ucsf.py``). This is UCSF-native molecular data, not TCGA barcodes.
+  - ``cohort.json`` holds a **curated** primary/backup pair (7 patients as of rev1-ucsf),
+    not the full eligible inventory — see ``cohort/cohort_discovery_ucsf.json`` for the
+    complete audited list and ``missing_from_cohort_json`` IDs.
 """
 
 from __future__ import annotations
@@ -28,7 +39,7 @@ _ROOT = Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
 
-from cohort import COHORT_PATH, RAW_DATA_DIR
+from cohort import COHORT_DISCOVERY_UCSF_PATH, COHORT_PATH, RAW_DATA_DIR, REPO_ROOT, UCSF_MASTER_CSV
 from cohort.cohort_io import iter_cohort_entries, load_cohort, resolve_patient_raw_dir
 from cohort.datasets import DatasetSpec, PREFERRED_DATASET_KEYS, get_dataset, iter_datasets
 
@@ -43,6 +54,7 @@ TIMEPOINT_STEM_ALIASES = (
     ("time1", "baseline"),
     ("time2", "followup"),
 )
+UCSF_VISIT_LABELS = frozenset({"baseline", "followup"})
 
 HttpFetcher = Callable[[str], bytes]
 
@@ -431,6 +443,160 @@ def find_longitudinal_patients(
         return local_matches
 
     return []
+
+
+def _is_ucsf_subject_id(patient_id: str) -> bool:
+    return patient_id.isdigit()
+
+
+def _has_visit_segmentation_masks(report: dict[str, Any]) -> bool:
+    timepoints = report.get("timepoints") or []
+    visit_labels = {
+        tp["label"]
+        for tp in timepoints
+        if tp.get("segmentation_available") and tp.get("label") in UCSF_VISIT_LABELS
+    }
+    return len(visit_labels) >= 2
+
+
+def load_ucsf_master_lookup(
+    master_csv: Path | None = None,
+) -> dict[str, dict[str, Any]]:
+    path = master_csv or UCSF_MASTER_CSV
+    if not path.is_file():
+        return {}
+
+    import csv
+
+    lookup: dict[str, dict[str, Any]] = {}
+    with path.open(newline="", encoding="utf-8") as handle:
+        for row in csv.DictReader(handle):
+            subject_id = str(row.get("subjectid", "")).strip()
+            if not subject_id:
+                continue
+            lookup[subject_id] = row
+    return lookup
+
+
+def discover_ucsf_cohort(
+    *,
+    cohort_path: Path | None = None,
+    master_csv: Path | None = None,
+    raw_root: Path | None = None,
+) -> dict[str, Any]:
+    """Audit UCSF-ALPTDG patients against imaging + same-ID genomics (IDH/grade) criteria."""
+    master_lookup = load_ucsf_master_lookup(master_csv)
+    imaging_reports = find_longitudinal_local(
+        "ucsf_longitudinal_glioma",
+        require_segmentation=True,
+        raw_root=raw_root,
+    )
+
+    cohort = load_cohort(cohort_path)
+    cohort_ids = {
+        str(entry["patient_id"])
+        for entry in iter_cohort_entries(cohort, include_backups=True)
+    }
+
+    patients: list[dict[str, Any]] = []
+    imaging_eligible_ids: list[str] = []
+    genomics_eligible_ids: list[str] = []
+
+    for report in imaging_reports:
+        patient_id = str(report["patient_id"])
+        if not _is_ucsf_subject_id(patient_id):
+            continue
+        if not _has_visit_segmentation_masks(report):
+            continue
+
+        clinical = master_lookup.get(patient_id, {})
+        idh = (clinical.get("idh") or "").strip()
+        grade = (clinical.get("grade") or "").strip()
+        has_same_id_genomics = bool(
+            idh and grade and idh.lower() != "nan" and grade.lower() != "nan"
+        )
+
+        entry = {
+            "patient_id": patient_id,
+            "imaging_eligible": True,
+            "same_id_genomics_idh_grade": has_same_id_genomics,
+            "in_cohort_json": patient_id in cohort_ids,
+            "study_dates": report.get("study_dates", []),
+            "span_days": report.get("span_days"),
+            "idh_status": idh or None,
+            "grade": grade or None,
+            "mgmt": clinical.get("mgmt") or None,
+            "who_2021_diagnosis": clinical.get("who_2021_diagnosis") or None,
+            "wt_growth_pct": clinical.get("wt_growth_pct") or None,
+        }
+        patients.append(entry)
+        imaging_eligible_ids.append(patient_id)
+        if has_same_id_genomics:
+            genomics_eligible_ids.append(patient_id)
+
+    patients.sort(key=lambda row: row["patient_id"])
+    imaging_set = set(imaging_eligible_ids)
+    genomics_set = set(genomics_eligible_ids)
+    missing_from_cohort = sorted(genomics_set - cohort_ids)
+
+    master_path = master_csv or UCSF_MASTER_CSV
+    try:
+        genomics_source = str(master_path.relative_to(REPO_ROOT))
+    except ValueError:
+        genomics_source = str(master_path)
+
+    return {
+        "dataset_key": "ucsf_longitudinal_glioma",
+        "generated_at": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
+        "criteria": {
+            "imaging": (
+                "UCSF-ALPTDG local NIfTI: baseline + followup visit folders with expert "
+                "segmentation masks (*_time1_seg.nii.gz, *_time2_seg.nii.gz)"
+            ),
+            "same_id_genomics_idh_grade": (
+                "Same UCSF subjectid with IDH + grade in "
+                "data/processed/ucsf_longitudinal_master.csv (UCSF clinical workbook; "
+                "not TCGA expression data)"
+            ),
+        },
+        "counts": {
+            "imaging_two_timepoint_expert_seg": len(imaging_set),
+            "same_id_genomics_idh_grade": len(genomics_set),
+            "in_cohort_json": len(cohort_ids & genomics_set),
+            "missing_from_cohort_json": len(missing_from_cohort),
+        },
+        "genomics_source": genomics_source,
+        "cohort_json_patient_ids": sorted(cohort_ids),
+        "missing_from_cohort_json": missing_from_cohort,
+        "patients": patients,
+        "notes": (
+            "cohort.json is curated for demo pairs/backups, not a full inventory. "
+            "Regenerate this file after downloading UCSF NIfTI or refreshing clean_ucsf.py output."
+        ),
+    }
+
+
+def write_ucsf_discovery_json(
+    result: dict[str, Any],
+    output_path: Path | None = None,
+) -> Path:
+    path = output_path or COHORT_DISCOVERY_UCSF_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
+    return path
+
+
+def print_ucsf_discovery_summary(result: dict[str, Any]) -> None:
+    counts = result["counts"]
+    print(f"UCSF discovery ({result['dataset_key']})")
+    print(f"  Imaging (2 TP + expert seg): {counts['imaging_two_timepoint_expert_seg']}")
+    print(f"  Same-ID genomics (IDH+grade): {counts['same_id_genomics_idh_grade']}")
+    print(f"  Listed in cohort.json: {counts['in_cohort_json']}")
+    print(f"  Genomics-eligible but not in cohort.json: {counts['missing_from_cohort_json']}")
+    if result.get("missing_from_cohort_json"):
+        sample = ", ".join(result["missing_from_cohort_json"][:12])
+        suffix = "..." if len(result["missing_from_cohort_json"]) > 12 else ""
+        print(f"    sample: {sample}{suffix}")
 
 
 def build_patient_report(
@@ -828,6 +994,29 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Suggest spike patient from preferred datasets",
     )
 
+    discover_ucsf_parser = subparsers.add_parser(
+        "discover-ucsf",
+        parents=[common],
+        help="Audit UCSF-ALPTDG imaging + same-ID genomics eligibility; write cohort_discovery_ucsf.json",
+    )
+    discover_ucsf_parser.add_argument(
+        "--output",
+        type=Path,
+        default=COHORT_DISCOVERY_UCSF_PATH,
+        help="Path for discovery JSON (default: cohort/cohort_discovery_ucsf.json)",
+    )
+    discover_ucsf_parser.add_argument(
+        "--master-csv",
+        type=Path,
+        default=UCSF_MASTER_CSV,
+        help="UCSF longitudinal master table from clean_ucsf.py",
+    )
+    discover_ucsf_parser.add_argument(
+        "--no-write",
+        action="store_true",
+        help="Skip writing cohort_discovery_ucsf.json (stdout / --json only)",
+    )
+
     show_parser = subparsers.add_parser(
         "show",
         parents=[common],
@@ -900,6 +1089,22 @@ def main(argv: list[str] | None = None) -> int:
             print(json.dumps(result, indent=2))
         else:
             print_recommend_pair(result)
+        return 0
+
+    if args.command == "discover-ucsf":
+        result = discover_ucsf_cohort(
+            cohort_path=args.cohort,
+            master_csv=args.master_csv,
+            raw_root=args.raw_root,
+        )
+        if not args.no_write:
+            path = write_ucsf_discovery_json(result, args.output)
+            if not emit_json:
+                print(f"Wrote {path}")
+        if emit_json:
+            print(json.dumps(result, indent=2))
+        elif not args.no_write:
+            print_ucsf_discovery_summary(result)
         return 0
 
     if args.command == "show":

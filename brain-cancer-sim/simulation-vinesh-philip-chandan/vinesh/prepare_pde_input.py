@@ -30,16 +30,17 @@ from spike_paths import (  # noqa: E402
     pde_input_metadata,
     pde_input_npy,
     pde_input_npy_legacy,
-    raw_extract_metadata,
     raw_extract_npy,
+    resolve_raw_extract_metadata,
+    resolve_raw_extract_npy,
     segmentation_mask_path,
 )
 
 
 def load_raw_extract(slug: str | None = None) -> tuple[np.ndarray, dict]:
     name = slug or SPIKE_PATIENT["slug"]
-    npy_path = raw_extract_npy(name)
-    json_path = raw_extract_metadata(name)
+    npy_path = resolve_raw_extract_npy(name)
+    json_path = resolve_raw_extract_metadata(name)
     if not npy_path.exists() or not json_path.exists():
         raise FileNotFoundError(
             f"Missing raw extract. Ask Philip-Chandan to run export_raw_extract.py "

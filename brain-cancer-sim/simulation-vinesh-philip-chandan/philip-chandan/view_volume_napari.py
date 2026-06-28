@@ -51,7 +51,7 @@ from handoff_contract import (  # noqa: E402
     pde_input_spec,
     raw_extract_spec,
 )
-from spike_paths import pde_input_npy, pde_input_npy_legacy  # noqa: E402
+from spike_paths import resolve_pde_input_npy  # noqa: E402
 from nifti_extractor import resolve_ucsf_supplementary_paths  # noqa: E402
 from tumor_pde_solver import dummy_volume  # noqa: E402
 
@@ -745,9 +745,7 @@ def view_slug(slug: str, *, show_pde: bool = False, pde_grid_size: int | None = 
 
     if show_pde:
         grid_size = pde_grid_size or default_grid_size()
-        pde_path = pde_input_npy(slug, grid_size=grid_size)
-        if not pde_path.exists():
-            pde_path = pde_input_npy_legacy(slug)
+        pde_path = resolve_pde_input_npy(slug, grid_size=grid_size)
         if pde_path.exists():
             pde = np.load(pde_path).astype(np.float32)
             viewer.add_image(

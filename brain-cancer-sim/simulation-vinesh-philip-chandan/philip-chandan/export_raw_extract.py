@@ -53,9 +53,12 @@ def export_raw_extract(
     volume, spacing_mm = extract_volume_with_spacing(mr_path)
     _ = load_expert_mask(seg_path, volume.shape)
 
-    npy_path = raw_extract_npy(slug)
-    json_path = raw_extract_metadata(slug)
-    np.save(npy_path, volume)
+    npy_path = raw_extract_npy(slug, patient_id=patient_id, timepoint=timepoint)
+    json_path = raw_extract_metadata(slug, patient_id=patient_id, timepoint=timepoint)
+    npy_path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_npy = npy_path.with_suffix(".tmp.npy")
+    np.save(tmp_npy, volume)
+    tmp_npy.replace(npy_path)
 
     if copy_mask:
         mask_out = segmentation_mask_path(slug)
