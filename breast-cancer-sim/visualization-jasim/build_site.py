@@ -3,7 +3,7 @@
 A tabbed static site:
   • BRAIN  — longitudinal glioma growth (Vinesh's calibrated PDE frame stacks,
              seeded from a real UCSF baseline) + the real 298-patient cohort.
-  • BREAST — 3D snapshot of real TCGA-BRCA volumes (no growth; multiple views).
+  • BREAST — PDE growth from real TCGA-BRCA baseline density (scrub/play player).
 
 3D traces are built client-side from embedded value arrays so everything
 switches instantly. Run:
@@ -25,12 +25,14 @@ import numpy as np  # noqa: E402
 import color_maps as cm  # noqa: E402
 import render_3d as r  # noqa: E402
 import make_brain_frames as bf  # noqa: E402
+import make_breast_frames as brf  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 BREAST = HERE.parent                      # breast-cancer-sim/
 REPO = BREAST.parent                      # qbihack/
 BRAIN = REPO / "brain-cancer-sim"
 FRAMES = BREAST / "data/processed/brain-frames-jasim"
+BREAST_FRAMES = BREAST / "data/processed/breast-frames-jasim"
 SITE = HERE / "site"
 SITE.mkdir(exist_ok=True)
 
@@ -123,92 +125,90 @@ def _patient_grade(patient_id: str) -> str:
         return raw
 
 
-BRAIN_META = {
+REGIME_META = {
     "aggressive": {"label": "IDH-wildtype", "tag": "aggressive", "idh": "WT",
-                   "patient_id": bf.SCENARIOS["aggressive"]["patient_id"],
-                   "grade": _patient_grade(bf.SCENARIOS["aggressive"]["patient_id"]),
                    "gm": COHORT["wt_gm"], "grew": COHORT["wt_grew"]},
     "indolent": {"label": "IDH-mutant", "tag": "indolent", "idh": "mutant",
-                 "patient_id": bf.SCENARIOS["indolent"]["patient_id"],
-                 "grade": _patient_grade(bf.SCENARIOS["indolent"]["patient_id"]),
                  "gm": COHORT["mut_gm"], "grew": COHORT["mut_grew"]},
 }
-bf.ensure_frames(FRAMES)   # regenerate gitignored demo stacks (100118 + 100002)
-BRAIN = {}
-BRAIN_SLICES = {}
-for key, m in BRAIN_META.items():
-    pid = m["patient_id"]
-    arr = np.load(bf.frame_path(FRAMES, key))   # (T,Z,Y,X)
-    meta_path = bf.meta_path(FRAMES, key)
-    frame_meta = json.loads(meta_path.read_text()) if meta_path.is_file() else {}
-    interval = float(frame_meta.get("interval_days") or 180)
+REGIMES = bf.regime_config()
+bf.ensure_frames(FRAMES)
+BRAIN: dict[str, dict[str, dict]] = {"aggressive": {}, "indolent": {}}
+BRAIN_SLICES: dict[str, dict[str, object]] = {"aggressive": {}, "indolent": {}}
+BRAIN_PICKERS: dict[str, list[dict]] = {"aggressive": [], "indolent": []}
+BRAIN_DEFAULTS = {k: v["default"] for k, v in REGIMES.items()}
+
+for regime, block in REGIMES.items():
+    meta = REGIME_META[regime]
+    for pid in block["patients"]:
+        arr = np.load(bf.frame_path(FRAMES, regime, pid))   # (T,Z,Y,X)
+        frame_meta_path = bf.meta_path(FRAMES, regime, pid)
+        frame_meta = json.loads(frame_meta_path.read_text()) if frame_meta_path.is_file() else {}
+        interval = float(frame_meta.get("interval_days") or 180)
+        T = arr.shape[0]
+        disp = [r.downsample(arr[i], 2) for i in range(T)]
+        burden = [float((arr[i] > bf.BURDEN_THR).sum()) for i in range(T)]
+        b0 = burden[0] or 1.0
+        growth = frame_meta.get("real_growth_pct")
+        BRAIN[regime][pid] = {
+            **meta,
+            "patient_id": pid,
+            "grade": _patient_grade(pid),
+            "risk": BRAIN_RISK.get(pid),
+            "real_growth_pct": growth,
+            "values": [np.round(d.ravel(), 2).tolist() for d in disp],
+            "idx": [round(100 * b / b0, 1) for b in burden],
+            "days": [round(i * interval / (T - 1)) for i in range(T)],
+            "n": T, "peak": round(100 * burden[-1] / b0),
+        }
+        BRAIN_SLICES[regime][pid] = theme_2d(r.render_slices(arr[-1], (1.0, 1.0, 1.0)))
+        growth_label = f"{growth:+.0f}%" if growth is not None else "—"
+        BRAIN_PICKERS[regime].append({
+            "id": pid,
+            "label": f"UCSF {pid} · grade {_patient_grade(pid)} · {growth_label} WT",
+        })
+
+# --------------------------------------------------------------------------- #
+# BREAST — PDE growth from real TCGA-BRCA baseline density
+# --------------------------------------------------------------------------- #
+brf.ensure_frames(BREAST_FRAMES)
+BREAST_GROWTH = {}
+for key, sc in brf.SCENARIOS.items():
+    arr = np.load(brf.frame_path(BREAST_FRAMES, key))   # (T,Z,Y,X)
+    frame_meta = json.loads(brf.meta_path(BREAST_FRAMES, key).read_text())
+    interval = float(frame_meta["interval_days"])
     T = arr.shape[0]
     disp = [r.downsample(arr[i], 2) for i in range(T)]
-    # Burden index at the same floor as the 3D isosurface (0.2).
-    burden = [float((arr[i] > bf.BURDEN_THR).sum()) for i in range(T)]
+    burden = [float(arr[i].sum()) for i in range(T)]
+    volume = [int((arr[i] >= brf.ISO).sum()) for i in range(T)]
     b0 = burden[0] or 1.0
-    BRAIN[key] = {
-        **m,
-        "risk": BRAIN_RISK.get(pid),
-        "real_growth_pct": frame_meta.get("real_growth_pct"),
-        "values": [np.round(d.ravel(), 2).tolist() for d in disp],
-        "idx": [round(100 * b / b0, 1) for b in burden],     # burden index, baseline = 100
+    v0 = volume[0] or 1
+    BREAST_GROWTH[key] = {
+        "label": sc["label"],
+        "subtype": sc["label"],
+        "tcga": sc["tcga"],
+        "baseline": frame_meta.get("baseline_date") or "—",
+        "slug": frame_meta.get("slug", ""),
+        "risk": sc["risk"],
+        "genomic_risk": BREAST_RISK.get(sc["tcga"]),
+        "interval": round(interval),
+        "n": T,
+        "iso": brf.ISO,
         "days": [round(i * interval / (T - 1)) for i in range(T)],
-        "n": T, "peak": round(100 * burden[-1] / b0),
+        "idx": [round(100 * b / b0, 1) for b in burden],
+        "burden": [round(b, 1) for b in burden],
+        "volume": volume,
+        "growth": round(100 * (burden[-1] - burden[0]) / b0, 1),
+        "volumeGrowth": round(100 * (volume[-1] - volume[0]) / v0, 1),
+        "peak": round(100 * burden[-1] / b0),
+        "maxDensity": round(float(arr.max()), 3),
+        "color": sc["color"],
+        "modelNote": (
+            "Prototype Fisher-KPP growth from copied breast PDE baseline density; "
+            "not clinically validated."
+        ),
+        "values": [np.round(d.ravel(), 2).tolist() for d in disp],
     }
-    BRAIN_SLICES[key] = theme_2d(r.render_slices(arr[-1], (1.0, 1.0, 1.0)))
-
-# --------------------------------------------------------------------------- #
-# BREAST — real TCGA-BRCA snapshot volumes (no growth)
-# --------------------------------------------------------------------------- #
-TCGA_FEATURES = BREAST / "data/processed/tcga_patient_features.csv"
-_tcga_rows = list(csv.DictReader(TCGA_FEATURES.open(newline=""))) if TCGA_FEATURES.is_file() else []
-GM_LO, GM_HI = 0.8, 1.8
-
-
-def _risk_gm(risk: float) -> float:
-    return GM_LO + (GM_HI - GM_LO) * risk
-
-
-def _pam50_cohort(pam50: str) -> dict[str, int | float | None]:
-    rows = [r for r in _tcga_rows if r.get("pam50") == pam50]
-    if not rows:
-        return {"n": 0, "gm": None, "high_risk_pct": 0}
-    gms = [_risk_gm(float(r["risk"])) for r in rows]
-    hi = sum(1 for r in rows if float(r["risk"]) >= 0.5)
-    return {
-        "n": len(rows),
-        "gm": round(stx.median(gms), 2),
-        "high_risk_pct": round(100 * hi / len(rows)),
-    }
-
-
-BR_SLUGS = ["luminal_a_TCGA-AR-A1AX_baseline", "basal_TCGA-AR-A1AQ_baseline"]
-BR_CASES = {
-    "luminal_a": {"label": "Luminal A", "tcga": "TCGA-AR-A1AX", "pam50": "BRCA_LumA",
-                  "slug": "luminal_a_TCGA-AR-A1AX_baseline"},
-    "basal": {"label": "Basal-like", "tcga": "TCGA-AR-A1AQ", "pam50": "BRCA_Basal",
-              "slug": "basal_TCGA-AR-A1AQ_baseline"},
-}
-BR_VOLS, BR_SLICES, BR_META = {}, {}, {}
-BREAST = {}
-for case_id, case in BR_CASES.items():
-    s = case["slug"]
-    tcga = case["tcga"]
-    v, e = r.load_pde_volume(s)
-    BR_VOLS[s] = np.round(r.downsample(v, 2).ravel(), 2).tolist()
-    BR_SLICES[s] = theme_2d(r.render_slices(v, (1.0, 1.0, 1.0)))
-    handoff = BREAST_PATIENTS.get(tcga, {})
-    cohort = _pam50_cohort(case["pam50"])
-    er = (handoff.get("er_status") or "—").strip()
-    frac = round(100.0 * float((v > 0.5).mean()), 1)
-    meta = {
-        "label": case["label"], "tcga": tcga, "pam50": case["pam50"], "slug": s,
-        "er": er, "gm": cohort["gm"], "high_risk_pct": cohort["high_risk_pct"],
-        "burden": frac, "risk": BREAST_RISK.get(tcga),
-    }
-    BR_META[s] = meta
-    BREAST[case_id] = meta
 
 LAYOUT3D = {
     "paper_bgcolor": "rgba(0,0,0,0)", "plot_bgcolor": "rgba(0,0,0,0)",
@@ -223,9 +223,15 @@ LAYOUT3D = {
 
 TEMPLATE = Path(HERE / "_template.html").read_text(encoding="utf-8")
 
-slices_brain = "{" + ",".join(f"{json.dumps(k)}:{BRAIN_SLICES[k].to_json()}" for k in BRAIN_SLICES) + "}"
-slices_breast = "{" + ",".join(f"{json.dumps(s)}:{BR_SLICES[s].to_json()}" for s in BR_SLUGS) + "}"
-brain_payload = {k: {kk: vv for kk, vv in v.items()} for k, v in BRAIN.items()}
+slices_brain = "{" + ",".join(
+    f"{json.dumps(regime)}:{{{','.join(f'{json.dumps(pid)}:{fig.to_json()}' for pid, fig in by_pid.items())}}}"
+    for regime, by_pid in BRAIN_SLICES.items()
+) + "}"
+brain_payload = {
+    regime: {pid: {kk: vv for kk, vv in payload.items()} for pid, payload in by_pid.items()}
+    for regime, by_pid in BRAIN.items()
+}
+breast_payload = {k: {kk: vv for kk, vv in v.items()} for k, v in BREAST_GROWTH.items()}
 
 repl = {
     "__GRID_X__": json.dumps(GRID_X), "__GRID_Y__": json.dumps(GRID_Y), "__GRID_Z__": json.dumps(GRID_Z),
@@ -235,10 +241,10 @@ repl = {
     "__OPAC__": json.dumps(cm.density_opacityscale()),
     "__BRAIN_OPAC__": json.dumps(cm.brain_opacityscale()),
     "__LAYOUT3D__": json.dumps(LAYOUT3D),
-    "__BRAIN__": json.dumps(brain_payload), "__BRAIN_SLICES__": slices_brain, "__COHORT__": json.dumps(COHORT),
-    "__BR_VOLS__": json.dumps(BR_VOLS), "__BR_SLICES__": slices_breast,
-    "__BR_META__": json.dumps(BR_META), "__BR_CASES__": json.dumps(BR_CASES),
-    "__BREAST__": json.dumps(BREAST),
+    "__BRAIN__": json.dumps(brain_payload), "__BRAIN_SLICES__": slices_brain,
+    "__BRAIN_DEFAULTS__": json.dumps(BRAIN_DEFAULTS), "__BRAIN_PICKERS__": json.dumps(BRAIN_PICKERS),
+    "__COHORT__": json.dumps(COHORT),
+    "__BREAST_GROWTH__": json.dumps(breast_payload),
 }
 html = TEMPLATE
 for k, v in repl.items():
@@ -247,6 +253,11 @@ for k, v in repl.items():
 out = SITE / "index.html"
 out.write_text(html, encoding="utf-8")
 print(f"wrote {out}  ({out.stat().st_size / 1e6:.1f} MB)")
-print(f"brain: aggressive peak {BRAIN['aggressive']['peak']}% · indolent peak {BRAIN['indolent']['peak']}%")
+print(f"brain: {len(BRAIN['aggressive'])} WT + {len(BRAIN['indolent'])} mut cases · "
+      f"defaults peak {BRAIN['aggressive'][BRAIN_DEFAULTS['aggressive']]['peak']}% / "
+      f"{BRAIN['indolent'][BRAIN_DEFAULTS['indolent']]['peak']}%")
 print(f"cohort: n={COHORT['n']} WT grew {COHORT['wt_grew']}% (GM {COHORT['wt_gm']}) · mut grew {COHORT['mut_grew']}% (GM {COHORT['mut_gm']})")
-print("breast:", ", ".join(f"{BR_META[s]['label'][:3]}/{BR_META[s]['tcga']} burden={BR_META[s]['burden']}%" for s in BR_SLUGS))
+print("breast:", ", ".join(
+    f"{BREAST_GROWTH[k]['label'][:3]}/{BREAST_GROWTH[k]['tcga']} peak={BREAST_GROWTH[k]['peak']} idx"
+    for k in BREAST_GROWTH
+))

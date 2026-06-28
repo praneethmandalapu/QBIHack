@@ -112,6 +112,7 @@ section{position:relative;z-index:2}
 .selbar{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;padding:.7rem 1.1rem;border-bottom:1px solid var(--line)}
 .seg-l{font-family:var(--font-m);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-right:.2rem}
 .seg-l.sp{margin-left:.8rem}
+.pat-sel{font-family:var(--font-m);font-size:.72rem;background:rgba(255,255,255,.03);color:var(--bone);border:1px solid var(--line);padding:.38rem .65rem;border-radius:2px;min-width:min(100%,18rem);max-width:100%}
 .stage{position:relative;height:clamp(360px,52vh,560px)}
 .viz{width:100%;height:100%}
 .scan{position:absolute;inset:0;pointer-events:none;overflow:hidden;mix-blend-mode:screen}
@@ -190,11 +191,11 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
       <svg class="ecg" viewBox="0 0 1200 120" preserveAspectRatio="none"><path d="M0 60 H320 l26 -44 l34 92 l30 -104 l28 116 l26 -56 H720 l22 -30 l24 60 H1200"/></svg>
     </h1>
     <p class="lede"><b>Glioma</b> grows over time — a calibrated reaction–diffusion model seeded from a real
-       UCSF MRI, set against a 298-patient cohort. <b>Breast</b> is a static 3D snapshot of real TCGA-BRCA
-       volumes. Switch tabs below to explore each.</p>
+       UCSF MRI, set against a 298-patient cohort. <b>Breast</b> grows from real TCGA-BRCA baseline density
+       using the same PDE engine. Switch tabs below to explore each.</p>
     <div class="cta-row">
       <a class="btn btn--signal" data-gototab="brain" href="#tabs">Brain · longitudinal →</a>
-      <a class="btn" data-gototab="breast" href="#tabs">Breast · snapshot</a>
+      <a class="btn" data-gototab="breast" href="#tabs">Breast · PDE growth</a>
     </div>
     <div class="hero-ticker" aria-hidden="true"><div class="row">
       <span>BRAIN <b>UCSF-LPTDG GLIOMA</b></span><span>COHORT <b>298 PATIENTS</b></span>
@@ -208,7 +209,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
 
   <div class="tabs" id="tabs">
     <button class="tab on" data-tab="brain"><span class="ix">01</span>Brain · longitudinal</button>
-    <button class="tab" data-tab="breast"><span class="ix">02</span>Breast · snapshot</button>
+    <button class="tab" data-tab="breast"><span class="ix">02</span>Breast · PDE growth</button>
   </div>
 
   <!-- ===================== BRAIN ===================== -->
@@ -235,6 +236,10 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
           <span class="seg-l">Regime</span>
           <button class="mode on" data-regime="aggressive">IDH-wildtype</button>
           <button class="mode" data-regime="indolent">IDH-mutant</button>
+        </div>
+        <div class="selbar">
+          <span class="seg-l">Patient</span>
+          <select id="brain-patient" class="pat-sel" aria-label="UCSF glioma patient"></select>
         </div>
         <div class="stage" id="brainStage">
           <div class="reticle" id="brainReticle">UCSF —<br>GLIOMA<br>ISO 0.20</div>
@@ -289,17 +294,17 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
   <!-- ===================== BREAST ===================== -->
   <section class="tabpanel" data-tab="breast" hidden>
     <div class="cluster reveal">
-      <div class="cell c-5"><span class="lab">PAM50 subtype</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="xk-subtype">—</span><span class="sub">TCGA-BRCA · patient <b id="xk-tcga">—</b></span></div>
-      <div class="cell c-4"><span class="lab">Subtype growth rate</span><span class="val" id="xk-gm">—</span><span class="sub">median multiplier · TCGA</span></div>
-      <div class="cell c-3"><span class="lab">ER status</span><span class="val" style="font-size:clamp(1.3rem,3vw,1.9rem)" id="xk-er">—</span><span class="sub">IHC · this case</span></div>
-      <div class="cell c-5"><span class="lab">Snapshot burden</span><span class="val"><span id="xk-burden">—</span><span class="u">%</span></span><span class="sub">enhancing · windowed</span></div>
-      <div class="cell c-4"><span class="lab">Subtype high risk</span><span class="val"><span id="xk-hirisk">—</span></span><span class="sub">risk ≥ 0.5 · TCGA cohort</span></div>
-      <div class="cell c-3"><span class="lab">Genomic risk</span><span class="val" id="xk-risk">—</span><span class="sub">OncoPulse · 0–1 scale</span></div>
+      <div class="cell c-5"><span class="lab">Subtype</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="xk-subtype">—</span><span class="sub">TCGA <b id="xk-tcga">—</b></span></div>
+      <div class="cell c-4"><span class="lab">Model day</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="xk-study">Day 0</span><span class="sub">simulated from baseline</span></div>
+      <div class="cell c-3"><span class="lab">Model grid</span><span class="val">64³</span><span class="sub">1.0 mm isotropic</span></div>
+      <div class="cell c-5"><span class="lab">Burden index</span><span class="val"><span id="xk-frac">100</span><span class="u">idx</span></span><span class="sub">integrated density, baseline = 100</span></div>
+      <div class="cell c-4"><span class="lab">Threshold volume</span><span class="val" style="font-size:clamp(1.2rem,2.6vw,1.7rem)" id="xk-matrix">—</span><span class="sub"><b id="xk-spacing">iso ≥ 0.15</b></span></div>
+      <div class="cell c-3"><span class="lab">Engine</span><span class="val" style="font-size:clamp(1.2rem,2.6vw,1.7rem)">Fisher-KPP</span><span class="sub">reaction–diffusion</span></div>
     </div>
 
     <div class="split" style="margin-top:1.4rem">
       <div class="panel reveal">
-        <div class="ph"><span class="t">3D snapshot</span>
+        <div class="ph"><span class="t">3D breast growth</span>
           <div class="modes">
             <button class="mode on" data-xmode="volumetric">Volumetric</button>
             <button class="mode" data-xmode="isosurface">Isosurface</button>
@@ -310,31 +315,34 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
           <span class="seg-l">Case</span>
           <button class="mode on" data-xcase="luminal_a">Luminal A</button>
           <button class="mode" data-xcase="basal">Basal-like</button>
+          <span class="seg-l sp">Risk</span>
+          <button class="mode" id="x-risk" disabled>risk ×—</button>
         </div>
         <div class="stage" id="breastStage">
           <div class="reticle" id="xReticle">—</div>
           <div class="viz" id="breast3d"></div>
           <div class="scan"></div>
         </div>
-        <div class="cap">Drag to orbit · auto-rotating · windowed MR intensity, rendered by value</div>
+        <div class="timeline">
+          <button class="play" id="breast-play" aria-label="Play breast growth">▶</button>
+          <input class="tl" id="breast-tl" type="range" min="0" max="25" value="0" step="1" aria-label="Breast timestep">
+          <div class="tlread" id="breast-tlread">DAY 000 · <b>100</b> burden idx</div>
+        </div>
+        <div class="cap">PDE frame stack from real breast baseline density · drag to orbit · scrub modeled days</div>
       </div>
-      <div class="panel reveal"><div class="ctx">
-        <h4>Three views, one lesion</h4>
-        <p><b>Volumetric</b> renders the full density cloud with an opacity transfer function — dense tissue
-           glows through translucent margins. <b>Isosurface</b> wraps a single shell at 0.5 for a clean boundary.
-           <b>Cutaway</b> clips the volume to expose the interior.</p>
-        <p>No longitudinal series exists for these TCGA-BRCA cases, so breast is presented as a
-           <b>static 3D snapshot</b> — read it across the three views and the orthogonal slices below.</p>
-        <p style="color:var(--muted);font-size:.84rem">Whole-breast windowed MR intensity · rendered by value, not a tumor segmentation.</p>
-      </div></div>
+      <div class="panel reveal">
+        <div class="ph"><span class="t">Modeled breast burden</span><span class="t" style="color:var(--signal)">index / day</span></div>
+        <div class="tele-body"><div class="viz-wide" id="breastCurve"></div></div>
+        <div class="read" id="breast-read">—</div>
+      </div>
     </div>
 
     <div style="margin-top:var(--s-2xl)">
-      <div class="divider reveal" style="padding-top:0"><span class="num">▟</span><h2>Radiology slices</h2><span class="ln"></span></div>
+      <div class="divider reveal" style="padding-top:0"><span class="num">▟</span><h2>Modeled density slices</h2><span class="ln"></span></div>
       <div class="reveal"><div class="viz-wide" id="breastSlices"></div></div>
       <div class="meta reveal" style="display:flex;gap:2.5rem;flex-wrap:wrap;font-family:var(--font-m);font-size:.74rem;color:var(--muted);margin-top:1.2rem">
         <span>PLANE <b style="color:var(--bone)">AXIAL · CORONAL · SAGITTAL</b></span>
-        <span>SOURCE <b style="color:var(--bone)">windowed MR intensity</b></span>
+        <span>SOURCE <b style="color:var(--bone)">breast PDE density field</b></span>
         <span>WINDOW <b style="color:var(--bone)">0.00 – 1.00</b></span>
       </div>
     </div>
@@ -346,9 +354,9 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
     <div class="steps">
       <div class="step reveal"><div class="n">01 · ACQUIRE</div><h3>Public imaging</h3><p>UCSF-LPTDG longitudinal glioma MRI and TCGA-BRCA breast DCE-MRI, pulled from public archives by the imaging team.</p></div>
       <div class="step reveal"><div class="n">02 · MODEL</div><h3>Reaction–diffusion PDE</h3><p>A 3D Fisher–Kolmogorov solver grows the glioma baseline at IDH-calibrated rates from a 298-patient cohort.</p></div>
-      <div class="step reveal"><div class="n">03 · VISUALIZE</div><h3>Interactive 3D</h3><p>Frame stacks become a longitudinal player; static breast volumes become a multi-view snapshot — this layer.</p></div>
+      <div class="step reveal"><div class="n">03 · VISUALIZE</div><h3>Interactive 3D</h3><p>Frame stacks become a longitudinal player for both glioma and breast — scrub, play, and orbit the modeled density field.</p></div>
     </div>
-    <p class="pullquote reveal">One grows. One holds still. <span>Both are real</span> — and both are yours to interrogate.</p>
+    <p class="pullquote reveal">Both cancers grow on the same engine. <span>Both start from real imaging</span> — and both are yours to interrogate.</p>
   </section>
 </main>
 
@@ -367,8 +375,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
 
 <script>
 const GRID={x:__GRID_X__,y:__GRID_Y__,z:__GRID_Z__}, CSCALE=__CSCALE__, BRAIN_CSCALE=__BRAIN_CSCALE__, BRAIN_VOL_CSCALE=__BRAIN_VOL_CSCALE__, OPAC=__OPAC__, BRAIN_OPAC=__BRAIN_OPAC__, LAYOUT3D=__LAYOUT3D__;
-const BRAIN=__BRAIN__, BRAIN_SLICES=__BRAIN_SLICES__, COHORT=__COHORT__;
-const BR_VOLS=__BR_VOLS__, BR_SLICES=__BR_SLICES__, BR_META=__BR_META__, BR_CASES=__BR_CASES__, BREAST=__BREAST__;
+const BRAIN=__BRAIN__, BRAIN_SLICES=__BRAIN_SLICES__, BRAIN_DEFAULTS=__BRAIN_DEFAULTS__, BRAIN_PICKERS=__BRAIN_PICKERS__, COHORT=__COHORT__, BREAST_GROWTH=__BREAST_GROWTH__;
 const CFG={responsive:true,displayModeBar:false};
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 function fmtRisk(v){ return (v==null||v===''||Number.isNaN(Number(v)))?'N/A':Number(v).toFixed(3); }
@@ -384,7 +391,16 @@ function brainVolTrace(val){ return {type:'volume',x:GRID.x,y:GRID.y,z:GRID.z,va
 function volTrace(val){ return {type:'volume',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:0.15,isomax:1.0,cmin:0.2,cmax:0.85,colorscale:CSCALE,opacityscale:OPAC,surface:{count:18},showscale:false,caps:CAPS}; }
 
 /* ---------- BRAIN ---------- */
-let bRegime='aggressive', bMode='volumetric', bIdx=0, bPlay=null;
+let bRegime='aggressive', bPatient=BRAIN_DEFAULTS.aggressive, bMode='volumetric', bIdx=0, bPlay=null;
+function bReg(){ return BRAIN[bRegime][bPatient]; }
+function bSliceFig(){ return BRAIN_SLICES[bRegime][bPatient]; }
+function bFillPatientSelect(){
+  const sel=document.getElementById('brain-patient');
+  if(!sel) return;
+  const opts=BRAIN_PICKERS[bRegime]||[];
+  sel.innerHTML=opts.map(o=>`<option value="${o.id}">${o.label}</option>`).join('');
+  sel.value=bPatient;
+}
 function bCutVal(val){ return val.map((d,i)=>GRID.y[i]>=16?0:d); }
 function bTrace(val){
   if(bMode==='isosurface') return brainIsoTrace(val);
@@ -397,22 +413,22 @@ function bReticleLabel(){
   if(bMode==='cutaway') return 'CUT Y≥16';
   return 'ISO 0.20';
 }
-function bDraw(){ Plotly.react('brain3d',[bTrace(BRAIN[bRegime].values[bIdx])],LAYOUT3D,CFG).then(()=>{if(activeViz==='brain3d')startSpin();}); }
-function bGoto(i){ const reg=BRAIN[bRegime]; bIdx=Math.max(0,Math.min(i,reg.n-1));
+function bDraw(){ Plotly.react('brain3d',[bTrace(bReg().values[bIdx])],LAYOUT3D,CFG).then(()=>{if(activeViz==='brain3d')startSpin();}); }
+function bGoto(i){ const reg=bReg(); bIdx=Math.max(0,Math.min(i,reg.n-1));
   Plotly.restyle('brain3d',{value:[bValForRestyle(reg.values[bIdx])]},[0]);
   document.getElementById('brain-tlread').innerHTML=`DAY ${String(reg.days[bIdx]).padStart(3,'0')} · <b>${reg.idx[bIdx].toFixed(0)}</b> burden idx`;
   Plotly.relayout('brainCurve',{shapes:[{type:'line',x0:reg.days[bIdx],x1:reg.days[bIdx],y0:0,y1:reg.peak*1.1,line:{color:'#ff7a45',width:1.6,dash:'dot'}}]});
   document.getElementById('brain-tl').value=bIdx;
 }
-function bCurve(){ const reg=BRAIN[bRegime];
+function bCurve(){ const reg=bReg();
   const tr={x:reg.days,y:reg.idx,mode:'lines',line:{color:'#ff7a45',width:3},fill:'tozeroy',fillcolor:'rgba(255,122,69,0.10)'};
   const ly={paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',height:300,margin:{l:48,r:12,t:18,b:34},font:{color:'#9aa6b6',family:'JetBrains Mono'},
     xaxis:{title:'days',gridcolor:'rgba(236,231,223,0.06)',zerolinecolor:'rgba(236,231,223,0.10)'},
     yaxis:{title:'burden index (baseline=100)',gridcolor:'rgba(236,231,223,0.06)',zerolinecolor:'rgba(236,231,223,0.10)'}};
   Plotly.react('brainCurve',[tr],ly,CFG);
 }
-function bSlices(){ const f=BRAIN_SLICES[bRegime]; Plotly.react('brainSlices',f.data,f.layout,CFG); }
-function bKPIs(){ const reg=BRAIN[bRegime];
+function bSlices(){ const f=bSliceFig(); Plotly.react('brainSlices',f.data,f.layout,CFG); }
+function bKPIs(){ const reg=bReg();
   document.getElementById('bk-idh').textContent=reg.label;
   document.getElementById('bk-patient').textContent=reg.patient_id;
   document.getElementById('bk-gm').textContent='×'+reg.gm.toFixed(2);
@@ -425,13 +441,16 @@ function bKPIs(){ const reg=BRAIN[bRegime];
 }
 function bPlayToggle(){ if(playing){bStop();return;} playing=true; stopSpin();
   const pb=document.getElementById('brain-play'); pb.textContent='❚❚'; pb.classList.add('on');
-  if(bIdx>=BRAIN[bRegime].n-1) bGoto(0);
-  bPlay=setInterval(()=>{ if(bIdx>=BRAIN[bRegime].n-1){bStop();return;} bGoto(bIdx+1); }, reduce?0:170);
+  if(bIdx>=bReg().n-1) bGoto(0);
+  bPlay=setInterval(()=>{ if(bIdx>=bReg().n-1){bStop();return;} bGoto(bIdx+1); }, reduce?0:170);
 }
 function bStop(){ playing=false; clearInterval(bPlay); const pb=document.getElementById('brain-play'); if(pb){pb.textContent='▶';pb.classList.remove('on');} startSpin(); }
-function bSetRegime(reg,btn){ bStop(); bRegime=reg; bIdx=0;
+function bSetPatient(pid){ if(!BRAIN[bRegime][pid]) return; bStop(); bPatient=pid; bIdx=0;
+  document.getElementById('brain-tl').max=bReg().n-1; bCurve(); bSlices(); bKPIs(); bDraw(); setTimeout(()=>bGoto(0),80);
+}
+function bSetRegime(reg,btn){ bStop(); bRegime=reg; bPatient=BRAIN_DEFAULTS[reg]; bIdx=0;
   document.querySelectorAll('[data-regime]').forEach(x=>x.classList.remove('on')); btn.classList.add('on');
-  bCurve(); bSlices(); bKPIs(); bDraw(); setTimeout(()=>bGoto(0),80);
+  bFillPatientSelect(); bCurve(); bSlices(); bKPIs(); bDraw(); setTimeout(()=>bGoto(0),80);
 }
 function bSetMode(mode,btn){
   bStop();
@@ -451,61 +470,101 @@ function cohortChart(){
 let brainReady=false;
 function brainInit(){
   if(!brainReady){ brainReady=true;
-    Plotly.newPlot('brain3d',[bTrace(BRAIN[bRegime].values[0])],LAYOUT3D,CFG);
-    document.getElementById('brain-tl').max=BRAIN[bRegime].n-1;
+    bFillPatientSelect();
+    Plotly.newPlot('brain3d',[bTrace(bReg().values[0])],LAYOUT3D,CFG);
+    document.getElementById('brain-tl').max=bReg().n-1;
     bCurve(); bSlices(); bKPIs(); cohortChart(); bGoto(0);
     const stage=document.getElementById('brainStage');
     stage.addEventListener('mouseenter',()=>{if(activeViz==='brain3d')stopSpin();});
     stage.addEventListener('mouseleave',()=>{if(activeViz==='brain3d')startSpin();});
     document.getElementById('brain-play').addEventListener('click',bPlayToggle);
     document.getElementById('brain-tl').addEventListener('input',e=>{bStop();bGoto(parseInt(e.target.value,10));});
+    document.getElementById('brain-patient').addEventListener('change',e=>bSetPatient(e.target.value));
     document.querySelectorAll('[data-regime]').forEach(b=>b.addEventListener('click',()=>bSetRegime(b.dataset.regime,b)));
     document.querySelectorAll('[data-bmode]').forEach(b=>b.addEventListener('click',()=>bSetMode(b.dataset.bmode,b)));
   } else { ['brain3d','brainCurve','brainSlices','cohortChart'].forEach(id=>{const g=document.getElementById(id);if(g&&g.data)Plotly.Plots.resize(g);}); }
 }
 
 /* ---------- BREAST ---------- */
-let xCase='luminal_a', xMode='volumetric';
-function xSlug(){ return BR_CASES[xCase].slug; }
-function xTrace(){ const val=BR_VOLS[xSlug()];
-  if(xMode==='isosurface') return isoTrace(val,0.5,0.45,0.95);
-  if(xMode==='cutaway'){ const c=val.map((d,i)=>GRID.y[i]>=16?0:d); return volTrace(c); }
-  return volTrace(val);
+let xCase='luminal_a', xMode='volumetric', xIdx=0, xPlay=null;
+function xReg(){ return BREAST_GROWTH[xCase]; }
+function xVal(){ return xReg().values[xIdx]; }
+function xTrace(){ const reg=xReg(), val=xVal();
+  if(xMode==='isosurface') return isoTrace(val,reg.iso,0.08,Math.max(0.45,reg.maxDensity));
+  if(xMode==='cutaway'){ const c=val.map((d,i)=>GRID.y[i]>=16?0:d); return {type:'volume',x:GRID.x,y:GRID.y,z:GRID.z,value:c,isomin:reg.iso,isomax:1.0,cmin:0.05,cmax:Math.max(0.45,reg.maxDensity),colorscale:CSCALE,opacityscale:OPAC,surface:{count:16},showscale:false,caps:CAPS}; }
+  return {type:'volume',x:GRID.x,y:GRID.y,z:GRID.z,value:val,isomin:reg.iso,isomax:1.0,cmin:0.05,cmax:Math.max(0.45,reg.maxDensity),colorscale:CSCALE,opacityscale:OPAC,surface:{count:18},showscale:false,caps:CAPS};
 }
 function xDraw(){ Plotly.react('breast3d',[xTrace()],LAYOUT3D,CFG).then(()=>{if(activeViz==='breast3d')startSpin();}); }
-function xSlices(){ const f=BR_SLICES[xSlug()]; Plotly.react('breastSlices',f.data,f.layout,CFG); }
-function xKPIs(){ const reg=BREAST[xCase];
-  document.getElementById('xk-subtype').textContent=reg.label;
-  document.getElementById('xk-tcga').textContent=reg.tcga;
-  document.getElementById('xk-gm').textContent=reg.gm==null?'—':'×'+Number(reg.gm).toFixed(2);
-  document.getElementById('xk-er').textContent=reg.er;
-  document.getElementById('xk-burden').textContent=Number(reg.burden).toFixed(1);
-  document.getElementById('xk-hirisk').textContent=reg.high_risk_pct+'%';
-  document.getElementById('xk-risk').textContent=fmtRisk(reg.risk);
-  document.getElementById('xReticle').innerHTML=`${reg.tcga}<br>${reg.label}<br>ISO 0.50`;
+function xMat(val,plane,at){ const g=32, out=[];
+  if(plane==='axial'){ for(let y=0;y<g;y++){ const row=[]; for(let x=0;x<g;x++)row.push(val[(at*g+y)*g+x]); out.push(row); } }
+  if(plane==='coronal'){ for(let z=0;z<g;z++){ const row=[]; for(let x=0;x<g;x++)row.push(val[(z*g+at)*g+x]); out.push(row); } }
+  if(plane==='sagittal'){ for(let z=0;z<g;z++){ const row=[]; for(let y=0;y<g;y++)row.push(val[(z*g+y)*g+at]); out.push(row); } }
+  return out;
 }
-function xSet(kind,val,btn,sel){ document.querySelectorAll(sel).forEach(x=>x.classList.remove('on')); btn.classList.add('on');
-  if(kind==='case')xCase=val; else xMode=val;
-  if(kind==='mode'){ xDraw(); } else { xKPIs(); xSlices(); xDraw(); }
+function xHeat(z,axis){ return {type:'heatmap',z:z,zmin:0,zmax:1,colorscale:CSCALE,showscale:false,xaxis:axis.x,yaxis:axis.y,hoverinfo:'skip'}; }
+function xSlices(){ const val=xVal(), at=16;
+  const data=[xHeat(xMat(val,'axial',at),{x:'x',y:'y'}),xHeat(xMat(val,'coronal',at),{x:'x2',y:'y2'}),xHeat(xMat(val,'sagittal',at),{x:'x3',y:'y3'})];
+  const ax={visible:false,showgrid:false,zeroline:false};
+  const ly={paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',height:240,margin:{l:0,r:0,t:18,b:0},font:{color:'#9aa6b6',family:'JetBrains Mono, monospace'},
+    xaxis:{...ax,domain:[0,0.31]},yaxis:{...ax,domain:[0,1],autorange:'reversed'},
+    xaxis2:{...ax,domain:[0.345,0.655]},yaxis2:{...ax,domain:[0,1],autorange:'reversed'},
+    xaxis3:{...ax,domain:[0.69,1]},yaxis3:{...ax,domain:[0,1],autorange:'reversed'},
+    annotations:[{text:'Axial',x:0.155,y:1,xref:'paper',yref:'paper',showarrow:false,yanchor:'bottom',font:{color:'#9aa6b6'}},{text:'Coronal',x:0.5,y:1,xref:'paper',yref:'paper',showarrow:false,yanchor:'bottom',font:{color:'#9aa6b6'}},{text:'Sagittal',x:0.845,y:1,xref:'paper',yref:'paper',showarrow:false,yanchor:'bottom',font:{color:'#9aa6b6'}}]};
+  Plotly.react('breastSlices',data,ly,CFG);
+}
+function xCurve(){ const reg=xReg();
+  const tr={x:reg.days,y:reg.idx,mode:'lines',line:{color:reg.color,width:3},fill:'tozeroy',fillcolor:'rgba(70,224,176,0.10)'};
+  const ly={paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)',height:300,margin:{l:48,r:12,t:18,b:34},font:{color:'#9aa6b6',family:'JetBrains Mono'},
+    xaxis:{title:'modeled days',gridcolor:'rgba(236,231,223,0.06)',zerolinecolor:'rgba(236,231,223,0.10)'},
+    yaxis:{title:'burden index (baseline=100)',gridcolor:'rgba(236,231,223,0.06)',zerolinecolor:'rgba(236,231,223,0.10)',range:[90,Math.max(210,reg.peak*1.12)]}};
+  Plotly.react('breastCurve',[tr],ly,CFG);
+}
+function xKPIs(){ const reg=xReg();
+  document.getElementById('xk-subtype').textContent=reg.subtype; document.getElementById('xk-tcga').textContent=reg.tcga;
+  document.getElementById('xk-study').textContent='Day '+String(reg.days[xIdx]).padStart(3,'0'); document.getElementById('xk-frac').textContent=reg.idx[xIdx].toFixed(0);
+  document.getElementById('xk-matrix').textContent=Math.round(reg.volume[xIdx]).toLocaleString(); document.getElementById('xk-spacing').textContent='mm³ @ iso ≥ '+reg.iso.toFixed(2);
+  document.getElementById('x-risk').textContent='risk ×'+reg.risk.toFixed(2);
+  document.getElementById('xReticle').innerHTML=`${reg.tcga}<br>${reg.subtype}<br>DAY ${String(reg.days[xIdx]).padStart(3,'0')}`;
+  document.getElementById('breast-tlread').innerHTML=`DAY ${String(reg.days[xIdx]).padStart(3,'0')} · <b>${reg.idx[xIdx].toFixed(0)}</b> burden idx`;
+  const gRisk=reg.genomic_risk!=null?` Genomic risk <b>${fmtRisk(reg.genomic_risk)}</b>.`:'';
+  document.getElementById('breast-read').innerHTML=`Seeded from the real TCGA-BRCA baseline density for <b>${reg.tcga}</b>, the <b>${reg.subtype}</b> prototype reaches <b class="ok">${reg.idx[reg.n-1].toFixed(0)}</b> burden index over ${reg.interval} modeled days. Thresholded volume changes ${reg.volumeGrowth.toFixed(1)}%, while integrated burden changes ${reg.growth.toFixed(1)}%.${gRisk} <span style="color:var(--muted)">Visualization-grade PDE run — not a clinical prediction.</span>`;
+}
+function xGoto(i){ const reg=xReg(); xIdx=Math.max(0,Math.min(i,reg.n-1));
+  document.getElementById('breast-tl').value=xIdx;
+  Plotly.relayout('breastCurve',{shapes:[{type:'line',x0:reg.days[xIdx],x1:reg.days[xIdx],y0:0,y1:Math.max(210,reg.peak*1.12),line:{color:'#ff7a45',width:1.6,dash:'dot'}}]});
+  xKPIs(); xDraw(); xSlices();
+}
+function xPlayToggle(){ if(playing){xStop();return;} playing=true; stopSpin();
+  const pb=document.getElementById('breast-play'); pb.textContent='❚❚'; pb.classList.add('on');
+  if(xIdx>=xReg().n-1) xGoto(0);
+  xPlay=setInterval(()=>{ if(xIdx>=xReg().n-1){xStop();return;} xGoto(xIdx+1); }, reduce?0:190);
+}
+function xStop(){ playing=false; clearInterval(xPlay); const pb=document.getElementById('breast-play'); if(pb){pb.textContent='▶';pb.classList.remove('on');} startSpin(); }
+function xSet(kind,val,btn,sel){ xStop(); document.querySelectorAll(sel).forEach(x=>x.classList.remove('on')); btn.classList.add('on');
+  if(kind==='case'){ xCase=val; xIdx=0; document.getElementById('breast-tl').max=xReg().n-1; xCurve(); xGoto(0); }
+  else { xMode=val; xDraw(); }
 }
 let breastReady=false;
 function breastInit(){
   if(!breastReady){ breastReady=true;
-    Plotly.newPlot('breast3d',[xTrace()],LAYOUT3D,CFG); xSlices(); xKPIs();
+    Plotly.newPlot('breast3d',[xTrace()],LAYOUT3D,CFG); document.getElementById('breast-tl').max=xReg().n-1; xCurve(); xSlices(); xKPIs(); xGoto(0);
     const stage=document.getElementById('breastStage');
     stage.addEventListener('mouseenter',()=>{if(activeViz==='breast3d')stopSpin();});
     stage.addEventListener('mouseleave',()=>{if(activeViz==='breast3d')startSpin();});
+    document.getElementById('breast-play').addEventListener('click',xPlayToggle);
+    document.getElementById('breast-tl').addEventListener('input',e=>{xStop();xGoto(parseInt(e.target.value,10));});
     document.querySelectorAll('[data-xcase]').forEach(b=>b.addEventListener('click',()=>xSet('case',b.dataset.xcase,b,'[data-xcase]')));
     document.querySelectorAll('[data-xmode]').forEach(b=>b.addEventListener('click',()=>xSet('mode',b.dataset.xmode,b,'[data-xmode]')));
-  } else { ['breast3d','breastSlices'].forEach(id=>{const g=document.getElementById(id);if(g&&g.data)Plotly.Plots.resize(g);}); }
+  } else { ['breast3d','breastCurve','breastSlices'].forEach(id=>{const g=document.getElementById(id);if(g&&g.data)Plotly.Plots.resize(g);}); }
 }
 
 /* ---------- tabs ---------- */
 function showTab(name){
   document.querySelectorAll('.tabpanel').forEach(p=>{p.hidden=(p.dataset.tab!==name);});
   document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
-  stopSpin(); playing=false; clearInterval(bPlay);
+  stopSpin(); playing=false; clearInterval(bPlay); clearInterval(xPlay);
   const pb=document.getElementById('brain-play'); if(pb){pb.textContent='▶';pb.classList.remove('on');}
+  const xpb=document.getElementById('breast-play'); if(xpb){xpb.textContent='▶';xpb.classList.remove('on');}
   if(name==='brain'){ activeViz='brain3d'; brainInit(); } else { activeViz='breast3d'; breastInit(); }
   startSpin();
 }
@@ -518,7 +577,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('vis');io.unobserve(e.target);}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
   document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
 });
-window.addEventListener('resize',()=>{ ['brain3d','brainCurve','brainSlices','cohortChart','breast3d','breastSlices'].forEach(id=>{const g=document.getElementById(id);if(g&&g.data)Plotly.Plots.resize(g);}); });
+window.addEventListener('resize',()=>{ ['brain3d','brainCurve','brainSlices','cohortChart','breast3d','breastCurve','breastSlices'].forEach(id=>{const g=document.getElementById(id);if(g&&g.data)Plotly.Plots.resize(g);}); });
 </script>
 </body>
 </html>
