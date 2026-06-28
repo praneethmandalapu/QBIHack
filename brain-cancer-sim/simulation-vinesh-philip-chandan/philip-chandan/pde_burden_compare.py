@@ -18,8 +18,25 @@ from typing import Any
 
 import numpy as np
 
+from cohort.cohort_io import is_no_resection_cavity, iter_cohort_entries
 from handoff_contract import default_grid_size
 from spike_paths import PDE_INPUT_VINESH, RAW_EXTRACT_PHILIP_CHANDAN
+
+
+def _no_resection_patient_ids() -> frozenset[str]:
+    return frozenset(
+        str(entry["patient_id"])
+        for entry in iter_cohort_entries(include_backups=True)
+        if is_no_resection_cavity(entry)
+    )
+
+
+def _excluded_resection_patient_ids() -> list[str]:
+    return sorted(
+        str(entry["patient_id"])
+        for entry in iter_cohort_entries(include_backups=True)
+        if not is_no_resection_cavity(entry)
+    )
 
 WT_VOLUME_REPORT_JSON = RAW_EXTRACT_PHILIP_CHANDAN / "wt_volume_report.json"
 PDE_BURDEN_COMPARE_JSON = PDE_INPUT_VINESH / "pde_burden_compare.json"
@@ -187,17 +204,26 @@ def build_pde_burden_report(
             "notes": "wt_volume_report.json not found",
         }
 
+    allowed = _no_resection_patient_ids()
     rows = [
         build_patient_burden_row(row, grid_size=grid_size)
         for row in report.get("patients", [])
+        if str(row.get("patient_id")) in allowed
     ]
+    excluded = _excluded_resection_patient_ids()
     return {
         "generated_at": datetime.now(UTC).isoformat(),
         "grid_size": grid_size or default_grid_size(),
+        "cohort_selection": "no_resection_cavity",
+        "excluded_resection_cavity_patient_ids": excluded,
         "comparison": {
             "wt_volume_source": "wt_volume_report.json computed_mm3 (labels 1+2+3)",
             "pde_burden_rule": "voxels > 0 in g64 PDE cube at 1 mm spacing",
             "growth_match_tolerance_pct": GROWTH_MATCH_TOLERANCE_PCT,
+            "resection_cavity_note": (
+                f"Patients with label 4 at any visit ({', '.join(excluded) or 'none'}) "
+                "are omitted — PDE prep seeds mask > 0, which inflates burden vs WT."
+            ),
         },
         "patient_count": len(rows),
         "patients": [asdict(row) for row in rows],

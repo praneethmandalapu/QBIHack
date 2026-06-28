@@ -10,7 +10,11 @@ from fpdf import FPDF
 
 OUT_DIR = Path(__file__).resolve().parent
 SPIKE_ROOT = OUT_DIR.parent
+REPO_ROOT = SPIKE_ROOT.parent
 PDF_PATH = OUT_DIR / "PIPELINE_REPORT.pdf"
+
+QC_SEGMENTATION_DIR = REPO_ROOT / "data" / "qc" / "segmentation-philip-chandan"
+QC_RADIOIMICS_DIR = REPO_ROOT / "data" / "qc" / "radiomics-philip-chandan"
 
 sys.path.insert(0, str(SPIKE_ROOT))
 
@@ -114,6 +118,57 @@ def embed_image(
     pdf.multi_cell(pdf.epw, 4, caption)
     pdf.ln(3)
     pdf.set_font("Helvetica", "", 10)
+
+
+def embed_aligned_bbox_threshold_figure(pdf: "ReportPDF", slug: str, caption: str) -> bool:
+    path = QC_SEGMENTATION_DIR / f"{slug}_aligned_bbox_bright_vs_threshold.png"
+    if not path.is_file():
+        pdf.body(
+            f"[Aligned-bbox threshold curve missing: {slug}. "
+            "Run validation/run_aligned_bbox_workflow.py.]"
+        )
+        return False
+    embed_image(pdf, path, caption, width_mm=pdf.epw)
+    return True
+
+
+def embed_mask_overlay_figure(pdf: "ReportPDF", slug: str, caption: str) -> bool:
+    path = QC_RADIOIMICS_DIR / f"{slug}_mask_overlay_mid-z.png"
+    if not path.is_file():
+        pdf.body(
+            f"[Mask overlay missing: {slug}. Run stretch/qc_mask_overlay.py after napari export.]"
+        )
+        return False
+    embed_image(pdf, path, caption)
+    return True
+
+
+def embed_mask_overlay_pair(
+    pdf: "ReportPDF",
+    left_slug: str,
+    right_slug: str,
+    caption: str,
+) -> bool:
+    left = QC_RADIOIMICS_DIR / f"{left_slug}_mask_overlay_mid-z.png"
+    right = QC_RADIOIMICS_DIR / f"{right_slug}_mask_overlay_mid-z.png"
+    if not left.is_file() or not right.is_file():
+        pdf.body("[Mask overlay comparison missing. Run stretch/qc_mask_overlay.py for both slugs.]")
+        return False
+    gap_mm = 5.0
+    each_w = (pdf.epw - gap_mm) / 2
+    if pdf.get_y() + each_w > 250:
+        pdf.add_page()
+    y0 = pdf.get_y()
+    x0 = pdf.l_margin
+    pdf.image(str(left), x=x0, y=y0, w=each_w)
+    pdf.image(str(right), x=x0 + each_w + gap_mm, y=y0, w=each_w)
+    pdf.set_y(y0 + each_w + 4)
+    pdf.set_font("Helvetica", "I", 9)
+    pdf.set_x(pdf.l_margin)
+    pdf.multi_cell(pdf.epw, 4, caption)
+    pdf.ln(3)
+    pdf.set_font("Helvetica", "", 10)
+    return True
 
 
 def embed_otsu_figure(pdf: "ReportPDF", slug: str, caption: str) -> bool:
@@ -316,7 +371,7 @@ def build_report() -> FPDF:
     pdf.set_font("Helvetica", "", 11)
     pdf.set_text_color(80, 80, 80)
     pdf.set_x(pdf.l_margin)
-    pdf.multi_cell(pdf.epw, 6, "TCGA-BRCA longitudinal MRI: discovery through raw export and Otsu handoff")
+    pdf.multi_cell(pdf.epw, 6, "TCGA-BRCA longitudinal MRI: raw export, napari tumor ROI, PDE handoff")
     pdf.ln(2)
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(0, 0, 0)
@@ -330,9 +385,10 @@ def build_report() -> FPDF:
 
     pdf.body(
         "Philip-Chandan owns the radiomics pipeline: pull real breast MRI from TCIA, "
-        "validate and stack DICOM into 3D numpy arrays, and hand raw volumes to Vinesh "
-        "for PDE simulation. Resample, normalize, and segmentation are Vinesh's scope "
-        "(handoff_contract.json v1.0.0, Option B)."
+        "validate and stack DICOM into 3D numpy arrays, define tumor ROIs with a napari "
+        "aligned-bbox workflow, and hand raw volumes plus expert masks to Vinesh for PDE "
+        "simulation. Resample, normalize, and crop are Vinesh's scope "
+        "(handoff_contract.json v1.1.0, Option B)."
     )
 
     # --- 1. Criteria ---
@@ -481,13 +537,14 @@ def build_report() -> FPDF:
         ],
         [40, 140],
     )
-    pdf.subsection("Handoff contract - what we export vs what we do not")
+    pdf.subsection("Handoff contract - what we export vs what Vinesh prepares")
     pdf.table(
-        ["Philip-Chandan (raw extract)", "Vinesh (PDE input)"],
+        ["Philip-Chandan (raw extract + ROI)", "Vinesh (PDE input)"],
         [
             ["Raw MR intensities, not normalized", "Resample/crop to max 64^3, 1 mm spacing"],
-            ["Spacing in JSON sidecar", "Normalize to [0, 1]"],
-            ["Axis order (Z, Y, X)", "Otsu tumor segmentation"],
+            ["Spacing in JSON sidecar", "Min-max normalize to [0, 1]"],
+            ["Axis order (Z, Y, X)", "Apply napari expert mask; keep continuous density inside ROI"],
+            ["Napari aligned-bbox mask -> segmentations/", "Zero background; center crop on tumor COM"],
         ],
         [85, 95],
     )
@@ -510,46 +567,107 @@ def build_report() -> FPDF:
         "(2003-09-24). Contour overlay on the slice with the most enhancing voxels per volume.",
     )
 
-    # --- 6. Otsu segmentation (Vinesh handoff) ---
-    pdf.section_title("6", "Otsu tumor segmentation - prepare_pde_input.py (Vinesh)")
+    # --- 6. Napari tumor ROI ---
+    pdf.section_title("6", "Tumor ROI - TCIA center annotation and napari aligned-bbox workflow")
     pdf.body(
-        "After Philip-Chandan raw export, Vinesh prepares PDE-ready volumes in "
-        "vinesh/prepare_pde_input.py per handoff_contract.json v1.0.0:"
+        "TCGA-Breast-Radiogenomics publishes expert lesion files (*.les) for baseline DCE studies. "
+        "These are not hand-painted 3D contours: radiologists marked an approximate tumor center on "
+        "ClearCanvas, and the UChicago workstation ran fuzzy c-means (FCM) auto-segmentation inside "
+        "a small bounding cuboid. For our rev2 primaries the cuboid is only ~31-34% filled "
+        "(~1.3k-2.7k FCM voxels); in napari the annotation reads as sparse dots at phase-1 z, "
+        "while later DCE phases show brighter enhancement in the same region."
     )
-    pdf.bullet("Resample raw MR to isotropic 1 mm spacing (scipy.ndimage.zoom)")
-    pdf.bullet("Min-max normalize intensities to [0, 1]")
-    pdf.bullet("Otsu threshold (skimage) on normalized voxels; keep continuous density inside tumor")
-    pdf.bullet("Zero background; crop/pad to max 64^3 centered on tumor center of mass")
+    pdf.body(
+        "The useful ground truth is therefore the expert center plus bounding box (Y/X/Z bounds), "
+        "not the sparse FCM voxels alone. Global Otsu on the full breast volume fails badly against "
+        "these masks (Section 8). Instead we use an aligned-bbox napari workflow to manually "
+        "threshold inside the cuboid and export a singly-connected tumor ROI for simulation."
+    )
+    pdf.subsection("Aligned-bbox workflow (validation/view_aligned_cuboid_napari.py)")
+    pdf.bullet(
+        "Split stacked VIBRANT into DCE phases; align P2-P3 z-band slabs rigidly to phase 1 "
+        "(late DCE tail skipped)"
+    )
+    pdf.bullet(
+        "Inside the tight .les Y/X bounding box on aligned P2-P3 slabs: sweep intensity threshold "
+        "and track the center-connected bright region from the expert center"
+    )
+    pdf.bullet(
+        "In napari: adjust threshold slider, optionally allow a small connectivity gap, jump to "
+        "elbow on the connected-fraction curve, visually confirm tumor on subtraction phases"
+    )
+    pdf.bullet(
+        "Export mask -> local .npy; publish_expert_mask.py writes brain-parity "
+        "segmentations/{slug}_mask.nii.gz and links segmentation_path on the raw JSON sidecar"
+    )
+    pdf.ln(2)
+    pdf.table(
+        ["Rev2 baseline", "Phase @ threshold", "Mask voxels", "Notes"],
+        [
+            ["TCGA-AR-A1AX (Luminal A)", "P2 @ 0.35", "~1,798", "Center-connected napari export"],
+            ["TCGA-AR-A1AQ (Basal-like)", "P2 @ 0.412", "~4,683", "Rim lesion; +387 voxels necrotic-core fill"],
+        ],
+        [55, 35, 30, 70],
+    )
+    pdf.subsection("Figure 4 - Threshold curve inside expert bounding box")
+    embed_aligned_bbox_threshold_figure(
+        pdf,
+        SLUG_LUMA_BASELINE,
+        "Figure 4. TCGA-AR-A1AX baseline: center-connected bright fraction vs threshold inside "
+        "the aligned .les bounding box (P2-P3). Elbow guides manual threshold choice in napari.",
+    )
+    pdf.subsection("Figure 5 - Exported tumor mask on MR")
+    embed_mask_overlay_pair(
+        pdf,
+        SLUG_LUMA_BASELINE,
+        SLUG_BASAL_BASELINE,
+        "Figure 5. Napari aligned-bbox masks overlaid on normalized MR (baseline primaries). "
+        "Lime contour = exported ROI used for PDE and radiomics.",
+    )
+
+    # --- 7. PDE input (Vinesh handoff) ---
+    pdf.section_title("7", "PDE simulation input - prepare_pde_input.py (Vinesh)")
+    pdf.body(
+        "After Philip-Chandan publishes the napari expert mask, Vinesh prepares PDE-ready volumes "
+        "in vinesh/prepare_pde_input.py per handoff_contract.json v1.1.0:"
+    )
+    pdf.bullet("Load raw MR + expert mask from segmentations/{slug}_mask.nii.gz")
+    pdf.bullet("Resample both to isotropic 1 mm spacing (scipy.ndimage.zoom)")
+    pdf.bullet("Min-max normalize MR intensities to [0, 1]")
+    pdf.bullet("Keep continuous normalized density inside the expert mask; zero background")
+    pdf.bullet("Crop/pad to max 64^3 centered on tumor center of mass")
     pdf.ln(2)
     pdf.body(
         "Continuous tumor values (not a binary mask) are required so the PDE logistic growth "
-        "term rho*u*(1-u) can evolve. qc_otsu_plot.py documents the Otsu step using the same "
-        "pipeline as prepare_pde_input.py."
+        "term rho*u*(1-u) can evolve. qc_otsu_plot.py documents the same pipeline for QC figures."
     )
-    pdf.subsection("Figure 4 - Otsu on normalized resampled volume")
+    pdf.subsection("Figure 6 - Expert mask on normalized resampled volume")
     embed_otsu_figure(
         pdf,
         SLUG_LUMA_BASELINE,
-        "Figure 4. TCGA-AR-A1AX baseline after resample + normalize. Magenta contour is the "
-        "Otsu tumor mask (voxels above threshold); background will be zeroed before crop.",
+        "Figure 6. TCGA-AR-A1AX baseline after resample + normalize. Magenta contour is the "
+        "published napari expert mask (voxels inside ROI); background will be zeroed before crop.",
     )
-    pdf.subsection("Figure 5 - PDE input after Otsu and crop")
+    pdf.subsection("Figure 7 - PDE input after mask and crop")
     embed_pde_figure_pair(
         pdf,
         SLUG_LUMA_BASELINE,
         SLUG_BASAL_BASELINE,
-        "Figure 5. Baseline PDE inputs (64^3, 1 mm) for Luminal A vs Basal-like. Inferno "
-        "colormap shows continuous initial tumor burden; cyan contour marks tumor voxels > 0.",
+        "Figure 7. Baseline PDE inputs (64^3, 1 mm) for Luminal A vs Basal-like. Inferno "
+        "colormap shows continuous initial tumor burden inside the expert ROI; cyan contour "
+        "marks tumor voxels > 0.",
     )
 
-    # --- 7. Segmentation validation (.les) ---
+    # --- 8. Segmentation validation (.les) - historical Otsu benchmark ---
     _, validation_rows = ensure_validation_artifacts()
-    pdf.section_title("7", "Segmentation validation vs TCIA radiologist masks")
+    pdf.section_title("8", "Why global Otsu was retired - validation vs TCIA radiologist masks")
     pdf.body(
         "TCGA-Breast-Radiogenomics publishes expert lesion segmentations (*.les) for 91 "
         "patients. We downloaded the public ZIP (~103 KB), parsed cuboid masks, and compared "
-        "them to our Otsu + largest-component heuristic on the matching DCE series "
-        "(S2 = VIBRANT for both rev2 baselines). Follow-up timepoints have no .les annotations."
+        "an early global-Otsu + largest-component heuristic to the matching DCE series "
+        "(S2 = VIBRANT for both rev2 baselines). That approach is no longer used for PDE input; "
+        "it motivates the napari aligned-bbox workflow in Section 6. Follow-up timepoints have "
+        "no .les annotations."
     )
     if validation_rows:
         pdf.table(
@@ -567,18 +685,19 @@ def build_report() -> FPDF:
             [62, 16, 28, 32, 32],
         )
         pdf.body(
-            "Dice is near zero on both primaries: Otsu selects a much larger bright region "
-            "than the radiologist ROI. Area fraction (Otsu voxels / .les voxels) is ~2650x "
-            "for Luminal A and ~620x for Basal-like. Treat Otsu masks as demo heuristics, "
-            "not clinician-equivalent segmentations."
+            "Dice is near zero on both primaries: global Otsu selects a much larger bright region "
+            "than the radiologist ROI, often on different z slices than the expert cuboid. "
+            "Area fraction (Otsu voxels / .les voxels) is ~2650x for Luminal A and ~620x for "
+            "Basal-like. The napari workflow constrains thresholding to the expert bounding box "
+            "and center-connected region instead."
         )
-        pdf.subsection("Figure 6 - Radiologist .les vs Otsu (baseline)")
+        pdf.subsection("Figure 8 - Radiologist .les vs global Otsu (baseline, historical)")
         embed_validation_figure_quad(
             pdf,
             SLUG_LUMA_BASELINE,
             SLUG_BASAL_BASELINE,
-            "Figure 6. Baseline validation (2x2): top row = Luminal A .les then Otsu; "
-            "bottom row = Basal-like .les then Otsu. Green = TCIA .les; magenta = Otsu. "
+            "Figure 8. Baseline validation (2x2): top row = Luminal A .les then global Otsu; "
+            "bottom row = Basal-like .les then Otsu. Green = TCIA .les; magenta = retired Otsu. "
             "Each panel uses its own best z slice (masks do not overlap in slice space). "
             "Titles show voxel counts and area=Otsu/.les.",
         )
@@ -589,16 +708,17 @@ def build_report() -> FPDF:
         )
 
     # --- Summary ---
-    pdf.section_title("8", "End-to-end summary")
+    pdf.section_title("9", "End-to-end summary")
     pdf.body(
         "We defined strict patient criteria (longitudinal MRI on TCIA, PAM50-aligned subtypes, "
         "genomics for the team), built cohort_discovery.py to search and audit candidates against "
         "TCIA and cBioPortal, locked rev2 primaries after rev1 failed imaging availability, downloaded "
         "four DICOM timepoints with contrast-aware series selection, validated each series structurally "
         "before extraction and visually via slice QC, exported four raw .npy volumes plus JSON "
-        "sidecars and a manifest, documented Vinesh Otsu segmentation into 64^3 PDE inputs "
-        "for downstream simulation, and benchmarked Otsu against TCIA radiologist .les masks "
-        "on baseline VIBRANT (Dice near zero - heuristic only)."
+        "sidecars and a manifest, defined tumor ROIs with a napari aligned-bbox workflow inside "
+        "TCIA expert bounding boxes (center annotation + manual threshold), published expert masks "
+        "for Vinesh PDE prep into 64^3 simulation inputs, and documented why global Otsu was retired "
+        "after benchmarking against TCIA radiologist .les masks on baseline VIBRANT (Dice near zero)."
     )
     pdf.subsection("Deliverables")
     pdf.table(
@@ -608,8 +728,9 @@ def build_report() -> FPDF:
             ["Download", "DICOM under data/raw/tcia/", "4 study folders"],
             ["Validate", "validate_series pass + QC PNGs", "4 volumes"],
             ["Export", "Raw .npy + .json + manifest.json", "4 slugs"],
-            ["PDE prep", "Otsu segmentation QC + pde-input-vinesh/", "4 slugs"],
-            ["Seg. validation", ".les comparison + validation_metrics.csv", "2 baselines"],
+            ["Tumor ROI", "Napari aligned-bbox mask + segmentations/", "2 baselines"],
+            ["PDE prep", "Expert-mask QC + pde-input-vinesh/", "4 slugs"],
+            ["Seg. validation", ".les vs Otsu benchmark + validation_metrics.csv", "2 baselines"],
         ],
         [35, 85, 60],
     )

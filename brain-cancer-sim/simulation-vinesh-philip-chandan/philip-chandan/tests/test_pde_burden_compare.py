@@ -61,6 +61,27 @@ def test_build_patient_burden_row_spike_match(tmp_path: Path, monkeypatch: pytes
     assert row.qc_flags == ("ok",)
 
 
+def test_build_pde_burden_report_excludes_resection_cavity(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import pde_burden_compare as mod
+
+    monkeypatch.setattr(mod, "_no_resection_patient_ids", lambda: frozenset({"100002"}))
+    monkeypatch.setattr(mod, "_excluded_resection_patient_ids", lambda: ["100130"])
+
+    wt_report = {
+        "patients": [
+            {"patient_id": "100002", "baseline": {}, "followup": {}},
+            {"patient_id": "100130", "baseline": {}, "followup": {}},
+        ]
+    }
+    report = build_pde_burden_report(wt_report)
+    assert report["patient_count"] == 1
+    assert report["patients"][0]["patient_id"] == "100002"
+    assert report["excluded_resection_cavity_patient_ids"] == ["100130"]
+    assert report["cohort_selection"] == "no_resection_cavity"
+
+
 def test_build_pde_burden_report_empty_without_wt() -> None:
     report = build_pde_burden_report({"patients": []})
     assert report["patient_count"] == 0

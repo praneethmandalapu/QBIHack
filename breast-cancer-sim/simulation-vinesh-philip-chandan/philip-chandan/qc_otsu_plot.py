@@ -1,4 +1,4 @@
-"""QC PNGs documenting Vinesh Otsu tumor segmentation on Philip-Chandan raw extracts."""
+"""QC PNGs documenting Vinesh PDE prep (expert mask) on Philip-Chandan raw extracts."""
 
 from __future__ import annotations
 
@@ -15,9 +15,9 @@ sys.path.insert(0, str(SPIKE_ROOT))
 sys.path.insert(0, str(VINESH_DIR))
 
 from spike_paths import QC_OTSU_PLOTS_VINESH, ensure_spike_dirs  # noqa: E402
-from prepare_pde_input import load_raw_extract, prepare_pde_stages  # noqa: E402
+from prepare_pde_input import load_expert_mask, load_raw_extract, prepare_pde_stages  # noqa: E402
 
-OTSU_CONTOUR_COLOR = "magenta"
+MASK_CONTOUR_COLOR = "magenta"
 PDE_CMAP = "inferno"
 
 
@@ -37,19 +37,20 @@ def pick_tumor_z_index(mask: np.ndarray) -> int:
 
 def _load_stages(slug: str) -> dict:
     raw_volume, raw_metadata = load_raw_extract(slug)
-    stages = prepare_pde_stages(raw_volume, raw_metadata["spacing_mm"])
+    expert_mask, mask_path = load_expert_mask(raw_metadata, raw_volume.shape)
+    stages = prepare_pde_stages(raw_volume, raw_metadata["spacing_mm"], expert_mask)
     stages["raw_metadata"] = raw_metadata
+    stages["mask_path"] = mask_path
     return stages
 
 
 def save_otsu_norm_overlay_plot(slug: str) -> Path:
-    """Normalized resampled slice with Otsu tumor contour (pre-crop)."""
+    """Normalized resampled slice with expert tumor contour (pre-crop)."""
     ensure_spike_dirs()
     stages = _load_stages(slug)
     norm = stages["normalized"]
-    tumor_mask = stages["tumor_mask"]
+    tumor_mask = stages["resampled_mask"]
     meta = stages["raw_metadata"]
-    threshold = stages["otsu_threshold"]
 
     z_idx = pick_tumor_z_index(tumor_mask)
     out_path = otsu_norm_overlay_path(slug)
@@ -59,10 +60,9 @@ def save_otsu_norm_overlay_plot(slug: str) -> Path:
     fig, axis = plt.subplots(figsize=(6, 6))
     axis.imshow(norm[z_idx], cmap="gray", vmin=0, vmax=1)
     if tumor_mask[z_idx].any():
-        axis.contour(tumor_mask[z_idx], levels=[0.5], colors=OTSU_CONTOUR_COLOR, linewidths=1.0)
-    thresh_text = f"{threshold:.3f}" if threshold is not None else "n/a"
+        axis.contour(tumor_mask[z_idx], levels=[0.5], colors=MASK_CONTOUR_COLOR, linewidths=1.0)
     axis.set_title(
-        f"{meta.get('tcga_id', slug)} Otsu z={z_idx} thresh={thresh_text} "
+        f"{meta.get('tcga_id', slug)} expert mask z={z_idx} "
         f"(mask vox={int(tumor_mask.sum())})"
     )
     axis.axis("off")
@@ -73,7 +73,7 @@ def save_otsu_norm_overlay_plot(slug: str) -> Path:
 
 
 def save_pde_input_slice_plot(slug: str) -> Path:
-    """Cropped 64^3 PDE input slice showing continuous tumor density after Otsu."""
+    """Cropped 64^3 PDE input slice showing continuous tumor density inside expert ROI."""
     ensure_spike_dirs()
     stages = _load_stages(slug)
     pde_volume = stages["pde_volume"]
@@ -102,7 +102,7 @@ def save_pde_input_slice_plot(slug: str) -> Path:
 
 
 def save_otsu_qc_plots(slug: str) -> tuple[Path, Path]:
-    """Write both Otsu documentation PNGs for one slug."""
+    """Write both PDE-prep documentation PNGs for one slug."""
     return save_otsu_norm_overlay_plot(slug), save_pde_input_slice_plot(slug)
 
 
@@ -129,7 +129,7 @@ def ensure_pde_input_slice(slug: str) -> Path | None:
 def main() -> None:
     import argparse
 
-    parser = argparse.ArgumentParser(description="Save Otsu segmentation QC PNGs for a slug.")
+    parser = argparse.ArgumentParser(description="Save PDE prep QC PNGs for a slug.")
     parser.add_argument("--slug", default="luminal_a_TCGA-AR-A1AX_baseline")
     args = parser.parse_args()
     norm_path, pde_path = save_otsu_qc_plots(args.slug)
