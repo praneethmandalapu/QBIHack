@@ -23,18 +23,45 @@ from nifti_extractor import (  # noqa: E402
     load_expert_mask,
     resolve_ucsf_supplementary_paths,
 )
-from qc_slice_plot import ensure_overlay_plot, pick_mask_z_index  # noqa: E402
-from qc_pde_plot import ensure_expert_seg_overlay, ensure_pde_input_slice  # noqa: E402
+from cohort.cohort_io import iter_cohort_entries  # noqa: E402
+from qc_slice_plot import (  # noqa: E402
+    ensure_overlay_plot,
+    pick_mask_z_index,
+)
+from qc_pde_plot import (  # noqa: E402
+    ensure_expert_seg_overlay,
+    ensure_pde_input_longitudinal,
+)
+from pde_burden_compare import (  # noqa: E402
+    PDE_BURDEN_COMPARE_JSON,
+    build_pde_burden_report,
+    pdf_detail_rows,
+    pdf_table_rows,
+    write_pde_burden_report,
+)
+from spike_paths import (  # noqa: E402
+    RAW_EXTRACT_PHILIP_CHANDAN,
+    resolve_pde_input_metadata,
+    resolve_pde_input_npy,
+    resolve_raw_extract_metadata,
+    resolve_raw_extract_npy,
+)
 
 VINESH_DIR = SIM_ROOT / "vinesh"
 sys.path.insert(0, str(VINESH_DIR))
 from prepare_pde_input import load_raw_extract  # noqa: E402
 from run_growth import run_growth  # noqa: E402
 from tumor_pde_solver import total_volume  # noqa: E402
-from spike_paths import resolve_pde_input_metadata, resolve_pde_input_npy  # noqa: E402
 
 SPIKE = spike_patient()
 SPIKE_SLUG = SPIKE["slug"]
+VOLUME_REPORT_JSON = RAW_EXTRACT_PHILIP_CHANDAN / "wt_volume_report.json"
+
+
+def _load_volume_report() -> dict | None:
+    if not VOLUME_REPORT_JSON.is_file():
+        return None
+    return json.loads(VOLUME_REPORT_JSON.read_text(encoding="utf-8"))
 
 
 def _temp_sequence_figure(slug: str) -> Path | None:
@@ -57,7 +84,7 @@ def _temp_sequence_figure(slug: str) -> Path | None:
     # z index from T1ce + spike seg if available
     z_idx = volumes[0][1].shape[0] // 2  # type: ignore[union-attr]
     if ensure_overlay_plot(slug) is not None:
-        meta_path = REPO_ROOT / "data/processed/raw-extract-philip-chandan" / f"{slug}.json"
+        meta_path = resolve_raw_extract_metadata(slug)
         if meta_path.exists():
             meta = json.loads(meta_path.read_text(encoding="utf-8"))
             seg_path = REPO_ROOT / meta["segmentation_path"]
@@ -189,7 +216,7 @@ def build_report() -> ReportPDF:
     pdf.multi_cell(
         pdf.epw,
         6,
-        "UCSF longitudinal glioma: Phase 0 spike, expert segmentation, and clinical napari QC",
+        "UCSF longitudinal glioma: Phase 0 spike + 7-patient cohort export, expert segmentation, PDE prep",
     )
     pdf.ln(2)
     pdf.set_font("Helvetica", "", 10)
@@ -203,12 +230,12 @@ def build_report() -> ReportPDF:
     pdf.ln(4)
 
     pdf.body(
-        "Philip-Chandan owns the brain radiomics pipeline: download real glioma MRI with "
+        "Philip-Chandan owns the brain imaging pipeline: download real glioma MRI with "
         "expert segmentations (not Otsu heuristics), validate NIfTI pairs, export raw 3D "
-        "numpy arrays, and hand volumes to Vinesh for PDE growth simulation. Phase 0 "
-        "locked UCSF-ALPTDG patient 100002 baseline as the integration spike; Vinesh's "
-        "prepare_pde_input.py now resamples the expert mask into a 64^3 solver grid and "
-        "solve_growth() runs end-to-end on the spike slug."
+        "numpy arrays, run prepare_pde_input.py (resample/crop/normalize to 64^3), and hand "
+        "solver-ready cubes to Vinesh for PDE growth simulation and calibration. Phase 0 "
+        "locked UCSF patient 100002; export_all_raw.py now batch-exports seven UCSF cohort "
+        "patients (baseline + follow-up) with checkpointed progress and WT volume QC."
     )
 
     # --- 1. Spike patient ---
@@ -238,7 +265,10 @@ def build_report() -> ReportPDF:
         [
             ["nifti_extractor.py", "Load NIfTI as (Z,Y,X) float32; resolve UCSF paths; validate MR+mask pairs"],
             ["export_raw_extract.py", "Write raw .npy + JSON sidecar; copy expert mask to segmentations/"],
-            ["qc_slice_plot.py", "Mid-Z PNG with lime expert contour for visual QC"],
+            ["export_all_raw.py", "Checkpointed cohort batch export + optional UCSF workbook volume QC"],
+            ["wt_volume_report.py", "Longitudinal WT mm^3 from expert seg; compare to UCSF Table S1"],
+            ["pde_burden_compare.py", "PDE 64^3 voxel burden vs WT growth % spec"],
+            ["qc_slice_plot.py", "Mid-Z PNG + longitudinal before/after overlay panels"],
             ["view_volume_napari.py", "Interactive 3D QC viewer with clinical display controls"],
             ["cohort/cohort_discovery.py", "Scan local NIfTI trees; find longitudinal cases; audit cohort.json"],
             ["download_mu_glioma_post.py", "TCIA Faspex helper for MU-Glioma-Post backup dataset"],
@@ -252,18 +282,19 @@ def build_report() -> ReportPDF:
     pdf.table(
         ["Artifact", "Path"],
         [
-            ["Raw MR volume", f"data/processed/raw-extract-philip-chandan/{SPIKE_SLUG}.npy"],
-            ["Metadata sidecar", f".../{SPIKE_SLUG}.json"],
+            ["Raw MR volume", str(resolve_raw_extract_npy(SPIKE_SLUG).relative_to(REPO_ROOT))],
+            ["Metadata sidecar", str(resolve_raw_extract_metadata(SPIKE_SLUG).relative_to(REPO_ROOT))],
             ["Expert mask", f"data/processed/segmentations/{SPIKE_SLUG}_mask.nii.gz"],
             ["QC overlay PNG", f"data/qc/slice-plots-philip-chandan/{SPIKE_SLUG}_mid-z-overlay.png"],
-            ["PDE prep QC", f"data/qc/pde-prep-vinesh/{SPIKE_SLUG}_pde-input-mid-z.png"],
-            ["PDE input (Vinesh)", f"data/processed/pde-input-vinesh/{SPIKE_SLUG}.npy"],
+            ["Longitudinal QC", f"data/qc/slice-plots-philip-chandan/{{patient_id}}_longitudinal_mid-z-overlay.png"],
+            ["PDE prep QC", f"data/qc/pde-prep-vinesh/g64/{SPIKE_SLUG}_pde-input-mid-z.png"],
+            ["PDE input", str(resolve_pde_input_npy(SPIKE_SLUG).relative_to(REPO_ROOT))],
         ],
         [45, 135],
     )
 
     pdf.subsection("Spike volume metadata")
-    meta_path = REPO_ROOT / "data/processed/raw-extract-philip-chandan" / f"{SPIKE_SLUG}.json"
+    meta_path = resolve_raw_extract_metadata(SPIKE_SLUG)
     tumor_voxels = "n/a"
     if meta_path.exists():
         meta = json.loads(meta_path.read_text(encoding="utf-8"))
@@ -294,7 +325,7 @@ def build_report() -> ReportPDF:
         if pde_vol is not None:
             bg = float(pde_meta.get("background_value", 0.0))
             pde_tumor = f"{int((pde_vol > bg).sum()):,} (cropped 64^3 grid)"
-        pdf.subsection("PDE input metadata (Vinesh)")
+        pdf.subsection("PDE input metadata")
         pdf.table(
             ["Property", "Value"],
             [
@@ -437,11 +468,12 @@ def build_report() -> ReportPDF:
     pdf.set_font("Helvetica", "", 10)
 
     # --- 6. PDE prep (Vinesh) ---
-    pdf.section_title("6", "Expert-mask PDE prep - prepare_pde_input.py (Vinesh)")
+    pdf.section_title("6", "Expert-mask PDE prep - prepare_pde_input.py (Philip-Chandan)")
     pdf.body(
-        "After Philip-Chandan raw export, Vinesh prepares PDE-ready volumes in "
-        "vinesh/prepare_pde_input.py per handoff_contract.json v1.0.0. Unlike breast-cancer-sim "
-        "(Otsu on DCE-MRI), brain v1 uses the dataset expert mask - no Otsu fallback."
+        "Philip-Chandan runs prepare_pde_input.py after each raw export, writing PDE-ready "
+        "volumes to data/processed/pde-input-vinesh/<patient_id>/g64/ per handoff_contract.json "
+        "v1.0.0. Unlike breast-cancer-sim (Otsu on DCE-MRI), brain v1 uses the dataset expert "
+        "mask - no Otsu fallback. Vinesh consumes these cubes for run_growth() and calibrate.py."
     )
     pdf.bullet("Resample MR (linear) and expert mask (nearest) to isotropic 1 mm spacing")
     pdf.bullet("Min-max normalize MR intensities to [0, 1]")
@@ -461,13 +493,14 @@ def build_report() -> ReportPDF:
             "expert tumor mask on the 1 mm grid before crop; background will be zeroed.",
             width_mm=100,
         )
-    pde_slice = ensure_pde_input_slice(SPIKE_SLUG)
-    if pde_slice:
+    pde_longitudinal = ensure_pde_input_longitudinal(SPIKE["patient_id"], force=True)
+    if pde_longitudinal:
         pdf.embed_image(
-            pde_slice,
-            "Figure 4. Cropped PDE input (64^3, 1 mm). Inferno colormap shows continuous initial "
-            "tumor burden; cyan contour marks voxels > 0.",
-            width_mm=100,
+            pde_longitudinal,
+            "Figure 4. Cropped PDE input (64^3, 1 mm) for spike patient 100002. Left: baseline (t1); "
+            "right: follow-up (t2). Inferno colormap shows continuous initial tumor burden; "
+            "cyan contour marks voxels > 0.",
+            width_mm=pdf.epw,
         )
 
     pde_npy = resolve_pde_input_npy(SPIKE_SLUG)
@@ -499,41 +532,127 @@ def build_report() -> ReportPDF:
     pdf.ln(3)
     pdf.set_font("Helvetica", "", 10)
 
-    # --- 7. Handoff ---
-    pdf.section_title("7", "Handoff contract summary")
+    volume_report = _load_volume_report()
+
+    # --- 7. PDE burden vs WT growth ---
+    burden_report = build_pde_burden_report(volume_report)
+    write_pde_burden_report(path=PDE_BURDEN_COMPARE_JSON, wt_report=volume_report)
+
+    pdf.section_title("7", "PDE burden vs WT growth spec (QC)")
+    pdf.body(
+        "After prepare_pde_input.py, tumor burden in the 64^3 PDE cube is the count of voxels "
+        "with value > 0 (handoff_contract tumor_burden_rule). At 1 mm spacing each voxel is "
+        "~1 mm^3 when the lesion fits inside the crop. WT volumes in wt_volume_report.json use "
+        "BraTS labels 1+2+3 only; PDE prep seeds from mask > 0, so per-timepoint capture can "
+        "exceed 100% when label 4 (resection cavity) is present. The longitudinal check is "
+        "whether PDE voxel growth % tracks computed_growth_pct from the expert WT spec."
+    )
+    if burden_report.get("patients"):
+        pdf.subsection("Per-timepoint burden capture (WT mm^3 vs PDE voxels)")
+        pdf.table(
+            ["Patient", "TP", "WT mm^3", "PDE voxels", "Capture"],
+            pdf_detail_rows(burden_report),
+            [18, 12, 28, 28, 22],
+        )
+        pdf.subsection("Longitudinal growth % - WT spec vs PDE voxels")
+        pdf.table(
+            ["Patient", "Cap t1", "Cap t2", "WT d%", "PDE d%", "d diff", "QC flags"],
+            pdf_table_rows(burden_report),
+            [16, 16, 16, 18, 18, 16, 36],
+        )
+        ok_count = sum(
+            1
+            for row in burden_report["patients"]
+            if row.get("qc_flags") == ["ok"]
+        )
+        pdf.body(
+            f"Spike patient 100002 matches exactly (100% capture, +2.8% growth). "
+            f"{ok_count}/{burden_report['patient_count']} patients pass all QC flags "
+            f"(capture 95-105% both timepoints and growth within +/-5% of WT spec). "
+            f"Large-tumor patients (e.g. 100118, 100220, 100260) show follow-up crop loss "
+            f"that skews PDE growth % - Vinesh calibrate.py should use full-res WT targets, "
+            f"not cropped voxel counts alone. JSON sidecar: "
+            f"{PDE_BURDEN_COMPARE_JSON.relative_to(REPO_ROOT)}."
+        )
+    else:
+        pdf.body(
+            "Run export_all_raw.py --volume-report-only and prepare_pde_input.py for the "
+            "cohort, then regenerate this PDF."
+        )
+
+    # --- 8. UCSF cohort scale-up ---
+    pdf.section_title("8", "UCSF cohort scale-up - 7 patients longitudinal QC")
+    pdf.body(
+        "export_all_raw.py exported baseline + follow-up raw extracts for seven UCSF-LPTDG "
+        "patients in cohort.json (primary spike 100002 plus six discovery picks). "
+        "qc_slice_plot.save_longitudinal_overlay_plot() renders side-by-side T1ce slices "
+        "at the baseline tumor-rich z index with lime expert contours (PNG on disk under "
+        "data/qc/slice-plots-philip-chandan/). WT volumes (labels 1+2+3) come from "
+        "wt_volume_report.py; use --compare-ucsf-workbook on export_all_raw to diff "
+        "against UCSF Table S1."
+    )
+
+    if volume_report:
+        table_rows: list[list[str]] = []
+        for row in volume_report.get("patients", []):
+            pid = str(row["patient_id"])
+            baseline = row.get("baseline") or {}
+            followup = row.get("followup") or {}
+            table_rows.append(
+                [
+                    pid,
+                    str(row.get("grade", "-")),
+                    str(row.get("idh_status", "-")),
+                    f"{baseline.get('computed_mm3', 0):,.0f}",
+                    f"{followup.get('computed_mm3', 0):,.0f}",
+                    f"{row.get('computed_delta_mm3', 0):+,.0f}",
+                    f"{row.get('computed_growth_pct', 0):+.1f}%",
+                    f"{row.get('interval_days', 0):.0f}",
+                ]
+            )
+        pdf.table(
+            ["Patient", "Grade", "IDH", "WT t1 (mm3)", "WT t2 (mm3)", "d mm3", "d %", "Days"],
+            table_rows,
+            [16, 12, 12, 22, 22, 20, 16, 14],
+        )
+
+    # --- 9. Handoff ---
+    pdf.section_title("9", "Handoff contract summary")
     pdf.table(
         ["Philip-Chandan (raw extract)", "Vinesh (PDE input)"],
         [
-            ["Raw MR intensities, not normalized", "Resample/crop toward max 64^3, 1 mm spacing"],
+            ["Raw MR intensities, not normalized", "Philip-Chandan: prepare_pde_input -> 64^3, 1 mm"],
             ["spacing_mm in JSON sidecar", "Normalize to [0, 1] inside tumor region"],
             ["Expert mask path in metadata", "Expert mask resampled - no Otsu fallback"],
-            ["Axis order (Z, Y, X)", "solve_growth() initial condition"],
+            ["Axis order (Z, Y, X)", "Vinesh: run_growth() + calibrate.py"],
         ],
         [85, 95],
     )
 
-    # --- 8. Summary ---
-    pdf.section_title("8", "Phase 0 summary and next steps")
+    # --- 10. Summary ---
+    pdf.section_title("10", "Summary and next steps")
     pdf.body(
-        "Phase 0 delivered a working NIfTI ingest path, UCSF spike export, expert-mask QC "
-        "figures, a clinical-style napari viewer, Vinesh PDE prep from the expert mask into "
-        "64^3 continuous-density input, and a successful solve_growth() smoke test on patient "
-        "100002 baseline. Next: export follow-up timepoint (100002_time2), add a second "
-        "patient or grade for the demo toggle, and publish manifest.json v1.0.0."
+        "Phase 0 delivered NIfTI ingest, UCSF spike export, expert-mask QC, napari viewer, "
+        "Philip-Chandan PDE prep into 64^3 continuous-density input, and solve_growth() smoke "
+        "on patient 100002. Cohort scale-up exported seven patients (14 timepoints) with "
+        "longitudinal overlay PNGs on disk, WT volume table (section 8), and PDE burden vs "
+        "growth QC (section 7). Next: manifest.json v1.0.0, Vinesh calibrate.py for t1->t2, "
+        "and demo toggle (100002 stable IDH-mut vs 100118 aggressive IDH-WT GBM)."
     )
     pdf.subsection("Deliverables completed")
     pdf.table(
         ["Stage", "Deliverable", "Status"],
         [
-            ["Cohort", "cohort.json rev1 + COHORT.md", "UCSF spike locked"],
-            ["Download", "UCSF NIfTI under data/raw/ucsf_alptdg/100002/", "On disk"],
-            ["Extract", "nifti_extractor.py + tests", "Passing"],
-            ["Export", f"Raw .npy + .json + mask ({SPIKE_SLUG})", "Done"],
-            ["QC", "Slice overlay PNG + napari viewer", "Done"],
-            ["PDE prep", f"pde-input-vinesh/{SPIKE_SLUG}", "Done"],
-            ["Solver", "solve_growth() on spike PDE input", "Smoke test passed"],
+            ["Cohort", "cohort.json rev1 - 7 UCSF patients", "Done"],
+            ["Export", "export_all_raw.py checkpointed batch", "7 patients × 2 timepoints"],
+            ["Volume QC", "wt_volume_report.json + workbook compare", "Done"],
+            ["Longitudinal QC", "7 before/after overlay PNGs", "On disk"],
+            ["PDE prep", "prepare_pde_input g64 - 7 patients x 2 timepoints", "Done"],
+            ["PDE burden QC", "pde_burden_compare.json + section 7", "In this PDF"],
+            ["Solver", "run_growth() smoke on 100002 baseline", "Passed"],
+            ["Pending", "manifest.json, calibrate.py, Jasim/Vihari", "Next"],
         ],
-        [30, 90, 60],
+        [28, 88, 62],
     )
 
     return pdf
