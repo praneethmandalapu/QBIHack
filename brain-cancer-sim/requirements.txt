@@ -17,6 +17,9 @@ scikit-image
 # QC (optional napari viewer — same pattern as breast validation/)
 napari[pyqt6]
 
+# Medical image processing (resample, morphology, metrics)
+medpy
+
 # Testing
 pytest
 fpdf2
