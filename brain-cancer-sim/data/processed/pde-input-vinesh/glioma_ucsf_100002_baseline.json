@@ -2,7 +2,7 @@
   "contract_version": "1.0.0",
   "slug": "glioma_ucsf_100002_baseline",
   "grid_size": 64,
-  "source_raw_extract": "data/processed/raw-extract-philip-chandan/glioma_ucsf_100002_baseline.npy",
+  "source_raw_extract": "data/processed/raw-extract-philip-chandan/100002/baseline.npy",
   "source_segmentation": "data/processed/segmentations/glioma_ucsf_100002_baseline_mask.nii.gz",
   "shape": [
     64,

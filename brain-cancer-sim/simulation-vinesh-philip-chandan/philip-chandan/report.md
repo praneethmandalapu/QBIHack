@@ -20,7 +20,7 @@ Philip-Chandan owns **Person 5: Imaging Pipeline** in this folder. Phase 0 deliv
 6. **Vinesh PDE prep** — `../vinesh/prepare_pde_input.py` → `pde-input-vinesh/` (expert mask, no Otsu)  
 7. **Solver smoke test** — `solve_growth()` on spike slug  
 
-**Next (Phase 1):** follow-up timepoint, second patient/grade, `manifest.json` v1.0.0.
+**Next (Phase 1):** `manifest.json` v1.0.0, Vinesh `calibrate.py`, demo toggle (`100002` vs `100118`).
 
 ---
 
@@ -33,9 +33,9 @@ Philip-Chandan owns **Person 5: Imaging Pipeline** in this folder. Phase 0 deliv
 | Diagnosis | Oligodendroglioma, WHO grade 2, IDH-mut, MGMT+ |
 | Slug | `glioma_ucsf_100002_baseline` |
 | Raw shape | `(155, 240, 240)` @ 1 mm isotropic |
-| PDE input | `(64, 64, 64)` or `(128, 128, 128)` @ 1 mm — see `--grid-size` |
+| PDE input | `(64, 64, 64)` @ 1 mm |
 
-Grid sizes are configured in `handoff_contract.json` (`grid_size_options`: 64, 128). Outputs land in `pde-input-vinesh/g64/` and `g128/`.
+Grid size is configured in `handoff_contract.json` (`grid_size_options`: 64). Outputs land in `pde-input-vinesh/<patient_id>/g64/`.
 
 Expert segmentations are dataset ground truth — **no Otsu fallback** in brain v1.
 
@@ -46,17 +46,7 @@ Expert segmentations are dataset ground truth — **no Otsu fallback** in brain 
 ```bash
 cd brain-cancer-sim
 .venv/bin/pip install -r requirements.txt   # includes fpdf2
-```bash
-.venv/bin/python simulation-vinesh-philip-chandan/vinesh/prepare_pde_input.py --all-grids
-.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/qc_pde_plot.py --all-grids
-.venv/bin/python simulation-vinesh-philip-chandan/vinesh/bench_pde_grid.py
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/generate_pipeline_report.py
-```
-
-Single grid:
-
-```bash
-.venv/bin/python simulation-vinesh-philip-chandan/vinesh/prepare_pde_input.py --grid-size 128
 ```
 
 ---

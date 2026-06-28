@@ -139,7 +139,7 @@ def _print_table(result: dict) -> None:
 
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(
-        description="Time prepare_pde_input + solve_growth for 64^3 and 128^3 grids."
+        description="Time prepare_pde_input + solve_growth for contract grid size(s)."
     )
     parser.add_argument("--slug", default=spike_patient()["slug"])
     parser.add_argument(

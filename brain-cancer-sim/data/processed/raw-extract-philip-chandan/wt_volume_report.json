@@ -1,0 +1,204 @@
+{
+  "generated_at": "2026-06-28T18:04:42.490668+00:00",
+  "compare_ucsf_workbook": true,
+  "workbook_csv": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/processed/ucsf_longitudinal_master.csv",
+  "patient_count": 7,
+  "patients": [
+    {
+      "patient_id": "100002",
+      "dataset_key": "ucsf_longitudinal_glioma",
+      "grade": "2",
+      "idh_status": "mut",
+      "interval_days": 182.56874999999854,
+      "baseline": {
+        "label": "baseline",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100002/100002_time1_seg.nii.gz",
+        "computed_mm3": 8137.0,
+        "workbook_mm3": 8137.0,
+        "delta_mm3": 0.0,
+        "delta_pct": 0.0
+      },
+      "followup": {
+        "label": "followup",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100002/100002_time2_seg.nii.gz",
+        "computed_mm3": 8365.0,
+        "workbook_mm3": 8365.0,
+        "delta_mm3": 0.0,
+        "delta_pct": 0.0
+      },
+      "computed_delta_mm3": 228.0,
+      "computed_growth_pct": 2.802015484822416,
+      "workbook_delta_mm3": 228.0,
+      "workbook_growth_pct": 2.802015484822416,
+      "delta_delta_mm3": 0.0
+    },
+    {
+      "patient_id": "100118",
+      "dataset_key": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "interval_days": 55.93819444444671,
+      "baseline": {
+        "label": "baseline",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100118/100118_time1_seg.nii.gz",
+        "computed_mm3": 10905.0,
+        "workbook_mm3": 10905.0,
+        "delta_mm3": 0.0,
+        "delta_pct": 0.0
+      },
+      "followup": {
+        "label": "followup",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100118/100118_time2_seg.nii.gz",
+        "computed_mm3": 77327.0,
+        "workbook_mm3": 77327.0,
+        "delta_mm3": 0.0,
+        "delta_pct": 0.0
+      },
+      "computed_delta_mm3": 66422.0,
+      "computed_growth_pct": 609.096744612563,
+      "workbook_delta_mm3": 66422.0,
+      "workbook_growth_pct": 609.096744612563,
+      "delta_delta_mm3": 0.0
+    },
+    {
+      "patient_id": "100192",
+      "dataset_key": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+      "grade": 2.0,
+      "idh_status": "mut",
+      "interval_days": 83.04999999999563,
+      "baseline": {
+        "label": "baseline",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100192/100192_time1_seg.nii.gz",
+        "computed_mm3": 11463.0,
+        "workbook_mm3": 16957.0,
+        "delta_mm3": -5494.0,
+        "delta_pct": -32.399598985669634
+      },
+      "followup": {
+        "label": "followup",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100192/100192_time2_seg.nii.gz",
+        "computed_mm3": 4798.0,
+        "workbook_mm3": 10036.0,
+        "delta_mm3": -5238.0,
+        "delta_pct": -52.19210840972499
+      },
+      "computed_delta_mm3": -6665.0,
+      "computed_growth_pct": -58.14359242781122,
+      "workbook_delta_mm3": -6921.0,
+      "workbook_growth_pct": -40.8150026537713,
+      "delta_delta_mm3": 256.0
+    },
+    {
+      "patient_id": "100260",
+      "dataset_key": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "interval_days": 62.9555555555562,
+      "baseline": {
+        "label": "baseline",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100260/100260_time1_seg.nii.gz",
+        "computed_mm3": 18547.0,
+        "workbook_mm3": 34800.0,
+        "delta_mm3": -16253.0,
+        "delta_pct": -46.70402298850575
+      },
+      "followup": {
+        "label": "followup",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100260/100260_time2_seg.nii.gz",
+        "computed_mm3": 97533.0,
+        "workbook_mm3": 104948.0,
+        "delta_mm3": -7415.0,
+        "delta_pct": -7.065403819034189
+      },
+      "computed_delta_mm3": 78986.0,
+      "computed_growth_pct": 425.86941284304737,
+      "workbook_delta_mm3": 70148.0,
+      "workbook_growth_pct": 201.57471264367817,
+      "delta_delta_mm3": 8838.0
+    },
+    {
+      "patient_id": "100220",
+      "dataset_key": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "interval_days": 27.0715277777781,
+      "baseline": {
+        "label": "baseline",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100220/100220_time1_seg.nii.gz",
+        "computed_mm3": 38492.0,
+        "workbook_mm3": 40020.0,
+        "delta_mm3": -1528.0,
+        "delta_pct": -3.818090954522739
+      },
+      "followup": {
+        "label": "followup",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100220/100220_time2_seg.nii.gz",
+        "computed_mm3": 108441.0,
+        "workbook_mm3": 109608.0,
+        "delta_mm3": -1167.0,
+        "delta_pct": -1.0647033063280054
+      },
+      "computed_delta_mm3": 69949.0,
+      "computed_growth_pct": 181.72347500779384,
+      "workbook_delta_mm3": 69588.0,
+      "workbook_growth_pct": 173.8830584707646,
+      "delta_delta_mm3": 361.0
+    },
+    {
+      "patient_id": "100134",
+      "dataset_key": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+      "grade": 3.0,
+      "idh_status": "mut",
+      "interval_days": 105.10624999999709,
+      "baseline": {
+        "label": "baseline",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100134/100134_time1_seg.nii.gz",
+        "computed_mm3": 11235.0,
+        "workbook_mm3": 66627.0,
+        "delta_mm3": -55392.0,
+        "delta_pct": -83.13746679274168
+      },
+      "followup": {
+        "label": "followup",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100134/100134_time2_seg.nii.gz",
+        "computed_mm3": 12288.0,
+        "workbook_mm3": 38355.0,
+        "delta_mm3": -26067.0,
+        "delta_pct": -67.96245600312866
+      },
+      "computed_delta_mm3": 1053.0,
+      "computed_growth_pct": 9.372496662216289,
+      "workbook_delta_mm3": -28272.0,
+      "workbook_growth_pct": -42.43324778243055,
+      "delta_delta_mm3": 29325.0
+    },
+    {
+      "patient_id": "100130",
+      "dataset_key": "UCSF Longitudinal Glioma (UCSF-LPTDG)",
+      "grade": 3.0,
+      "idh_status": "mut",
+      "interval_days": 181.9777777777781,
+      "baseline": {
+        "label": "baseline",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100130/100130_time1_seg.nii.gz",
+        "computed_mm3": 4144.0,
+        "workbook_mm3": 11845.0,
+        "delta_mm3": -7701.0,
+        "delta_pct": -65.01477416631491
+      },
+      "followup": {
+        "label": "followup",
+        "seg_path": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/raw/ucsf_alptdg/100130/100130_time2_seg.nii.gz",
+        "computed_mm3": 4722.0,
+        "workbook_mm3": 8313.0,
+        "delta_mm3": -3591.0,
+        "delta_pct": -43.197401660050524
+      },
+      "computed_delta_mm3": 578.0,
+      "computed_growth_pct": 13.947876447876448,
+      "workbook_delta_mm3": -3532.0,
+      "workbook_growth_pct": -29.818488813845505,
+      "delta_delta_mm3": 4110.0
+    }
+  ]
+}

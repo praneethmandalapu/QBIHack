@@ -119,3 +119,35 @@ def test_export_batch_resumes_without_rerunning_completed(status_file: Path, tmp
         )
 
     assert calls == ["glioma_ucsf_100002_baseline"]
+
+
+def test_export_batch_can_append_ucsf_volume_report(status_file: Path, tmp_path: Path) -> None:
+    patients = [_patient()]
+
+    with (
+        patch("export_all_raw.resolve_patients", return_value=patients),
+        patch("export_all_raw.maybe_run_volume_report") as report_mock,
+        patch(
+            "export_all_raw.parse_timepoint_selection",
+            return_value=None,
+        ),
+    ):
+        from export_all_raw import main
+
+        with patch("export_all_raw.export_batch") as batch_mock:
+            with patch(
+                "sys.argv",
+                [
+                    "export_all_raw.py",
+                    "--all-primary",
+                    "--volume-report-only",
+                    "--compare-ucsf-workbook",
+                ],
+            ):
+                main()
+
+        batch_mock.assert_not_called()
+        report_mock.assert_called_once()
+        kwargs = report_mock.call_args.kwargs
+        assert kwargs["compare_ucsf_workbook"] is True
+        assert kwargs["volume_report_only"] is True

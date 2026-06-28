@@ -14,7 +14,14 @@ sys.path.insert(0, str(PHILIP_CHANDAN_DIR))
 sys.path.insert(0, str(SIM_ROOT))
 
 from nifti_extractor import extract_volume, load_expert_mask  # noqa: E402
-from spike_paths import SPIKE_PATIENT, ensure_spike_dirs, slice_plot_path  # noqa: E402
+from spike_paths import (  # noqa: E402
+    REPO_ROOT,
+    SPIKE_PATIENT,
+    ensure_spike_dirs,
+    resolve_raw_extract_metadata,
+    resolve_raw_extract_npy,
+    slice_plot_path,
+)
 
 MASK_OVERLAY_COLOR = "lime"
 
@@ -74,8 +81,8 @@ def ensure_overlay_plot(slug: str) -> Path | None:
     if out_path.exists():
         return out_path
 
-    npy_path = SIM_ROOT.parent / "data" / "processed" / "raw-extract-philip-chandan" / f"{slug}.npy"
-    json_path = npy_path.with_suffix(".json")
+    npy_path = resolve_raw_extract_npy(slug)
+    json_path = resolve_raw_extract_metadata(slug)
     if not npy_path.exists() or not json_path.exists():
         return None
 
@@ -93,6 +100,104 @@ def ensure_overlay_plot(slug: str) -> Path | None:
         return None
     mask = load_expert_mask(mask_path, volume.shape)
     return save_slice_plot(volume, mask, slug)
+
+
+def longitudinal_plot_path(patient_id: str) -> Path:
+    return slice_plot_path(f"patient_{patient_id}", overlay=True).with_name(
+        f"{patient_id}_longitudinal_mid-z-overlay.png"
+    )
+
+
+def save_longitudinal_overlay_plot(
+    patient_id: str,
+    *,
+    baseline_slug: str | None = None,
+    followup_slug: str | None = None,
+    baseline_wt_mm3: float | None = None,
+    followup_wt_mm3: float | None = None,
+    interval_days: float | None = None,
+) -> Path:
+    """Side-by-side baseline vs follow-up T1ce with expert mask contours."""
+    ensure_spike_dirs()
+    out_path = longitudinal_plot_path(patient_id)
+
+    baseline_npy = resolve_raw_extract_npy(baseline_slug or f"glioma_ucsf_{patient_id}_baseline")
+    followup_npy = resolve_raw_extract_npy(followup_slug or f"glioma_ucsf_{patient_id}_followup")
+    if not baseline_npy.is_file() or not followup_npy.is_file():
+        raise FileNotFoundError(
+            f"Missing raw extract for patient {patient_id}: {baseline_npy} / {followup_npy}"
+        )
+
+    import json
+
+    baseline_vol = np.load(baseline_npy)
+    followup_vol = np.load(followup_npy)
+    baseline_meta = json.loads(baseline_npy.with_suffix(".json").read_text(encoding="utf-8"))
+    followup_meta = json.loads(followup_npy.with_suffix(".json").read_text(encoding="utf-8"))
+
+    def _mask_from_meta(volume: np.ndarray, meta: dict) -> np.ndarray:
+        seg_path = Path(meta["segmentation_path"])
+        if not seg_path.is_absolute():
+            seg_path = REPO_ROOT / seg_path
+        return load_expert_mask(seg_path, volume.shape)
+
+    baseline_mask = _mask_from_meta(baseline_vol, baseline_meta)
+    followup_mask = _mask_from_meta(followup_vol, followup_meta)
+    z_idx = pick_mask_z_index(baseline_mask)
+
+    import matplotlib.pyplot as plt
+
+    fig, axes = plt.subplots(1, 2, figsize=(10, 5))
+    panels = [
+        (baseline_vol, baseline_mask, "Baseline (t1)", baseline_wt_mm3),
+        (followup_vol, followup_mask, "Follow-up (t2)", followup_wt_mm3),
+    ]
+    for axis, (volume, mask, label, wt_mm3) in zip(axes, panels):
+        slice_2d = volume[z_idx]
+        mask_slice = mask[z_idx] > 0
+        axis.imshow(slice_2d, cmap="gray")
+        if mask_slice.any():
+            axis.contour(mask_slice, levels=[0.5], colors=MASK_OVERLAY_COLOR, linewidths=1.0)
+        title = f"{label}  z={z_idx}"
+        if wt_mm3 is not None:
+            title += f"\nWT {wt_mm3:,.0f} mm³"
+        axis.set_title(title, fontsize=10)
+        axis.axis("off")
+
+    growth_note = ""
+    if baseline_wt_mm3 is not None and followup_wt_mm3 is not None and baseline_wt_mm3 > 0:
+        pct = 100.0 * (followup_wt_mm3 - baseline_wt_mm3) / baseline_wt_mm3
+        growth_note = f"  |  ΔWT {followup_wt_mm3 - baseline_wt_mm3:+,.0f} mm³ ({pct:+.1f}%)"
+    if interval_days is not None:
+        growth_note += f"  |  {interval_days:.0f} d"
+
+    fig.suptitle(f"Patient {patient_id}{growth_note}", fontsize=11)
+    fig.tight_layout()
+    fig.savefig(out_path, dpi=120, bbox_inches="tight")
+    plt.close(fig)
+    return out_path
+
+
+def ensure_longitudinal_overlay_plot(
+    patient_id: str,
+    *,
+    baseline_wt_mm3: float | None = None,
+    followup_wt_mm3: float | None = None,
+    interval_days: float | None = None,
+    force: bool = False,
+) -> Path | None:
+    out_path = longitudinal_plot_path(patient_id)
+    if out_path.exists() and not force:
+        return out_path
+    try:
+        return save_longitudinal_overlay_plot(
+            patient_id,
+            baseline_wt_mm3=baseline_wt_mm3,
+            followup_wt_mm3=followup_wt_mm3,
+            interval_days=interval_days,
+        )
+    except (FileNotFoundError, ValueError, OSError):
+        return None
 
 
 def main() -> None:

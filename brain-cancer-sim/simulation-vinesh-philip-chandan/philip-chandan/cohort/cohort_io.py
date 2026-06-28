@@ -7,7 +7,7 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
-from cohort import COHORT_PATH, RAW_DATA_DIR
+from cohort import COHORT_PATH, RAW_DATA_DIR, REPO_ROOT
 from cohort.datasets import DatasetSpec, get_dataset
 
 
@@ -38,6 +38,30 @@ def _normalize_patient_entry(entry: dict[str, Any], *, group: str) -> dict[str, 
         "backup": bool(entry.get("backup", group != "primary")),
         "raw_dir": resolve_patient_raw_dir(dataset_key, patient_id),
     }
+
+
+def resolve_repo_path(raw_path: str, *, repo_root: Path | None = None) -> Path:
+    path = Path(raw_path)
+    if path.is_absolute():
+        return path
+    root = repo_root or REPO_ROOT
+    return root / path
+
+
+def filter_cohort_timepoints(
+    patient: dict[str, Any],
+    selection: set[str] | None,
+) -> list[dict[str, Any]]:
+    """Return timepoints with MR + segmentation paths, optionally filtered by label."""
+    matched: list[dict[str, Any]] = []
+    for timepoint in patient.get("timepoints", []):
+        label = str(timepoint.get("label", "")).lower()
+        if selection is not None and label not in selection:
+            continue
+        if not timepoint.get("mr_path") or not timepoint.get("segmentation_path"):
+            continue
+        matched.append(timepoint)
+    return matched
 
 
 def resolve_patient_raw_dir(

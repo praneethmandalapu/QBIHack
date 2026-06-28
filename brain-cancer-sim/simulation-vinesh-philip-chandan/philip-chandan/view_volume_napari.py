@@ -49,9 +49,13 @@ from handoff_contract import (  # noqa: E402
     grid_size_options,
     load_handoff_contract,
     pde_input_spec,
-    raw_extract_spec,
 )
-from spike_paths import resolve_pde_input_npy  # noqa: E402
+from spike_paths import (  # noqa: E402
+    RAW_EXTRACT_PHILIP_CHANDAN,
+    resolve_pde_input_npy,
+    resolve_raw_extract_metadata,
+    resolve_raw_extract_npy,
+)
 from nifti_extractor import resolve_ucsf_supplementary_paths  # noqa: E402
 from tumor_pde_solver import dummy_volume  # noqa: E402
 
@@ -216,10 +220,8 @@ def load_nifti(path: Path) -> tuple[np.ndarray, tuple[float, float, float]]:
 
 
 def load_raw_extract(slug: str) -> tuple[np.ndarray, dict[str, Any], Path]:
-    spec = raw_extract_spec()
-    out_dir = _repo_path(spec["output_dir"])
-    npy_path = out_dir / f"{slug}.npy"
-    json_path = out_dir / f"{slug}.json"
+    npy_path = resolve_raw_extract_npy(slug)
+    json_path = resolve_raw_extract_metadata(slug)
     if not npy_path.exists() or not json_path.exists():
         raise FileNotFoundError(
             f"Missing raw extract for {slug!r}. Expected:\n"
@@ -639,14 +641,17 @@ def launch_clinical_viewer(
 
 
 def list_slugs() -> list[str]:
-    spec = raw_extract_spec()
-    out_dir = _repo_path(spec["output_dir"])
-    if not out_dir.exists():
+    if not RAW_EXTRACT_PHILIP_CHANDAN.exists():
         return []
     slugs: list[str] = []
-    for json_path in sorted(out_dir.glob("*.json")):
-        slug = json_path.stem
-        seg = resolve_segmentation_path(json.loads(json_path.read_text()), slug)
+    json_paths = sorted(RAW_EXTRACT_PHILIP_CHANDAN.glob("*/*.json"))
+    json_paths.extend(
+        p for p in sorted(RAW_EXTRACT_PHILIP_CHANDAN.glob("*.json")) if p not in json_paths
+    )
+    for json_path in json_paths:
+        meta = json.loads(json_path.read_text(encoding="utf-8"))
+        slug = str(meta.get("slug") or json_path.stem)
+        seg = resolve_segmentation_path(meta, slug)
         if seg is not None:
             slugs.append(slug)
     return slugs

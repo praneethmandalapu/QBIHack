@@ -36,6 +36,16 @@ Single patient::
 
     python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py \\
       --patient-id 100002 --timepoints all
+
+Longitudinal WT volume table vs UCSF workbook (UCSF patients only)::
+
+    python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py \\
+      --all-primary --compare-ucsf-workbook
+
+Volume report only (no re-export)::
+
+    python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py \\
+      --all-primary --volume-report-only --compare-ucsf-workbook
 """
 
 from __future__ import annotations
@@ -65,13 +75,19 @@ from batch_job_state import (  # noqa: E402
     save_run,
 )
 from cohort import REPO_ROOT as COHORT_REPO_ROOT  # noqa: E402
-from cohort.cohort_io import iter_cohort_entries, load_cohort  # noqa: E402
+from cohort.cohort_io import (  # noqa: E402
+    filter_cohort_timepoints,
+    iter_cohort_entries,
+    load_cohort,
+    resolve_repo_path as _resolve_repo_path,
+)
 from export_raw_extract import export_raw_extract  # noqa: E402
 from nifti_extractor import load_expert_mask  # noqa: E402
 from qc_slice_plot import save_slice_plot  # noqa: E402
 from spike_paths import RAW_EXTRACT_PHILIP_CHANDAN, segmentation_mask_path  # noqa: E402
 
 DEFAULT_STATUS_FILE = RAW_EXTRACT_PHILIP_CHANDAN / ".export_all_raw.state.json"
+DEFAULT_VOLUME_REPORT_JSON = RAW_EXTRACT_PHILIP_CHANDAN / "wt_volume_report.json"
 
 DATASET_SLUG_TOKENS: dict[str, str] = {
     "ucsf_longitudinal_glioma": "ucsf",
@@ -115,10 +131,14 @@ def build_slug(patient: dict[str, Any], timepoint: dict[str, Any]) -> str:
 
 
 def resolve_repo_path(raw_path: str) -> Path:
-    path = Path(raw_path)
-    if path.is_absolute():
-        return path
-    return COHORT_REPO_ROOT / path
+    return _resolve_repo_path(raw_path, repo_root=COHORT_REPO_ROOT)
+
+
+def filter_timepoints(
+    patient: dict[str, Any],
+    selection: set[str] | None,
+) -> list[dict[str, Any]]:
+    return filter_cohort_timepoints(patient, selection)
 
 
 def timepoint_study_date(timepoint: dict[str, Any]) -> str:
@@ -128,23 +148,6 @@ def timepoint_study_date(timepoint: dict[str, Any]) -> str:
     if relative_day is not None:
         return f"day{relative_day}"
     return str(timepoint.get("label", "unknown"))
-
-
-def filter_timepoints(
-    patient: dict[str, Any],
-    selection: set[str] | None,
-) -> list[dict[str, Any]]:
-    matched: list[dict[str, Any]] = []
-    for timepoint in patient.get("timepoints", []):
-        label = str(timepoint.get("label", "")).lower()
-        if selection is not None and label not in selection:
-            continue
-        mr_raw = timepoint.get("mr_path")
-        seg_raw = timepoint.get("segmentation_path")
-        if not mr_raw or not seg_raw:
-            continue
-        matched.append(timepoint)
-    return matched
 
 
 def resolve_patients(
@@ -356,6 +359,32 @@ def export_batch(
     return written
 
 
+def maybe_run_volume_report(
+    patients: list[dict[str, Any]],
+    *,
+    compare_ucsf_workbook: bool,
+    volume_report_only: bool,
+    report_json: Path | None,
+) -> None:
+    if not compare_ucsf_workbook and not volume_report_only:
+        return
+
+    from wt_volume_report import run_volume_report
+
+    out_path = report_json
+    if out_path is None and compare_ucsf_workbook:
+        out_path = DEFAULT_VOLUME_REPORT_JSON
+
+    try:
+        run_volume_report(
+            patients,
+            compare_ucsf_workbook=compare_ucsf_workbook,
+            report_json=out_path,
+        )
+    except (FileNotFoundError, ValueError) as exc:
+        raise RuntimeError(str(exc)) from exc
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Export raw NIfTI extracts for brain cohort patients and timepoints.",
@@ -409,7 +438,30 @@ def main() -> None:
         action="store_true",
         help="Only rerun jobs marked failed in the checkpoint",
     )
+    parser.add_argument(
+        "--compare-ucsf-workbook",
+        action="store_true",
+        help="After export (or with --volume-report-only), print WT volume table and "
+        "compare computed seg volumes to UCSF Table S1 workbook (UCSF patients only)",
+    )
+    parser.add_argument(
+        "--volume-report-only",
+        action="store_true",
+        help="Skip export; only run WT volume report for selected patients",
+    )
+    parser.add_argument(
+        "--volume-report-json",
+        type=Path,
+        default=None,
+        help="Write volume report JSON (default: raw-extract dir/wt_volume_report.json when comparing workbook)",
+    )
     args = parser.parse_args()
+
+    if args.volume_report_only and not args.compare_ucsf_workbook:
+        print(
+            "Note: --volume-report-only without --compare-ucsf-workbook prints computed volumes only.",
+            file=sys.stderr,
+        )
 
     try:
         timepoint_selection = parse_timepoint_selection(args.timepoints)
@@ -421,19 +473,28 @@ def main() -> None:
         all_primary=args.all_primary,
         include_backups=args.include_backups,
     )
-    export_batch(
+
+    if not args.volume_report_only:
+        export_batch(
+            patients,
+            timepoint_selection=timepoint_selection,
+            skip_qc=args.no_qc,
+            status_file=args.status_file,
+            fresh=args.fresh,
+            resume=args.resume,
+            force=args.force,
+            retry_failed=args.retry_failed,
+            all_primary=args.all_primary,
+            include_backups=args.include_backups,
+            patient_id=args.patient_id,
+            timepoints_arg=args.timepoints,
+        )
+
+    maybe_run_volume_report(
         patients,
-        timepoint_selection=timepoint_selection,
-        skip_qc=args.no_qc,
-        status_file=args.status_file,
-        fresh=args.fresh,
-        resume=args.resume,
-        force=args.force,
-        retry_failed=args.retry_failed,
-        all_primary=args.all_primary,
-        include_backups=args.include_backups,
-        patient_id=args.patient_id,
-        timepoints_arg=args.timepoints,
+        compare_ucsf_workbook=args.compare_ucsf_workbook,
+        volume_report_only=args.volume_report_only,
+        report_json=args.volume_report_json,
     )
 
 

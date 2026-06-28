@@ -18,6 +18,9 @@ UCSF_TIMEPOINT_TOKENS = {
     "time2": "time2",
 }
 
+# BraTS-style expert labels; whole tumor (WT) = 1 + 2 + 3 per cohort.json.
+WT_SEGMENTATION_LABELS = (1, 2, 3)
+
 
 def _load_nifti(path: Path) -> tuple[np.ndarray, tuple[float, float, float]]:
     import nibabel as nib
@@ -52,6 +55,40 @@ def load_expert_mask(mask_path: Path, mr_shape: tuple[int, ...]) -> np.ndarray:
     if mask.shape != mr_shape:
         raise ValueError(f"Mask shape {mask.shape} != MR shape {mr_shape} ({mask_path})")
     return (mask > 0).astype(np.float32)
+
+
+def load_segmentation_labels(seg_path: Path) -> tuple[np.ndarray, tuple[float, float, float]]:
+    """Load integer segmentation labels as (Z, Y, X) with spacing (dz, dy, dx) mm."""
+    import nibabel as nib
+
+    img = nib.load(str(seg_path))
+    data = np.asanyarray(img.dataobj)
+    if data.ndim == 4:
+        data = data[..., 0]
+    if data.ndim != 3:
+        raise ValueError(f"Expected 3D NIfTI, got shape {data.shape} from {seg_path}")
+    labels = np.transpose(data, (2, 1, 0))
+    zooms = img.header.get_zooms()[:3]
+    spacing = (float(zooms[2]), float(zooms[1]), float(zooms[0]))
+    return labels, spacing
+
+
+def compute_wt_volume_mm3(
+    labels: np.ndarray,
+    spacing_mm: tuple[float, float, float],
+    *,
+    wt_labels: tuple[int, ...] = WT_SEGMENTATION_LABELS,
+) -> float:
+    """Whole-tumor volume in mm^3 from expert label map (default labels 1+2+3)."""
+    voxel_mm3 = float(spacing_mm[0] * spacing_mm[1] * spacing_mm[2])
+    count = int(np.isin(labels, wt_labels).sum())
+    return count * voxel_mm3
+
+
+def wt_volume_from_segmentation(seg_path: Path) -> float:
+    """Convenience: WT mm^3 directly from a segmentation NIfTI path."""
+    labels, spacing = load_segmentation_labels(seg_path)
+    return compute_wt_volume_mm3(labels, spacing)
 
 
 def resolve_ucsf_paths(
