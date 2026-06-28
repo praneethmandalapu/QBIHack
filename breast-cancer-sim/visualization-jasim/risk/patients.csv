@@ -1,0 +1,3 @@
+patient_id,subtype,pam50,risk,growth_multiplier,cohort_role
+TCGA-AR-A1AQ,Basal-like,BRCA_Basal,0.08317,0.88317,primary
+TCGA-AR-A1AX,Luminal A,BRCA_LumA,0.24718,1.04718,primary

@@ -1,0 +1,20 @@
+patient_id,idh,grade,mgmt,diagnosis,risk,growth_multiplier,wt_growth_pct,actually_grew,cohort_role
+100002,mut,2.0,positive,Oligodendroglioma,0.0438,0.8438,,,primary
+100014,WT,2.0,positive,IDH WT Astrocytoma,0.9451,1.7451,-40.3,False,imaging_cohort
+100020,WT,4.0,unmethylated,Glioblastoma,0.8219,1.6219,68.2,True,imaging_cohort
+100038,WT,4.0,positive,Glioblastoma,0.8619,1.6619,81.7,True,imaging_cohort
+100039,WT,4.0,positive,Glioblastoma,0.9473,1.7473,-23.3,False,imaging_cohort
+100118,WT,4.0,positive,Glioblastoma,0.6137,1.4137,609.1,True,imaging_cohort
+100129,mut,2.0,,Oligodendroglioma,0.0423,0.8423,-2.1,False,imaging_cohort
+100130,mut,3.0,,Oligodendroglioma,0.0333,0.8333,-29.8,False,backup
+100134,mut,3.0,,IDH mut Astrocytoma,0.0343,0.8343,-42.4,False,backup
+100137,mut,2.0,,Oligodendroglioma,0.1126,0.9126,-2.2,False,imaging_cohort
+100149,WT,4.0,unmethylated,Glioblastoma,0.2332,1.0332,19.4,True,imaging_cohort
+100184,mut,3.0,,IDH mut Astrocytoma,0.1067,0.9067,123.7,True,imaging_cohort
+100192,mut,2.0,,IDH mut Astrocytoma,0.1389,0.9389,-40.8,False,imaging_cohort
+100210,WT,4.0,positive,Glioblastoma,0.888,1.688,81.5,True,imaging_cohort
+100213,WT,3.0,,IDH WT Astrocytoma,0.9499,1.7499,94.3,True,imaging_cohort
+100215,WT,3.0,,IDH WT Astrocytoma,0.4179,1.2179,-10.7,False,imaging_cohort
+100219,WT,2.0,,IDH WT Astrocytoma,0.7939,1.5939,21.6,True,imaging_cohort
+100220,WT,4.0,unmethylated,Glioblastoma,0.5784,1.3784,173.9,True,backup
+100260,WT,4.0,unmethylated,Glioblastoma,0.938,1.738,201.6,True,backup

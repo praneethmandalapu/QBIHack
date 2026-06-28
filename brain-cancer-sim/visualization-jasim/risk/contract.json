@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "cancer": "brain",
+  "description": "Genomic risk handoff for brain visualization and OncoPulse UI. Join key matches philip-chandan cohort patient_id (UCSF SubjectID).",
+  "patient_id_column": "patient_id",
+  "source_model": "brain-cancer-sim/neuropulse.py",
+  "source_cohort": "simulation-vinesh-philip-chandan/philip-chandan/cohort/cohort.json",
+  "growth_multiplier": {
+    "lo": 0.8,
+    "hi": 1.8,
+    "formula": "lo + (hi - lo) * risk"
+  },
+  "files": {
+    "patients": "patients.csv"
+  },
+  "patients_csv_columns": [
+    "patient_id",
+    "idh",
+    "grade",
+    "mgmt",
+    "diagnosis",
+    "risk",
+    "growth_multiplier",
+    "wt_growth_pct",
+    "actually_grew",
+    "cohort_role"
+  ],
+  "regenerate": "breast-cancer-sim/.venv/bin/python visualization-jasim/risk/export_risk.py"
+}

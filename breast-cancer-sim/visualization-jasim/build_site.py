@@ -67,8 +67,9 @@ for key in ("model", "measured"):           # model first = default (shows growt
     }
     BRAIN_SLICES[key] = theme_2d(r.render_slices(arr[-1], (1.0, 1.0, 1.0)))
 
-# real UCSF cohort summary (298 patients)
-_rows = list(csv.DictReader(open(REPO / "brain-cancer-sim/data/processed/brain_patient_features.csv")))
+# imaging-cohort risk summary (visualization-jasim/risk/patients.csv)
+_brain_risk_csv = BRAIN / "visualization-jasim" / "risk" / "patients.csv"
+_rows = list(csv.DictReader(open(_brain_risk_csv)))
 _wt = [x for x in _rows if x["idh"] == "WT"]
 _mut = [x for x in _rows if x["idh"] and x["idh"] != "WT"]
 
