@@ -214,12 +214,12 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
   <!-- ===================== BRAIN ===================== -->
   <section class="tabpanel" data-tab="brain">
     <div class="cluster reveal">
-      <div class="cell c-5"><span class="lab">IDH regime</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="bk-idh">—</span><span class="sub">UCSF glioma · seed <b>100002</b></span></div>
+      <div class="cell c-5"><span class="lab">IDH regime</span><span class="val" style="font-size:clamp(1.5rem,3.4vw,2.3rem)" id="bk-idh">—</span><span class="sub">UCSF glioma · patient <b id="bk-patient">—</b></span></div>
       <div class="cell c-4"><span class="lab">Cohort growth rate</span><span class="val" id="bk-gm">—</span><span class="sub">median multiplier</span></div>
       <div class="cell c-3"><span class="lab">Grade</span><span class="val" style="font-size:clamp(1.3rem,3vw,1.9rem)" id="bk-grade">—</span><span class="sub">WHO 2021</span></div>
-      <div class="cell c-5"><span class="lab">Modeled burden</span><span class="val"><span id="bk-peak">—</span><span class="u">idx</span></span><span class="sub">baseline = 100 · ~180 d</span></div>
+      <div class="cell c-5"><span class="lab">Modeled burden</span><span class="val"><span id="bk-peak">—</span><span class="u">idx</span></span><span class="sub">baseline = 100 · real interval</span></div>
       <div class="cell c-4"><span class="lab">Cohort grew</span><span class="val"><span id="bk-grew">—</span></span><span class="sub">of this subtype (real)</span></div>
-      <div class="cell c-3"><span class="lab">Interval</span><span class="val" style="font-size:clamp(1.3rem,3vw,1.9rem)">180<span class="u">d</span></span><span class="sub">baseline → follow-up</span></div>
+      <div class="cell c-3"><span class="lab">Genomic risk</span><span class="val" id="bk-risk">—</span><span class="sub">OncoPulse · 0–1 scale</span></div>
     </div>
 
     <div class="split" style="margin-top:1.4rem">
@@ -231,7 +231,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
           <button class="mode" data-regime="indolent">IDH-mutant</button>
         </div>
         <div class="stage" id="brainStage">
-          <div class="reticle">UCSF 100002<br>GLIOMA<br>ISO 0.40</div>
+          <div class="reticle" id="brainReticle">UCSF —<br>GLIOMA<br>ISO 0.20</div>
           <div class="viz" id="brain3d"></div>
           <div class="scan"></div>
         </div>
@@ -288,7 +288,7 @@ footer{position:relative;z-index:2;border-top:1px solid var(--line);margin-top:v
       <div class="cell c-3"><span class="lab">Model grid</span><span class="val">64³</span><span class="sub">isotropic voxels</span></div>
       <div class="cell c-5"><span class="lab">Enhancing fraction</span><span class="val"><span id="xk-frac">—</span><span class="u">%</span></span><span class="sub">high-signal · windowed</span></div>
       <div class="cell c-4"><span class="lab">Acquired matrix</span><span class="val" style="font-size:clamp(1.2rem,2.6vw,1.7rem)" id="xk-matrix">—</span><span class="sub"><b id="xk-spacing">—</b> spacing</span></div>
-      <div class="cell c-3"><span class="lab">Modality</span><span class="val" style="font-size:clamp(1.2rem,2.6vw,1.7rem)">DCE-MRI</span><span class="sub">T1 · contrast</span></div>
+      <div class="cell c-3"><span class="lab">Genomic risk</span><span class="val" id="xk-risk">—</span><span class="sub">OncoPulse · 0–1 scale</span></div>
     </div>
 
     <div class="split" style="margin-top:1.4rem">
@@ -368,6 +368,7 @@ const BRAIN=__BRAIN__, BRAIN_SLICES=__BRAIN_SLICES__, COHORT=__COHORT__;
 const BR_VOLS=__BR_VOLS__, BR_SLICES=__BR_SLICES__, BR_META=__BR_META__, BR_CASES=__BR_CASES__;
 const CFG={responsive:true,displayModeBar:false};
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function fmtRisk(v){ return (v==null||v===''||Number.isNaN(Number(v)))?'N/A':Number(v).toFixed(3); }
 
 let spinTimer=null, angle=0, activeViz='brain3d', playing=false;
 function startSpin(){ if(reduce||playing)return; clearInterval(spinTimer); const gd=document.getElementById(activeViz); if(!gd)return;
@@ -397,11 +398,14 @@ function bCurve(){ const reg=BRAIN[bRegime];
 function bSlices(){ const f=BRAIN_SLICES[bRegime]; Plotly.react('brainSlices',f.data,f.layout,CFG); }
 function bKPIs(){ const reg=BRAIN[bRegime];
   document.getElementById('bk-idh').textContent=reg.label;
+  document.getElementById('bk-patient').textContent=reg.patient_id;
   document.getElementById('bk-gm').textContent='×'+reg.gm.toFixed(2);
   document.getElementById('bk-grade').textContent='Grade '+reg.grade;
   document.getElementById('bk-peak').textContent=reg.peak;
   document.getElementById('bk-grew').textContent=reg.grew+'%';
-  document.getElementById('brain-read').innerHTML=`Seeded from a real UCSF glioma (patient 100002), forward-simulated as an <b>${reg.label}</b> lesion — high-invasion reaction–diffusion for IDH-wildtype, low-invasion + attrition for IDH-mutant. Over ~180 days, modeled tumor volume reaches <b class="ok">${reg.peak}</b> (baseline=100). In the real 298-patient cohort, <b>${reg.grew}%</b> of ${reg.idh==='WT'?'IDH-wildtype':'IDH-mutant'} gliomas grew (median growth ×<b class="ok">${reg.gm.toFixed(2)}</b>). <span style="color:var(--muted)">Calibrated growth model — not an out-of-sample prediction.</span>`;
+  document.getElementById('bk-risk').textContent=fmtRisk(reg.risk);
+  document.getElementById('brainReticle').innerHTML=`UCSF ${reg.patient_id}<br>GLIOMA<br>ISO 0.20`;
+  document.getElementById('brain-read').innerHTML=`Seeded from a real UCSF glioma (patient <b>${reg.patient_id}</b>), forward-simulated with Vinesh's calibrated reaction–diffusion to match this patient's measured follow-up (<b>${reg.real_growth_pct!=null?((reg.real_growth_pct>=0?'+':'')+reg.real_growth_pct.toFixed(0)+'%'):'—'}</b> WT volume change). Modeled tumor burden reaches <b class="ok">${reg.peak}</b> (baseline=100) over <b>${reg.days[reg.n-1]}</b> days. In the real 298-patient cohort, <b>${reg.grew}%</b> of ${reg.idh==='WT'?'IDH-wildtype':'IDH-mutant'} gliomas grew (median growth ×<b class="ok">${reg.gm.toFixed(2)}</b>). <span style="color:var(--muted)">Calibrated growth model — not an out-of-sample prediction.</span>`;
 }
 function bPlayToggle(){ if(playing){bStop();return;} playing=true; stopSpin();
   const pb=document.getElementById('brain-play'); pb.textContent='❚❚'; pb.classList.add('on');
@@ -452,6 +456,7 @@ function xKPIs(){ const m=BR_META[xSlug()];
   document.getElementById('xk-subtype').textContent=m.subtype; document.getElementById('xk-tcga').textContent=m.tcga;
   document.getElementById('xk-study').textContent=m.study; document.getElementById('xk-frac').textContent=m.frac.toFixed(0);
   document.getElementById('xk-matrix').textContent=m.matrix; document.getElementById('xk-spacing').textContent=m.spacing+' mm';
+  document.getElementById('xk-risk').textContent=fmtRisk(m.risk);
   document.getElementById('xReticle').innerHTML=`${m.tcga}<br>${m.subtype}<br>STUDY ${m.study}`;
 }
 function xSet(kind,val,btn,sel){ document.querySelectorAll(sel).forEach(x=>x.classList.remove('on')); btn.classList.add('on');
