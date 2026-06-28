@@ -1,20 +1,20 @@
 {
   "contract_version": "1.0.0",
-  "slug": "basal_TCGA-AR-A1AQ_followup",
-  "tcga_id": "TCGA-AR-A1AQ",
-  "subtype": "Basal-like",
-  "study_date": "2003-05-07",
-  "source_dicom_dir": "data/raw/tcia/basal/TCGA-AR-A1AQ/2003-05-07",
+  "slug": "luminal_a_TCGA-AR-A1AX_baseline",
+  "tcga_id": "TCGA-AR-A1AX",
+  "subtype": "Luminal A",
+  "study_date": "2002-09-12",
+  "source_dicom_dir": "data/raw/tcia/luminal_a/TCGA-AR-A1AX/2002-09-12",
   "shape": [
-    448,
+    352,
     256,
     256
   ],
   "dtype": "float32",
   "spacing_mm": [
     3.0,
-    0.9375,
-    0.9375
+    0.8594,
+    0.8594
   ],
   "axis_order": [
     "Z",
@@ -27,7 +27,8 @@
   },
   "handoff": "Option B \u2014 Vinesh resamples in prepare_pde_input.py",
   "validate_series": {
-    "n_slices": 448,
+    "n_slices": 352,
     "ok": true
-  }
+  },
+  "timepoint": "baseline"
 }

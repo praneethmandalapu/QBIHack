@@ -28,7 +28,11 @@ from tcia_extractor import (
 )
 from tests.conftest import _write_synthetic_slice
 
-RAW_EXTRACT_DIR = REPO_ROOT / "data" / "processed" / "raw-extract-philip-chandan"
+import sys
+
+SPIKE_ROOT = REPO_ROOT.parent / "simulation-vinesh-philip-chandan"
+sys.path.insert(0, str(SPIKE_ROOT))
+from spike_paths import resolve_raw_extract_metadata, resolve_raw_extract_npy  # noqa: E402
 
 
 def test_validate_series_ok(synthetic_dicom_dir: Path) -> None:
@@ -217,8 +221,8 @@ def test_extract_backup_patient(subtype: str, tcga_id: str) -> None:
 )
 def test_extract_matches_saved_raw_export(slug: str) -> None:
     """Regression: SimpleITK extraction must match previously exported raw volumes."""
-    sidecar_path = RAW_EXTRACT_DIR / f"{slug}.json"
-    npy_path = RAW_EXTRACT_DIR / f"{slug}.npy"
+    sidecar_path = resolve_raw_extract_metadata(slug)
+    npy_path = resolve_raw_extract_npy(slug)
     if not sidecar_path.exists() or not npy_path.exists():
         pytest.skip(f"Saved raw export not present: {slug}")
 

@@ -52,9 +52,9 @@ Sidecar JSON files written by export scripts include `"contract_version"` so you
 | Owner | Path | Purpose |
 |-------|------|---------|
 | Philip-Chandan | `data/raw/tcia/` | DICOM downloads (existing layout) |
-| Philip-Chandan | `data/processed/raw-extract-philip-chandan/` | Raw `(Z,Y,X)` float32 `.npy` + sidecar `.json` |
-| Philip-Chandan | `data/qc/slice-plots-philip-chandan/` | Middle-slice PNGs for visual QC |
-| Vinesh | `data/processed/pde-input-vinesh/` | Resampled/cropped array ready for `solve_growth()` |
+| Philip-Chandan | `data/processed/raw-extract-philip-chandan/{tcga_id}/` | Raw `(Z,Y,X)` float32 `{timepoint}.npy` + sidecar `.json` |
+| Philip-Chandan | `data/qc/slice-plots-philip-chandan/` | Middle-slice PNGs for visual QC (slug-named) |
+| Vinesh | `data/processed/pde-input-vinesh/{tcga_id}/g64/` | Resampled/cropped `{timepoint}.npy` ready for `solve_growth()` |
 | Vinesh | `data/qc/solver-runs-vinesh/` | Test frame dumps / solver debug output |
 
 Create folders once:
@@ -83,10 +83,10 @@ flowchart LR
 |------|-------|-----------|
 | 1. Download | Philip-Chandan | `.../luminal_a/TCGA-AR-A1AX/2002-09-12/` has one contrast series |
 | 2. Download QC | Philip-Chandan | `validate_series` → `ok=True`, spacing present |
-| 3. Raw extract + export | Philip-Chandan | `.npy` + `.json` in `raw-extract-philip-chandan/` |
+| 3. Raw extract + export | Philip-Chandan | `{tcga_id}/{timepoint}.npy` + `.json` in `raw-extract-philip-chandan/` |
 | 4. Visual QC | Philip-Chandan | Middle-slice PNG in `slice-plots-philip-chandan/` looks sane |
-| 5. Load raw + resample/crop | Vinesh | `pde-input-vinesh/{slug}.npy` exists |
-| 6. PDE input manifest | Vinesh | `{slug}.json` documents shape, spacing, value semantics |
+| 5. Load raw + resample/crop | Vinesh | `pde-input-vinesh/{tcga_id}/g64/{timepoint}.npy` exists |
+| 6. PDE input manifest | Vinesh | `{timepoint}.json` documents shape, spacing, value semantics |
 | 7. Integration | Both | `solve_growth(pde_input)` runs once; fix contract mismatches together |
 
 Detailed checklists:
@@ -136,15 +136,15 @@ Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 Expected output files:
 
 ```
-data\processed\raw-extract-philip-chandan\luminal_a_TCGA-AR-A1AX_baseline.npy
-data\processed\raw-extract-philip-chandan\luminal_a_TCGA-AR-A1AX_baseline.json
+data\processed\raw-extract-philip-chandan\TCGA-AR-A1AX\baseline.npy
+data\processed\raw-extract-philip-chandan\TCGA-AR-A1AX\baseline.json
 ```
 
 Verify they exist:
 
 ```powershell
-Test-Path data\processed\raw-extract-philip-chandan\luminal_a_TCGA-AR-A1AX_baseline.npy
-Test-Path data\processed\raw-extract-philip-chandan\luminal_a_TCGA-AR-A1AX_baseline.json
+Test-Path data\processed\raw-extract-philip-chandan\TCGA-AR-A1AX\baseline.npy
+Test-Path data\processed\raw-extract-philip-chandan\TCGA-AR-A1AX\baseline.json
 ```
 
 Both should print `True`.
@@ -157,13 +157,13 @@ If you received the two handoff files (Drive/Slack), create the folder and copy 
 cd path\to\QBIHack\breast-cancer-sim
 git pull
 
-New-Item -ItemType Directory -Force -Path data\processed\raw-extract-philip-chandan
+New-Item -ItemType Directory -Force -Path data\processed\raw-extract-philip-chandan\TCGA-AR-A1AX
 
 # Copy from your Downloads (adjust source paths)
-Copy-Item "$env:USERPROFILE\Downloads\luminal_a_TCGA-AR-A1AX_baseline.npy" `
-  data\processed\raw-extract-philip-chandan\
-Copy-Item "$env:USERPROFILE\Downloads\luminal_a_TCGA-AR-A1AX_baseline.json" `
-  data\processed\raw-extract-philip-chandan\
+Copy-Item "$env:USERPROFILE\Downloads\baseline.npy" `
+  data\processed\raw-extract-philip-chandan\TCGA-AR-A1AX\
+Copy-Item "$env:USERPROFILE\Downloads\baseline.json" `
+  data\processed\raw-extract-philip-chandan\TCGA-AR-A1AX\
 ```
 
 ### Step 5+ — Your pipeline (after raw extract exists)
@@ -181,8 +181,8 @@ cd path\to\QBIHack\breast-cancer-sim
 Expected outputs:
 
 ```
-data\processed\pde-input-vinesh\luminal_a_TCGA-AR-A1AX_baseline.npy
-data\processed\pde-input-vinesh\luminal_a_TCGA-AR-A1AX_baseline.json
+data\processed\pde-input-vinesh\TCGA-AR-A1AX\g64\baseline.npy
+data\processed\pde-input-vinesh\TCGA-AR-A1AX\g64\baseline.json
 ```
 
 ### Step 7 — Test solver (after prepare_pde_input works)
@@ -193,11 +193,12 @@ cd path\to\QBIHack\breast-cancer-sim\simulation-vinesh-philip-chandan\vinesh
 ..\..\.venv\Scripts\python.exe -c @"
 import numpy as np
 from handoff_contract import solver_spec, spike_patient
+from spike_paths import resolve_pde_input_npy
 from tumor_pde_solver import solve_growth
 
 spec = solver_spec()
 slug = spike_patient()['slug']
-vol = np.load(f'../../data/processed/pde-input-vinesh/{slug}.npy')
+vol = np.load(resolve_pde_input_npy(slug))
 frames = solve_growth(
     vol,
     timesteps=spec['timesteps'],
@@ -220,12 +221,12 @@ print(len(frames), frames[0].shape)
 >    *(Or ask us for the two files below if you prefer not to download from TCIA.)*
 >
 > **Handoff files** (contract **1.0.0**):
-> - `data\processed\raw-extract-philip-chandan\luminal_a_TCGA-AR-A1AX_baseline.npy`
-> - `data\processed\raw-extract-philip-chandan\luminal_a_TCGA-AR-A1AX_baseline.json`
+> - `data\processed\raw-extract-philip-chandan\TCGA-AR-A1AX\baseline.npy`
+> - `data\processed\raw-extract-philip-chandan\TCGA-AR-A1AX\baseline.json`
 >
 > **Metadata:** shape `[352, 256, 256]`, spacing `[3.0, 0.8594, 0.8594]` mm, axis `(Z,Y,X)`, float32, not normalized.
 >
-> **Your turn:** implement + run `vinesh\prepare_pde_input.py` → `pde-input-vinesh\` → `solve_growth()`.
+> **Your turn:** implement + run `vinesh\prepare_pde_input.py` → `pde-input-vinesh\TCGA-AR-A1AX\g64\` → `solve_growth()`.
 
 ---
 
@@ -263,4 +264,4 @@ After step 7 is green for this one case:
 | `vinesh/` | Vinesh — `prepare_pde_input`, `solve_growth`, solver QC |
 | `handoff_contract.json` | **Shared** — bump version when numbers change |
 | `handoff_contract.py`, `spike_paths.py`, `HANDOFF_SPIKE.md` | Shared — loaders and docs |
-
+

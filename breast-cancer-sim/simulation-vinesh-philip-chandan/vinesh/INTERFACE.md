@@ -50,8 +50,8 @@ Governed by [`../handoff_contract.json`](../handoff_contract.json) (**v1.0.0**).
 
 **I am waiting on exactly these two files** (and nothing else):
 
-- `data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy`
-- `data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.json`
+- `data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.npy`
+- `data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.json`
 
 The `.npy` is `(Z,Y,X)` float32 **un-normalized** MR intensity; the `.json`
 carries `spacing_mm` + `contract_version`.
@@ -59,8 +59,9 @@ carries `spacing_mm` + `contract_version`.
 **I will NOT touch** DICOM or `data/raw/tcia/` — that stays Philip/Chandan's.
 
 `vinesh/prepare_pde_input.py` consumes those, then emits the solver input to
-`data/processed/pde-input-vinesh/<slug>.npy` (`(≤64,≤64,≤64)` float32 in
-`[0,1]`, tumor `> 0`). `solve_growth` runs on that with no reformatting.
+`data/processed/pde-input-vinesh/TCGA-AR-A1AX/g64/baseline.npy` (`(≤64,≤64,≤64)` float32 in
+`[0,1]`, tumor `> 0`). Use `spike_paths.resolve_pde_input_npy(slug)` to load.
+`solve_growth` runs on that with no reformatting.
 
 > Dependency note: `prepare_pde_input.py` requires **scikit-image** (Otsu).
 > Add `scikit-image` to `requirements.txt` (team-owned file).

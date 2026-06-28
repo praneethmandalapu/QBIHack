@@ -13,21 +13,16 @@ sys.path.insert(0, str(PHILIP_CHANDAN_DIR))
 sys.path.insert(0, str(SPIKE_ROOT))
 
 from spike_paths import (  # noqa: E402
-    QC_SLICE_PLOTS_PHILIP_CHANDAN,
     SPIKE_PATIENT,
     ensure_spike_dirs,
-    raw_extract_npy,
+    resolve_raw_extract_npy,
+    slice_plot_path,
 )
 from tcia_extractor import extract_volume_for_timepoint  # noqa: E402
 
 # Bright-voxel contour for QC overlays only — not clinical tumor segmentation.
 DEFAULT_ENHANCEMENT_PERCENTILE = 90.0
 OVERLAY_CONTOUR_COLOR = "lime"
-
-
-def slice_plot_path(slug: str, *, overlay: bool = False) -> Path:
-    suffix = "_mid-z-overlay.png" if overlay else "_mid-z.png"
-    return QC_SLICE_PLOTS_PHILIP_CHANDAN / f"{slug}{suffix}"
 
 
 def enhancement_contour_mask(
@@ -159,7 +154,7 @@ def ensure_overlay_plot(slug: str) -> Path | None:
     if out_path.is_file():
         return out_path
 
-    npy_path = raw_extract_npy(slug)
+    npy_path = resolve_raw_extract_npy(slug)
     if not npy_path.is_file():
         return None
 

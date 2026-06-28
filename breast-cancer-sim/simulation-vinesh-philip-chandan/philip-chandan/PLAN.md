@@ -61,8 +61,12 @@ breast-cancer-sim/
 │   │       ├── 2002-09-12/        # spike baseline DICOM
 │   │       └── 2003-09-24/        # follow-up (optional until spike green)
 │   ├── processed/
-│   │   ├── raw-extract-philip-chandan/   # your raw .npy + .json handoff
-│   │   ├── pde-input-vinesh/             # Vinesh PDE-ready .npy + .json
+│   │   ├── raw-extract-philip-chandan/   # raw .npy + .json per {tcga_id}/{timepoint}
+│   │   │   ├── TCGA-AR-A1AX/
+│   │   │   │   ├── baseline.{npy,json}
+│   │   │   │   └── followup.{npy,json}
+│   │   │   └── manifest.json
+│   │   ├── pde-input-vinesh/             # Vinesh PDE-ready {tcga_id}/g64/{timepoint}
 │   │   └── radiomics-philip-chandan/     # stretch: masks + features CSV (gitignored locally)
 │   └── qc/
 │       ├── slice-plots-philip-chandan/
@@ -630,13 +634,16 @@ Examples:
 | `luminal_a_TCGA-AR-A1AX_followup` | **done** | `[552, 512, 512]` | `[2.2, 0.5273, 0.5273]` |
 | `basal_TCGA-AR-A1AQ_followup` | **done** | `[448, 256, 256]` | `[3.0, 0.9375, 0.9375]` |
 
-Output paths (unchanged layout):
+Output paths (patient-nested volumes; slugs unchanged for CLI/QC/segmentation):
 
 ```
-data/processed/raw-extract-philip-chandan/{slug}.npy
-data/processed/raw-extract-philip-chandan/{slug}.json
+data/processed/raw-extract-philip-chandan/{tcga_id}/{timepoint}.npy
+data/processed/raw-extract-philip-chandan/{tcga_id}/{timepoint}.json
+data/processed/pde-input-vinesh/{tcga_id}/g64/{timepoint}.npy
 data/qc/slice-plots-philip-chandan/{slug}_mid-z.png
 ```
+
+Regenerate manifest after export: `python philip-chandan/generate_manifest.py`. One-time migration from flat slug files: `python philip-chandan/migrate_patient_volume_layout.py`.
 
 ### Scale-up tasks (Philip-Chandan)
 
@@ -647,7 +654,7 @@ data/qc/slice-plots-philip-chandan/{slug}_mid-z.png
 | 3 | **Validate Basal series** | **done** |
 | 4 | **Export Basal raw extract** | **done** — `basal_TCGA-AR-A1AQ_baseline` |
 | 5 | **QC plot Basal** | **done** |
-| 6 | **`manifest.json`** | **done** — v1.1.0, four volumes |
+| 6 | **`manifest.json`** | **done** — v1.2.0, four volumes + `patients[]` index |
 | 7 | **Follow-up LumA** | **done** — `2003-09-24`, slug `..._followup` |
 | 8 | **Follow-up Basal** | **done** — `2003-05-07` |
 | 9 | **Sync Praneeth** | **done** — confirmed rev2 IDs (`TCGA-AR-A1AX`, `TCGA-AR-A1AQ`) |
@@ -670,7 +677,7 @@ flowchart TD
 ### Jasim handoff workflow
 
 1. ~~**Share data**~~ — **done** — [`../../pde-handoff-vinesh.zip`](../../pde-handoff-vinesh.zip) shared with Jasim.
-2. **Manifest** — `data/processed/raw-extract-philip-chandan/manifest.json` (v1.1.0): each entry has `subtype`, `timepoint`, `slug`, `pde_npy`, `shape`, `spacing_mm`.
+2. **Manifest** — `data/processed/raw-extract-philip-chandan/manifest.json` (v1.2.0): `patients[]` + per-volume `slug`, nested `raw_npy` / `pde_npy`, `shape`, `spacing_mm`.
 3. **Static render test** — load `pde_npy` (64³ float32, `[0,1]`, tumor `> 0`); axis **(Z, Y, X)** per [`../handoff_contract.json`](../handoff_contract.json).
 4. **Animation** — Vinesh runs `solve_growth()` → `list[np.ndarray]` of frames; contract in [`../vinesh/INTERFACE.md`](../vinesh/INTERFACE.md) (continuous density, not label map).
 5. **Verify** — Jasim confirms no axis flip; isosurface at ~0.5 looks like a tumor blob. **Status: testing.**
@@ -710,8 +717,17 @@ Write to `data/processed/raw-extract-philip-chandan/manifest.json` (or `data/pro
 
 ```json
 {
-  "version": "1.0.0",
+  "version": "1.2.0",
   "contract_version": "1.0.0",
+  "patients": [
+    {
+      "tcga_id": "TCGA-AR-A1AX",
+      "subtype": "Luminal A",
+      "baseline_slug": "luminal_a_TCGA-AR-A1AX_baseline",
+      "followup_slug": "luminal_a_TCGA-AR-A1AX_followup",
+      "interval_days": 377
+    }
+  ],
   "volumes": [
     {
       "slug": "luminal_a_TCGA-AR-A1AX_baseline",
@@ -719,9 +735,9 @@ Write to `data/processed/raw-extract-philip-chandan/manifest.json` (or `data/pro
       "tcga_id": "TCGA-AR-A1AX",
       "timepoint": "baseline",
       "study_date": "2002-09-12",
-      "raw_npy": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy",
-      "raw_json": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.json",
-      "pde_npy": "data/processed/pde-input-vinesh/luminal_a_TCGA-AR-A1AX_baseline.npy",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/TCGA-AR-A1AX/g64/baseline.npy",
       "shape": [352, 256, 256],
       "spacing_mm": [3.0, 0.8594, 0.8594],
       "qc_plot": "data/qc/slice-plots-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline_mid-z.png"

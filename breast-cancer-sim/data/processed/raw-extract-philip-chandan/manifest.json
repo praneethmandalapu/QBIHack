@@ -1,44 +1,60 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "contract_version": "1.0.0",
+  "generated_at": "2026-06-28",
+  "description": "Philip-Chandan raw extract index with nested patient volume paths",
+  "patients": [
+    {
+      "tcga_id": "TCGA-AR-A1AX",
+      "subtype": "Luminal A",
+      "baseline_slug": "luminal_a_TCGA-AR-A1AX_baseline",
+      "baseline_study_date": "2002-09-12",
+      "followup_slug": "luminal_a_TCGA-AR-A1AX_followup",
+      "followup_study_date": "2003-09-24",
+      "interval_days": 377
+    },
+    {
+      "tcga_id": "TCGA-AR-A1AQ",
+      "subtype": "Basal-like",
+      "baseline_slug": "basal_TCGA-AR-A1AQ_baseline",
+      "baseline_study_date": "2001-11-21",
+      "followup_slug": "basal_TCGA-AR-A1AQ_followup",
+      "followup_study_date": "2003-05-07",
+      "interval_days": 532
+    }
+  ],
   "volumes": [
-    {
-      "slug": "luminal_a_TCGA-AR-A1AX_baseline",
-      "subtype": "Luminal A",
-      "tcga_id": "TCGA-AR-A1AX",
-      "timepoint": "baseline",
-      "study_date": "2002-09-12",
-      "raw_npy": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy",
-      "raw_json": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.json",
-      "pde_npy": "data/processed/pde-input-vinesh/luminal_a_TCGA-AR-A1AX_baseline.npy",
-      "shape": [352, 256, 256],
-      "spacing_mm": [3.0, 0.8594, 0.8594],
-      "qc_plot": "data/qc/slice-plots-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline_mid-z.png"
-    },
-    {
-      "slug": "luminal_a_TCGA-AR-A1AX_followup",
-      "subtype": "Luminal A",
-      "tcga_id": "TCGA-AR-A1AX",
-      "timepoint": "followup",
-      "study_date": "2003-09-24",
-      "raw_npy": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_followup.npy",
-      "raw_json": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_followup.json",
-      "pde_npy": "data/processed/pde-input-vinesh/luminal_a_TCGA-AR-A1AX_followup.npy",
-      "shape": [552, 512, 512],
-      "spacing_mm": [2.2, 0.5273, 0.5273],
-      "qc_plot": "data/qc/slice-plots-philip-chandan/luminal_a_TCGA-AR-A1AX_followup_mid-z.png"
-    },
     {
       "slug": "basal_TCGA-AR-A1AQ_baseline",
       "subtype": "Basal-like",
       "tcga_id": "TCGA-AR-A1AQ",
       "timepoint": "baseline",
       "study_date": "2001-11-21",
-      "raw_npy": "data/processed/raw-extract-philip-chandan/basal_TCGA-AR-A1AQ_baseline.npy",
-      "raw_json": "data/processed/raw-extract-philip-chandan/basal_TCGA-AR-A1AQ_baseline.json",
-      "pde_npy": "data/processed/pde-input-vinesh/basal_TCGA-AR-A1AQ_baseline.npy",
-      "shape": [464, 256, 256],
-      "spacing_mm": [3.0, 0.859375, 0.859375],
+      "raw_npy": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AQ/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AQ/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/TCGA-AR-A1AQ/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/TCGA-AR-A1AQ/g64/baseline.json",
+      "shape": [
+        464,
+        256,
+        256
+      ],
+      "spacing_mm": [
+        3.0,
+        0.859375,
+        0.859375
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
       "qc_plot": "data/qc/slice-plots-philip-chandan/basal_TCGA-AR-A1AQ_baseline_mid-z.png"
     },
     {
@@ -47,12 +63,98 @@
       "tcga_id": "TCGA-AR-A1AQ",
       "timepoint": "followup",
       "study_date": "2003-05-07",
-      "raw_npy": "data/processed/raw-extract-philip-chandan/basal_TCGA-AR-A1AQ_followup.npy",
-      "raw_json": "data/processed/raw-extract-philip-chandan/basal_TCGA-AR-A1AQ_followup.json",
-      "pde_npy": "data/processed/pde-input-vinesh/basal_TCGA-AR-A1AQ_followup.npy",
-      "shape": [448, 256, 256],
-      "spacing_mm": [3.0, 0.9375, 0.9375],
+      "raw_npy": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AQ/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AQ/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/TCGA-AR-A1AQ/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/TCGA-AR-A1AQ/g64/followup.json",
+      "shape": [
+        448,
+        256,
+        256
+      ],
+      "spacing_mm": [
+        3.0,
+        0.9375,
+        0.9375
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
       "qc_plot": "data/qc/slice-plots-philip-chandan/basal_TCGA-AR-A1AQ_followup_mid-z.png"
+    },
+    {
+      "slug": "luminal_a_TCGA-AR-A1AX_baseline",
+      "subtype": "Luminal A",
+      "tcga_id": "TCGA-AR-A1AX",
+      "timepoint": "baseline",
+      "study_date": "2002-09-12",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/TCGA-AR-A1AX/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/TCGA-AR-A1AX/g64/baseline.json",
+      "shape": [
+        352,
+        256,
+        256
+      ],
+      "spacing_mm": [
+        3.0,
+        0.8594,
+        0.8594
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline_mid-z.png"
+    },
+    {
+      "slug": "luminal_a_TCGA-AR-A1AX_followup",
+      "subtype": "Luminal A",
+      "tcga_id": "TCGA-AR-A1AX",
+      "timepoint": "followup",
+      "study_date": "2003-09-24",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AX/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/TCGA-AR-A1AX/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/TCGA-AR-A1AX/g64/followup.json",
+      "shape": [
+        552,
+        512,
+        512
+      ],
+      "spacing_mm": [
+        2.2,
+        0.5273,
+        0.5273
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/luminal_a_TCGA-AR-A1AX_followup_mid-z.png"
     }
   ]
 }
