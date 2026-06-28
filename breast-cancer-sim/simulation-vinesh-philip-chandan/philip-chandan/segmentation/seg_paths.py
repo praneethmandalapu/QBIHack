@@ -27,7 +27,7 @@ MAMA_MIA_NNUNET_DIR = MODELS_DIR / "mama-mia-nnunet"
 
 REFERENCE_METHOD = "les"
 # Automated methods evaluated by run_benchmark.py when {slug}_{method}_mask.npy exists.
-BENCHMARK_METHODS = ("nnunet", "medsam")
+BENCHMARK_METHODS = ("cuboid_enhancement", "nnunet", "medsam")
 # Legacy heuristic — not benchmarked here (see stretch/validate_segmentation.py).
 MASK_SOURCES = (REFERENCE_METHOD, *BENCHMARK_METHODS, "otsu")
 SEGMENTATION_METHODS = MASK_SOURCES  # alias

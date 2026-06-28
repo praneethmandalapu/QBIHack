@@ -24,7 +24,8 @@ sys.path.insert(0, str(SEGMENTATION_DIR))
 
 from evaluate import compare_to_reference, load_mask  # noqa: E402
 from ground_truth import write_les_reference  # noqa: E402
-from qc_overlay import save_mid_z_overlay  # noqa: E402
+from methods.cuboid_enhancement import METHOD_ID  # noqa: E402
+from qc_overlay import save_cuboid_enhancement_overlay, save_mid_z_overlay  # noqa: E402
 from seg_paths import (  # noqa: E402
     BENCHMARK_METHODS,
     REFERENCE_METHOD,
@@ -111,18 +112,31 @@ def benchmark_slug(slug: str, *, lesions_dir: Path | None = None) -> list[dict[s
             )
 
         metrics = compare_to_reference(pred_mask, ref_mask, spacing_mm)
-        pred_overlay = save_mid_z_overlay(
-            slug,
-            method,
-            norm,
-            pred_mask,
-            title=(
-                f"{ref_meta['tcga_id']} baseline | {method} "
-                f"({metrics['predicted_voxels']:,} vox, Dice={metrics['dice']:.3f})"
-            ),
-            fill_rgba=(1.0, 0.5, 0.0, 0.35),
-            contour_color="#FF8800",
-        )
+        if method == METHOD_ID:
+            pred_overlay = save_cuboid_enhancement_overlay(
+                slug,
+                norm,
+                ref_mask,
+                pred_mask,
+                ref_meta,
+                title=(
+                    f"{ref_meta['tcga_id']} baseline | {method} "
+                    f"({metrics['predicted_voxels']:,} vox, Dice={metrics['dice']:.3f})"
+                ),
+            )
+        else:
+            pred_overlay = save_mid_z_overlay(
+                slug,
+                method,
+                norm,
+                pred_mask,
+                title=(
+                    f"{ref_meta['tcga_id']} baseline | {method} "
+                    f"({metrics['predicted_voxels']:,} vox, Dice={metrics['dice']:.3f})"
+                ),
+                fill_rgba=(1.0, 0.5, 0.0, 0.35),
+                contour_color="#FF8800",
+            )
 
         rows.append(
             {

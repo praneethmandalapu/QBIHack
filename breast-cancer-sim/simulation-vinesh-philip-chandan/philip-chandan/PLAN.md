@@ -436,7 +436,45 @@ Isolated pipeline under [`stretch/`](stretch/). Does **not** modify sprint hando
 
 ### Validation (`.les` ground truth — done)
 
-[`validation/VALIDATION.md`](validation/VALIDATION.md) — TCIA radiologist `.les` masks downloaded; [`stretch/load_les_mask.py`](stretch/load_les_mask.py) + [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) compare Otsu vs expert (Dice **0** on rev2 baselines; Otsu captures orders of magnitude more tissue). 3D inspection: [`validation/view_les_napari.py`](validation/view_les_napari.py). See [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) Section 7 / Figure 6.
+[`validation/VALIDATION.md`](validation/VALIDATION.md) — TCIA radiologist `.les` masks downloaded; [`stretch/load_les_mask.py`](stretch/load_les_mask.py) + [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) compare Otsu vs expert (Dice **0** on rev2 baselines; Otsu captures orders of magnitude more tissue). 3D inspection: [`validation/view_les_napari.py`](validation/view_les_napari.py) (`--phases-only` for P1–P4 grid; `--cuboid-enhancement` for automated overlay). See [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) Section 7 / Figure 6.
+
+#### TCIA `.les` files — what they provide
+
+The `.les` file is TCIA’s **radiologist tumor annotation** for a baseline DCE study ([TCGA-Breast-Radiogenomics segmented lesions](https://www.cancerimagingarchive.net/analysis-result/tcga-breast-radiogenomics/)). **We do not generate it** — it is expert ground truth from UChicago.
+
+**Clinical origin (not a hand-traced contour):** Per [Li et al., npj Breast Cancer 2016](https://www.nature.com/articles/npjbcancer201612), radiologists clicked an approximate **tumor center** on ClearCanvas; a **consensus center** fed **fuzzy c-means (FCM)** 3D segmentation (Chicago Dynamic MRI Explorer / UChicago V2010). The file stores FCM-positive voxels inside a bounding cuboid only.
+
+**Binary on-disk format** (parsed by [`stretch/load_les_mask.py`](stretch/load_les_mask.py)):
+
+| Part | Contents |
+|------|----------|
+| Header (12 bytes) | Six `uint16` bounds: `y_start, x_start, z_start, y_end, x_end, z_end` in MR index space |
+| Payload | `int8` voxels (0 = background, 1 = lesion), row-major **(Y, X, Z)** inside that box |
+| Embedded mask | Transposed and pasted into dense **`(Z, Y, X)`** matching the annotated VIBRANT stack |
+
+**Naming:** `TCGA-XX-XXXX-Sn-m.les` — `n` = DCE sequence index (rev2 baselines use **S2 = VIBRANT**), `m` = lesion index.
+
+**Metadata from the loader:** `patient_id`, `dce_index`, `lesion_index`, cuboid bounds, `lesion_voxels` / `mask_voxels` (~**1.3k–2.7k** for rev2 primaries). Rev2 cuboids are only ~**31–34%** filled — the rest is padding. In napari this reads as sparse “dots”, especially when viewing **phases 2–4** while the FCM cluster sits at **phase-1 z**.
+
+**What we use `.les` for in this repo:**
+
+| Use | Module |
+|-----|--------|
+| Segmentation validation (Dice / volume vs Otsu) | [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) |
+| 3D QC viewer (expert overlay, optional cuboid shell via `--cuboid`) | [`validation/view_les_napari.py`](validation/view_les_napari.py) |
+| Radiomics ROI (planned — `cohort.json` `"use_les_mask": true`) | [`stretch/prep_volume.py`](stretch/prep_volume.py) |
+| Automated segmentation prior (`cuboid_enhancement` uses **bounds + Y/X footprint**, not FCM voxels as input) | [`segmentation/methods/cuboid_enhancement.py`](segmentation/methods/cuboid_enhancement.py) |
+
+**What `.les` does *not* provide:**
+
+- No follow-up annotations (rev2 follow-ups have **no** `.les`)
+- Not on every TCIA patient (~48 BRCA MRI cases lack `.les`)
+- Not intensity values — binary mask + bounding box only
+- Not phase-separated — z indices refer to the **full stacked VIBRANT volume**, not individual DCE phases
+
+**One-line summary:** `.les` gives **expert tumor location and sparse FCM shape** (mask + cuboid) on the annotated DCE series, for baseline cases with TCIA annotations.
+
+**Automated alternative under test:** [`segmentation/methods/cuboid_enhancement.py`](segmentation/methods/cuboid_enhancement.py) — cuboid spatial prior + local enhancement on phases 2–4; see [`segmentation/PLAN.md`](segmentation/PLAN.md).
 
 ### Known issue — Luminal A follow-up (stretch blocked)
 

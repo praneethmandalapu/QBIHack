@@ -13,4 +13,8 @@ Breast `.les` validation viewer (has local TCIA data):
 
 ```bash
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py --list
+
+# Expert .les + cuboid_enhancement predicted mask (run segment.py first)
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \
+  --slug luminal_a_TCGA-AR-A1AX_baseline --cuboid-enhancement
 ```

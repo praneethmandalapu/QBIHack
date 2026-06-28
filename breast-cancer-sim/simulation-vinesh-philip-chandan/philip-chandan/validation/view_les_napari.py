@@ -1,7 +1,7 @@
 """Interactive 3D viewer: baseline MR + TCIA radiologist .les overlay (napari).
 
-Clinical-style breast DCE QC: side-by-side temporal phases, MIP row, CAD-style
-enhancement markers, optional pre-contrast subtraction, and expert-mask toggle.
+Clinical-style breast DCE QC: side-by-side temporal phases, optional MIP row,
+pre-contrast subtraction, and expert-mask toggle.
 
 Run (macOS/Linux):
     cd breast-cancer-sim
@@ -10,7 +10,12 @@ Run (macOS/Linux):
 
     python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py --list
     python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \\
-        --slug luminal_a_TCGA-AR-A1AX_baseline
+        --slug luminal_a_TCGA-AR-A1AX_baseline --phases-only --cuboid-enhancement
+
+    python simulation-vinesh-philip-chandan/philip-chandan/validation/view_les_napari.py \\
+        --slug luminal_a_TCGA-AR-A1AX_baseline --cuboid-enhancement --wide --collapse-controls
+
+Optional: add --mip for the bottom maximum-intensity-projection row beneath P1–P4.
 
 Run (Windows):
     cd breast-cancer-sim
@@ -37,15 +42,18 @@ STRETCH_DIR = PHILIP_CHANDAN_DIR / "stretch"
 sys.path.insert(0, str(VALIDATION_DIR))
 sys.path.insert(0, str(STRETCH_DIR))
 sys.path.insert(0, str(PHILIP_CHANDAN_DIR))
+SEGMENTATION_DIR = PHILIP_CHANDAN_DIR / "segmentation"
+sys.path.insert(0, str(SEGMENTATION_DIR))
 
 import napari  # noqa: E402
 
-from clinical_layout import setup_clinical_hanging_protocol  # noqa: E402
+from clinical_layout import (  # noqa: E402
+    setup_clinical_hanging_protocol,
+    setup_phases_only_view,
+)
 from dce_phases import (  # noqa: E402
     DcePhase,
     compute_subtraction,
-    detect_cad_markers,
-    expert_centroid_zyx,
     lesion_z_in_phase,
     load_precontrast_volume,
     mask_for_phase,
@@ -73,15 +81,15 @@ class BreastDisplayState:
     active_phase: int = 1
     show_subtraction: bool = False
     show_precontrast: bool = False
-    show_mip_row: bool = True
-    show_cad: bool = True
+    show_mip_row: bool = False
     precontrast_display: np.ndarray | None = None
     mr_layer: Any | None = None
     subtraction_layer: Any | None = None
     precontrast_layer: Any | None = None
     expert_layer: Any | None = None
-    cad_layer: Any | None = None
+    prediction_layer: Any | None = None
     expert_mask_full: np.ndarray | None = None
+    prediction_mask_full: np.ndarray | None = None
     cuboid_boundary: bool = False
     hanging: dict[str, Any] = field(default_factory=dict)
 
@@ -95,6 +103,50 @@ def slugs_with_les() -> list[str]:
         if find_les_files(entry["tcga_id"]):
             slugs.append(entry["slug"])
     return slugs
+
+
+def add_collapsible_dock(
+    viewer: napari.Viewer,
+    widget: Any,
+    *,
+    name: str,
+    collapsed: bool = False,
+) -> None:
+    """Right-side dock with a button to collapse controls and free canvas space."""
+    from qtpy.QtWidgets import QPushButton, QVBoxLayout, QWidget
+
+    outer = QWidget()
+    layout = QVBoxLayout(outer)
+    layout.setContentsMargins(4, 4, 4, 4)
+    toggle = QPushButton("Show controls ▼" if collapsed else "Hide controls ▲")
+
+    inner = QWidget()
+    inner_layout = QVBoxLayout(inner)
+    inner_layout.setContentsMargins(0, 0, 0, 0)
+    native = widget.native if hasattr(widget, "native") else widget
+    inner_layout.addWidget(native)
+    inner.setVisible(not collapsed)
+
+    def on_toggle() -> None:
+        show = not inner.isVisible()
+        inner.setVisible(show)
+        toggle.setText("Hide controls ▲" if show else "Show controls ▼")
+
+    toggle.clicked.connect(on_toggle)
+    layout.addWidget(toggle)
+    layout.addWidget(inner)
+    viewer.window.add_dock_widget(outer, area="right", name=name)
+
+
+def _configure_viewer_chrome(viewer: napari.Viewer, *, wide: bool) -> None:
+    """Hide napari layer list/controls so MR images use more horizontal space."""
+    if not wide:
+        return
+    qt_viewer = viewer.window.qt_viewer
+    for attr in ("dockLayerList", "dockLayerControls", "layerListDock", "layerControlsDock"):
+        dock = getattr(qt_viewer, attr, None)
+        if dock is not None:
+            dock.setVisible(False)
 
 
 def add_overlay_toggle_button(viewer: napari.Viewer, *overlay_layers: Any) -> None:
@@ -142,33 +194,11 @@ def _update_expert_layer(state: BreastDisplayState) -> None:
     state.expert_layer.data = mask_for_phase(state.expert_mask_full, phase)
 
 
-def _update_cad_layer(state: BreastDisplayState) -> None:
-    if state.cad_layer is None:
+def _update_prediction_layer(state: BreastDisplayState) -> None:
+    if state.prediction_layer is None or state.prediction_mask_full is None:
         return
     phase = state.phases[state.active_phase - 1]
-    volume = (
-        state.subtraction_volumes[state.active_phase - 1]
-        if state.show_subtraction and state.subtraction_volumes
-        else state.phase_volumes[state.active_phase - 1]
-    )
-    coords = detect_cad_markers(volume)
-    expert_centroid = (
-        expert_centroid_zyx(state.expert_mask_full, phase)
-        if state.expert_mask_full is not None
-        else None
-    )
-    if expert_centroid is not None:
-        coords = (
-            np.vstack([coords, np.array([expert_centroid], dtype=np.float32)])
-            if coords.size
-            else np.array([expert_centroid], dtype=np.float32)
-        )
-    state.cad_layer.data = coords
-    if expert_centroid is not None and coords.size:
-        state.cad_layer.face_color = [
-            "lime" if np.allclose(row, expert_centroid, atol=0.5) else "yellow"
-            for row in coords
-        ]
+    state.prediction_layer.data = mask_for_phase(state.prediction_mask_full, phase)
 
 
 def _refresh_display_layers(state: BreastDisplayState) -> None:
@@ -187,15 +217,16 @@ def _refresh_display_layers(state: BreastDisplayState) -> None:
         state.precontrast_layer.visible = state.show_precontrast
 
     _update_expert_layer(state)
-    if state.show_cad:
-        _update_cad_layer(state)
+    _update_prediction_layer(state)
 
 
 def _set_hanging_visibility(state: BreastDisplayState) -> None:
     for layer in state.hanging.get("mip_layers", []):
         layer.visible = state.show_mip_row
-    for layer in state.hanging.get("cad_layers", []):
-        layer.visible = state.show_cad
+    for widget in state.hanging.get("mip_qt_widgets", []):
+        widget.setVisible(state.show_mip_row)
+    for header in state.hanging.get("mip_headers", []):
+        header.setVisible(state.show_mip_row)
 
 
 def _jump_to_lesion(viewer: napari.Viewer, state: BreastDisplayState) -> None:
@@ -212,7 +243,24 @@ def _jump_to_lesion(viewer: napari.Viewer, state: BreastDisplayState) -> None:
         phase_viewer.dims.point = tuple(point)
 
 
-def add_breast_display_controls(viewer: napari.Viewer, state: BreastDisplayState) -> None:
+def _set_hanging_panel_visible(state: BreastDisplayState, visible: bool) -> None:
+    splitter = state.hanging.get("splitter")
+    hanging_wrap = state.hanging.get("hanging_wrap")
+    if splitter is None or hanging_wrap is None:
+        return
+    hanging_wrap.setVisible(visible)
+    if visible:
+        splitter.setSizes([640, 960])
+    else:
+        splitter.setSizes([1_000_000, 0])
+
+
+def add_breast_display_controls(
+    viewer: napari.Viewer,
+    state: BreastDisplayState,
+    *,
+    collapse_controls: bool = False,
+) -> None:
     from magicgui.widgets import Checkbox, ComboBox, Container, PushButton
 
     phase_choices = {f"Phase {phase.index}": phase.index for phase in state.phases}
@@ -223,9 +271,13 @@ def add_breast_display_controls(viewer: napari.Viewer, state: BreastDisplayState
     subtraction_box.enabled = bool(state.subtraction_volumes)
     precontrast_box = Checkbox(value=False, text="Pre-contrast S1 (Ax T1, resampled)")
     precontrast_box.enabled = state.precontrast_display is not None
-    mip_box = Checkbox(value=state.show_mip_row, text="MIP row (hanging protocol)")
-    cad_box = Checkbox(value=state.show_cad, text="CAD markers (enhancement peaks)")
+    mip_box = Checkbox(value=state.show_mip_row, text="MIP row (bottom of hanging protocol)")
     jump_button = PushButton(text="Jump to expert lesion")
+    hanging_box = Checkbox(
+        value=True,
+        text="Hanging protocol panel (4 phases on right)",
+    )
+    hanging_box.enabled = bool(state.hanging)
 
     def on_phase_change(_event: Any = None) -> None:
         state.active_phase = int(phase_choices[str(phase_box.value)])
@@ -244,11 +296,8 @@ def add_breast_display_controls(viewer: napari.Viewer, state: BreastDisplayState
         state.show_mip_row = bool(mip_box.value)
         _set_hanging_visibility(state)
 
-    def on_cad_change(_event: Any = None) -> None:
-        state.show_cad = bool(cad_box.value)
-        if state.cad_layer is not None:
-            state.cad_layer.visible = state.show_cad
-        _set_hanging_visibility(state)
+    def on_hanging_change(_event: Any = None) -> None:
+        _set_hanging_panel_visible(state, bool(hanging_box.value))
 
     def on_jump(_event: Any = None) -> None:
         _jump_to_lesion(viewer, state)
@@ -257,29 +306,41 @@ def add_breast_display_controls(viewer: napari.Viewer, state: BreastDisplayState
     subtraction_box.changed.connect(on_subtraction_change)
     precontrast_box.changed.connect(on_precontrast_change)
     mip_box.changed.connect(on_mip_change)
-    cad_box.changed.connect(on_cad_change)
+    if state.hanging:
+        hanging_box.changed.connect(on_hanging_change)
     jump_button.clicked.connect(on_jump)
 
-    controls = Container(
-        widgets=[
-            phase_box,
-            subtraction_box,
-            precontrast_box,
-            mip_box,
-            cad_box,
-            jump_button,
-        ],
+    widgets = [
+        phase_box,
+        subtraction_box,
+        precontrast_box,
+        mip_box,
+        jump_button,
+    ]
+    if state.hanging:
+        widgets.insert(0, hanging_box)
+
+    controls = Container(widgets=widgets)
+    add_collapsible_dock(
+        viewer,
+        controls,
+        name="DCE controls",
+        collapsed=collapse_controls,
     )
-    viewer.window.add_dock_widget(controls, area="right", name="DCE controls")
 
 
 def view_slug(
     slug: str,
     *,
     show_otsu: bool = False,
+    show_cuboid_enhancement: bool = False,
     cuboid_boundary: bool = False,
     skip_precontrast: bool = False,
     no_hanging: bool = False,
+    phases_only: bool = False,
+    show_mip_row: bool = False,
+    wide: bool = False,
+    collapse_controls: bool = False,
 ) -> None:
     entry = find_volume(slug=slug)
     tcga_id = entry["tcga_id"]
@@ -373,12 +434,59 @@ def view_slug(
         f"  MR:     shape={volume.shape} source={source} spacing_mm={spacing_mm}\n"
         f"  phases: {len(phases)} temporal phases — {phase_summary}\n"
         f"  pre:    {precontrast_label or '(unavailable — will download S1 on first run)'}\n"
-        f"  layout: {'detail + hanging protocol' if not no_hanging else 'detail only'}\n"
+        f"  layout: "
+        + (
+            "P1–P4 only"
+            if phases_only
+            else ("detail + hanging protocol" if not no_hanging else "detail only")
+        )
+        + (", MIP row on" if show_mip_row and (phases_only or not no_hanging) else "")
+        + "\n"
         f"  lesion: phase {active_phase}"
         + (f", z={lesion_z} within phase" if lesion_z is not None else "")
     )
 
     show_subtraction = bool(subtraction_volumes)
+
+    if phases_only:
+        prediction_mask_full: np.ndarray | None = None
+        if show_cuboid_enhancement:
+            from seg_paths import mask_npy  # noqa: WPS433
+
+            pred_path = mask_npy(slug, "cuboid_enhancement")
+            if pred_path.exists():
+                prediction_mask_full = np.load(pred_path).astype(np.uint8)
+                print(f"  overlay: {pred_path} ({int(prediction_mask_full.sum()):,} vox)")
+            else:
+                print(f"  cuboid_enhancement mask not found: {pred_path}")
+
+        viewer = napari.Viewer(title=f"{slug} — P1–P4")
+        _configure_viewer_chrome(viewer, wide=wide)
+        hanging = setup_phases_only_view(
+            viewer,
+            phase_volumes=phase_volumes,
+            phases=phases,
+            subtraction_volumes=[],
+            spacing_mm=scale,
+            expert_mask_full=overlay_mask,
+            expert_layer_name=overlay_name,
+            prediction_mask_full=prediction_mask_full,
+            show_mip_row=show_mip_row,
+        )
+        overlay_layers = [
+            *hanging.get("expert_layers", []),
+            *hanging.get("prediction_layers", []),
+        ]
+        if overlay_layers:
+            add_overlay_toggle_button(viewer, *overlay_layers)
+        if lesion_z is not None:
+            point = [0.0, 0.0, 0.0]
+            point[0] = float(lesion_z)
+            for phase_viewer in hanging.get("phase_viewers", []):
+                phase_viewer.dims.point = tuple(point)
+        napari.run()
+        return
+
     state = BreastDisplayState(
         phases=phases,
         phase_volumes=phase_volumes,
@@ -386,12 +494,14 @@ def view_slug(
         spacing_mm=scale,
         active_phase=active_phase,
         show_subtraction=show_subtraction,
+        show_mip_row=show_mip_row,
         precontrast_display=precontrast_display,
         expert_mask_full=overlay_mask,
         cuboid_boundary=cuboid_boundary,
     )
 
     viewer = napari.Viewer(title=f"{slug} — breast DCE hanging protocol")
+    _configure_viewer_chrome(viewer, wide=wide)
     active_volume = phase_volumes[active_phase - 1]
     state.mr_layer = viewer.add_image(
         normalize_volume(active_volume),
@@ -432,35 +542,6 @@ def view_slug(
         opacity=0.85 if cuboid_boundary else 0.55,
     )
 
-    if state.show_cad:
-        detail_volume = (
-            subtraction_volumes[active_phase - 1]
-            if show_subtraction
-            else active_volume
-        )
-        cad_coords = detect_cad_markers(detail_volume)
-        expert_centroid = expert_centroid_zyx(overlay_mask, phases[active_phase - 1])
-        if expert_centroid is not None:
-            cad_coords = (
-                np.vstack([cad_coords, np.array([expert_centroid], dtype=np.float32)])
-                if cad_coords.size
-                else np.array([expert_centroid], dtype=np.float32)
-            )
-        if cad_coords.size:
-            state.cad_layer = viewer.add_points(
-                cad_coords,
-                name="CAD markers (detail)",
-                size=12,
-                face_color="yellow",
-                border_color="black",
-                symbol="disc",
-            )
-            if expert_centroid is not None:
-                state.cad_layer.face_color = [
-                    "lime" if np.allclose(row, expert_centroid, atol=0.5) else "yellow"
-                    for row in cad_coords
-                ]
-
     if show_otsu:
         detail_volume = (
             subtraction_volumes[active_phase - 1]
@@ -474,7 +555,25 @@ def view_slug(
             opacity=0.35,
         )
 
+    if show_cuboid_enhancement:
+        from seg_paths import mask_npy  # noqa: WPS433
+
+        pred_path = mask_npy(slug, "cuboid_enhancement")
+        if pred_path.exists():
+            state.prediction_mask_full = np.load(pred_path).astype(np.uint8)
+            phase_pred = mask_for_phase(state.prediction_mask_full, phases[active_phase - 1])
+            state.prediction_layer = viewer.add_labels(
+                phase_pred,
+                name="cuboid_enhancement",
+                scale=scale,
+                opacity=0.4,
+            )
+            print(f"  overlay: {pred_path} ({int(state.prediction_mask_full.sum()):,} vox)")
+        else:
+            print(f"  cuboid_enhancement mask not found: {pred_path}")
+
     if not no_hanging:
+        prediction_for_hanging: np.ndarray | None = state.prediction_mask_full
         state.hanging = setup_clinical_hanging_protocol(
             viewer,
             phase_volumes=phase_volumes,
@@ -483,17 +582,18 @@ def view_slug(
             spacing_mm=scale,
             expert_mask_full=overlay_mask,
             expert_layer_name=overlay_name,
+            prediction_mask_full=prediction_for_hanging,
             show_mip_row=state.show_mip_row,
-            show_cad=state.show_cad,
         )
 
     add_overlay_toggle_button(
         viewer,
         state.expert_layer,
         *state.hanging.get("expert_layers", []),
+        *state.hanging.get("prediction_layers", []),
     )
 
-    add_breast_display_controls(viewer, state)
+    add_breast_display_controls(viewer, state, collapse_controls=collapse_controls)
     _jump_to_lesion(viewer, state)
     napari.run()
 
@@ -517,6 +617,11 @@ def main() -> None:
         help="Also overlay Otsu + largest connected component on the active phase",
     )
     parser.add_argument(
+        "--cuboid-enhancement",
+        action="store_true",
+        help="Overlay cuboid_enhancement predicted mask if on disk",
+    )
+    parser.add_argument(
         "--no-precontrast",
         action="store_true",
         help="Skip downloading/loading pre-contrast S1 (no subtraction layer)",
@@ -525,6 +630,26 @@ def main() -> None:
         "--no-hanging",
         action="store_true",
         help="Disable side-by-side hanging protocol pane (detail viewer only)",
+    )
+    parser.add_argument(
+        "--phases-only",
+        action="store_true",
+        help="Full-window P1–P4 grid only (no left detail viewer)",
+    )
+    parser.add_argument(
+        "--mip",
+        action="store_true",
+        help="Show MIP row under the 4 phase viewers in the hanging protocol panel",
+    )
+    parser.add_argument(
+        "--wide",
+        action="store_true",
+        help="Hide napari layer list/controls on the left for a wider MR canvas",
+    )
+    parser.add_argument(
+        "--collapse-controls",
+        action="store_true",
+        help="Start with the DCE controls dock collapsed (click Show controls to expand)",
     )
     parser.add_argument(
         "--list",
@@ -556,9 +681,14 @@ def main() -> None:
     view_slug(
         slug,
         show_otsu=args.otsu,
+        show_cuboid_enhancement=args.cuboid_enhancement,
         cuboid_boundary=args.cuboid,
         skip_precontrast=args.no_precontrast,
         no_hanging=args.no_hanging,
+        phases_only=args.phases_only,
+        show_mip_row=args.mip,
+        wide=args.wide,
+        collapse_controls=args.collapse_controls,
     )
 
 

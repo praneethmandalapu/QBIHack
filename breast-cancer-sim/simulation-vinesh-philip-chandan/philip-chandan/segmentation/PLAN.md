@@ -52,6 +52,10 @@ Expert **voxel-level** labels inside a 3D annotation cuboid — not a solid boun
 - Annotated on **DCE sequence S2 = VIBRANT** when slice counts match raw extract
 - ~91 patients in [TCGA Segmented Lesions archive](https://www.cancerimagingarchive.net/analysis-result/tcga-breast-radiogenomics/) — potential **training/eval pool** beyond rev2
 
+**Why `.les` looks sparse (“dots”) in napari:** TCIA masks were not hand-painted 3D contours. Radiologists marked an approximate tumor **center**; the UChicago workstation (V2010) ran **fuzzy c-means** auto-segmentation and stored only FCM-positive voxels inside a small cuboid header (~31–34% cuboid fill for rev2). At full-breast scale (~352–464 slices) that cluster is tiny; viewing **later DCE phases** while the reference sits at **phase-1 z** makes it look even sparser. The cuboid bounds are the useful spatial prior; the sparse voxels are FCM seeds for validation, not a filled lesion outline.
+
+**`cuboid_enhancement` (baseline spike):** Use `.les` cuboid ± margin for *where*, then local threshold + connected components on DCE phases 2–4 (subtraction when pre-contrast available) for *what*. See [`methods/cuboid_enhancement.py`](methods/cuboid_enhancement.py).
+
 ### Inputs per slug
 
 ```
@@ -76,6 +80,7 @@ flowchart LR
 | ID | Method | Automated? | Baseline | Follow-up | Role in plan |
 |----|--------|------------|----------|-----------|--------------|
 | **`les`** | TCIA radiologist mask | No (reference) | **Written by harness** | N/A | **Ground truth** for metrics |
+| **`cuboid_enhancement`** | `.les` cuboid + local enhancement (phases 2–4) | Yes | **done** — spike | N/A | Classical baseline prior to nnU-Net |
 | **`nnunet`** | MAMA-MIA pretrained nnU-Net v2 on DCE-MRI | Yes | **Primary target** | **Primary target** | Drop `{slug}_nnunet_mask.npy` → re-run benchmark |
 | **`medsam`** | MedSAM / SAM with box or point prompt | Semi | Optional spike | Optional spike | Same drop-in contract as nnU-Net |
 | ~~**`otsu`**~~ | Percentile + Otsu + largest CC | Yes | — | — | **Out of scope** — failed validation; see [`../validation/VALIDATION.md`](../validation/VALIDATION.md) |
@@ -186,6 +191,15 @@ Pin download URL + checksum in `methods/nnunet_mama_mia.py` once verified.
 | `luminal_a_TCGA-AR-A1AX_baseline` | Same |
 
 **Success bar:** Dice **> 0** vs `.les`; aspirational Dice **> 0.5** on at least one case.
+
+### `cuboid_enhancement` spike results (rev2 baselines)
+
+| Slug | Dice | Area (pred / `.les`) | Selected phase | Notes |
+|------|------|----------------------|----------------|-------|
+| `luminal_a_TCGA-AR-A1AX_baseline` | **0.233** | 5.0× | 1 | Cuboid ROI + local threshold; volume capped at 5× expert |
+| `basal_TCGA-AR-A1AQ_baseline` | **0.211** | 5.0× | 1 | Beats global Otsu (Dice 0.0) |
+
+Run: `segment.py --method cuboid_enhancement` then `run_benchmark.py --all-primary`. Napari QC: `view_les_napari.py --slug … --cuboid-enhancement`.
 
 ### Risks
 

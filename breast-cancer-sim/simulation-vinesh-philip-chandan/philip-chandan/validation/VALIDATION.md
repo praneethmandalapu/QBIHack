@@ -90,6 +90,14 @@ Embed into our `(Z, Y, X)` volumes via [`load_les_mask.py`](../stretch/load_les_
 
 Naming: `*Sn-m.les` — `n` = DCE-MRI sequence index, `m` = lesion index (e.g. `S2-1.les` = sequence 2, lesion 1). DCE order: ax T1 → VIBRANT → BRAVA (see `pick_dce_series` in [`validate_segmentation.py`](../stretch/validate_segmentation.py)).
 
+### Origin — center click + FCM, not dense manual contour
+
+Published TCGA-Breast-Radiogenomics workflow ([Li et al., npj Breast Cancer 2016](https://www.nature.com/articles/npjbcancer201612)): three radiologists marked approximate tumor **centers** on ClearCanvas; a **consensus center** fed **fuzzy c-means** 3D segmentation (Chicago Dynamic MRI Explorer / UChicago V2010). The `.les` file stores FCM-labeled voxels inside the cuboid header only.
+
+Rev2 baselines: ~1.3k–2.7k labeled voxels inside cuboids that are only ~31–34% filled (rest is padding). In napari this reads as “dots” — especially when scrolling **phases 2–4** where contrast is brighter while the reference cluster sits at **phase-1 z** (A1AX z 19–26; A1AQ z 78–84 on the stacked VIBRANT volume).
+
+Automated alternative under test: [`../segmentation/methods/cuboid_enhancement.py`](../segmentation/methods/cuboid_enhancement.py) (cuboid spatial prior + local enhancement on phases 2–4).
+
 ### Caveats
 
 - Masks are usually **one lesion / one annotated timepoint**, not guaranteed for both baseline and follow-up.
@@ -145,9 +153,9 @@ cd breast-cancer-sim
   --slug luminal_a_TCGA-AR-A1AX_baseline --no-precontrast
 ```
 
-**Dock widgets:** `DCE controls` (phase picker, subtraction, pre-contrast, MIP row, CAD markers, jump-to-lesion), `Expert mask` (show/hide `.les` on detail + hanging panes).
+**Dock widgets:** `DCE controls` (phase picker, subtraction, pre-contrast, MIP row, jump-to-lesion), `Expert mask` (show/hide `.les` on detail + hanging panes).
 
-**Layout:** Left = detail viewer with overlays. Right = **hanging protocol** — four linked subtraction (or DCE) phases side-by-side, MIP row beneath, yellow **CAD-style** enhancement peaks (lime = expert centroid). TCIA does not ship vendor CAD; markers are computed from local maxima on subtraction volumes (QC only).
+**Layout:** Left = detail viewer with overlays. Right = **hanging protocol** — four linked subtraction (or DCE) phases side-by-side, optional MIP row beneath.
 
 Alternative: export NIfTI via SimpleITK for **ITK-SNAP** / **3D Slicer** / Fiji.
 

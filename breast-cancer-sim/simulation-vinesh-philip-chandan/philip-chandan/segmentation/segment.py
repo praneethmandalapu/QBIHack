@@ -15,6 +15,7 @@ sys.path.insert(0, str(STRETCH_DIR))
 sys.path.insert(0, str(SEGMENTATION_DIR))
 
 from ground_truth import write_les_reference  # noqa: E402
+from methods.cuboid_enhancement import METHOD_ID, write_cuboid_enhancement_mask  # noqa: E402
 from seg_paths import BENCHMARK_METHODS, REFERENCE_METHOD  # noqa: E402
 
 
@@ -33,6 +34,15 @@ def main() -> None:
         _, meta = write_les_reference(args.slug)
         print(f"Wrote .les reference for {args.slug}")
         print(f"  mask_voxels={meta['mask_voxels']:,} → {meta['mask_npy']}")
+        return
+
+    if args.method == METHOD_ID:
+        _, meta = write_cuboid_enhancement_mask(args.slug)
+        print(f"Wrote cuboid_enhancement mask for {args.slug}")
+        print(
+            f"  mask_voxels={meta['mask_voxels']:,} phase={meta['selected_phase']} "
+            f"3d_overlap={meta['expert_overlap_voxels']:,} → {meta['mask_npy']}"
+        )
         return
 
     raise NotImplementedError(

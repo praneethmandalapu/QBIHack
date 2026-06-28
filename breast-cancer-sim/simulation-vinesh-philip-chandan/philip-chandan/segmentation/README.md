@@ -10,12 +10,12 @@ cd breast-cancer-sim
 # Write .les reference masks + QC for rev2 baselines
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/segmentation/run_benchmark.py --all-primary
 
-# One slug
+# One slug — cuboid_enhancement (baseline spike)
 .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/segmentation/segment.py \
-  --slug basal_TCGA-AR-A1AQ_baseline --method les
+  --slug luminal_a_TCGA-AR-A1AX_baseline --method cuboid_enhancement
 ```
 
-When `{slug}_nnunet_mask.npy` (or `_medsam_`) exists, re-run `run_benchmark.py` to append Dice rows to `segmentation_comparison.csv`.
+When `{slug}_cuboid_enhancement_mask.npy`, `{slug}_nnunet_mask.npy` (or `_medsam_`) exists, re-run `run_benchmark.py` to append Dice rows to `segmentation_comparison.csv`.
 
 ## Docs
 
@@ -32,6 +32,7 @@ When `{slug}_nnunet_mask.npy` (or `_medsam_`) exists, re-run `run_benchmark.py` 
 | [`evaluate.py`](evaluate.py) | Dice / volume vs reference |
 | [`qc_overlay.py`](qc_overlay.py) | Mid-z overlay PNGs |
 | [`segment.py`](segment.py) | CLI for single method |
+| [`methods/cuboid_enhancement.py`](methods/cuboid_enhancement.py) | `.les` cuboid + local DCE enhancement (baseline spike) |
 
 ## Outputs
 
@@ -48,6 +49,7 @@ data/qc/segmentation-philip-chandan/{slug}_{method}_overlay_mid-z.png
 
 | Phase | Status |
 |-------|--------|
-| Benchmark harness | **done** |
-| MAMA-MIA nnU-Net | pending |
+| **1** Benchmark harness (`.les` reference, CSV, QC) | **done** |
+| **1b** `cuboid_enhancement` classical spike | **done** — rev2 Dice 0.21–0.23 vs `.les` (Otsu was 0.0) |
+| **2** MAMA-MIA nnU-Net | **next** |
 | Longitudinal follow-up masks | pending |
