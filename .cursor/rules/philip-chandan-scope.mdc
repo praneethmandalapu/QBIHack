@@ -39,7 +39,7 @@ Before editing code outside `philip-chandan/`, **pause and tell the user** to co
 Allowed without cross-team edits when possible:
 
 - Document handoff in `PLAN.md`, `COHORT.md`, or `manifest.json` schema
-- Export `.npy` + metadata from our pipeline for Vinesh to load
+- Export `.npy` + metadata from our pipeline for Vinesh to load (**local / Drive / Slack only — do not `git add` `.npy`**; commit JSON sidecars and QC PNGs)
 - Answer questions about our outputs (shape `(Z,Y,X)`, `spacing_mm`, cohort rev2 IDs)
 
 If a fix **must** land in another folder, say so explicitly: *“This needs a change in `vinesh/` — check with Vinesh before committing.”*

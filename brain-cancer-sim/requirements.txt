@@ -1,0 +1,25 @@
+# Core numerics & simulation
+numpy
+scipy
+
+# Imaging (brain datasets — NIfTI + optional DICOM)
+nibabel
+SimpleITK
+pydicom
+
+# Visualization & app
+matplotlib
+plotly
+pyvista
+streamlit
+scikit-image
+
+# QC (optional napari viewer — same pattern as breast validation/)
+napari[pyqt6]
+
+# Medical image processing (resample, morphology, metrics)
+medpy
+
+# Testing
+pytest
+fpdf2

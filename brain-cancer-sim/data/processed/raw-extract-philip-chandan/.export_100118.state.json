@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "script": "export_all_raw",
+  "run_id": "af9af72a-8105-4776-83f9-199af0aeee3c",
+  "run_status": "completed",
+  "started_at": "2026-06-28T17:50:07+00:00",
+  "updated_at": "2026-06-28T17:50:07+00:00",
+  "config_fingerprint": "ea07466625bc05c5254a0e8ecc3f0f2fa156c4e19c1075c39da2c889aee3b222",
+  "config": {
+    "cohort_version": "rev1-ucsf",
+    "all_primary": false,
+    "include_backups": false,
+    "patient_id": "100118",
+    "timepoints": "all",
+    "timepoint_labels": [
+      "all"
+    ],
+    "skip_qc": true,
+    "job_ids": [
+      "glioma_ucsf_longitudinal_glioma_(ucsf_lptdg)_100118_baseline",
+      "glioma_ucsf_longitudinal_glioma_(ucsf_lptdg)_100118_followup"
+    ]
+  },
+  "current_job_id": null,
+  "current_job_started_at": null,
+  "jobs": [
+    {
+      "job_id": "glioma_ucsf_longitudinal_glioma_(ucsf_lptdg)_100118_baseline",
+      "status": "completed",
+      "started_at": "2026-06-28T17:50:07+00:00",
+      "finished_at": "2026-06-28T17:50:07+00:00",
+      "duration_sec": 0.43,
+      "outputs": {
+        "npy": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/processed/raw-extract-philip-chandan/100118/baseline.npy",
+        "json": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/processed/raw-extract-philip-chandan/100118/baseline.json"
+      },
+      "error": null
+    },
+    {
+      "job_id": "glioma_ucsf_longitudinal_glioma_(ucsf_lptdg)_100118_followup",
+      "status": "completed",
+      "started_at": "2026-06-28T17:50:07+00:00",
+      "finished_at": "2026-06-28T17:50:07+00:00",
+      "duration_sec": 0.234,
+      "outputs": {
+        "npy": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/processed/raw-extract-philip-chandan/100118/followup.npy",
+        "json": "/Users/fio/Projects/QBIHack/brain-cancer-sim/data/processed/raw-extract-philip-chandan/100118/followup.json"
+      },
+      "error": null
+    }
+  ],
+  "summary": {
+    "pending": 0,
+    "running": 0,
+    "completed": 2,
+    "failed": 0,
+    "skipped": 0
+  }
+}

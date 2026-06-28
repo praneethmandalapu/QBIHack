@@ -1,0 +1,1290 @@
+{
+  "version": "1.0.0",
+  "contract_version": "1.0.0",
+  "generated_at": "2026-06-28",
+  "description": "Philip-Chandan brain imaging handoff: 14 UCSF longitudinal glioma patients without resection cavity (label 4) at baseline or follow-up. Load by slug, patient_id, or demo key.",
+  "cohort_selection": "no_resection_cavity",
+  "excluded_resection_cavity_patient_ids": [
+    "100130",
+    "100134",
+    "100192",
+    "100220",
+    "100260"
+  ],
+  "demo": {
+    "stable": {
+      "patient_id": "100002",
+      "label": "stable_idh_mut_grade2",
+      "notes": "IDH-mut oligodendroglioma grade 2; low measured WT growth"
+    },
+    "aggressive": {
+      "patient_id": "100118",
+      "label": "aggressive_idh_wt_gbm",
+      "notes": "IDH-WT glioblastoma grade 4; high measured WT growth"
+    }
+  },
+  "patients": [
+    {
+      "patient_id": "100002",
+      "disease": "Glioma",
+      "grade": "2",
+      "idh_status": "mut",
+      "mgmt_status": "positive",
+      "diagnosis": "Oligodendroglioma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 183,
+      "measured_growth_pct": 2.802015484822416,
+      "baseline_slug": "glioma_ucsf_100002_baseline",
+      "followup_slug": "glioma_ucsf_100002_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100002_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100014",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "diagnosis": "IDH WT Astrocytoma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 53,
+      "measured_growth_pct": -40.314491862684825,
+      "baseline_slug": "glioma_ucsf_100014_baseline",
+      "followup_slug": "glioma_ucsf_100014_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100014_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100020",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "unmethylated",
+      "diagnosis": "Glioblastoma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 72,
+      "measured_growth_pct": 68.23482555360842,
+      "baseline_slug": "glioma_ucsf_100020_baseline",
+      "followup_slug": "glioma_ucsf_100020_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100020_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100038",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "diagnosis": "Glioblastoma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 63,
+      "measured_growth_pct": 81.74980388537676,
+      "baseline_slug": "glioma_ucsf_100038_baseline",
+      "followup_slug": "glioma_ucsf_100038_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100038_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100039",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "diagnosis": "Glioblastoma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 27,
+      "measured_growth_pct": -23.347484761520764,
+      "baseline_slug": "glioma_ucsf_100039_baseline",
+      "followup_slug": "glioma_ucsf_100039_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100039_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100118",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "diagnosis": "Glioblastoma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 56,
+      "measured_growth_pct": 609.096744612563,
+      "baseline_slug": "glioma_ucsf_100118_baseline",
+      "followup_slug": "glioma_ucsf_100118_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100118_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100129",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "mut",
+      "mgmt_status": null,
+      "diagnosis": "Oligodendroglioma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 109,
+      "measured_growth_pct": -2.1328458257160268,
+      "baseline_slug": "glioma_ucsf_100129_baseline",
+      "followup_slug": "glioma_ucsf_100129_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100129_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100137",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "mut",
+      "mgmt_status": null,
+      "diagnosis": "Oligodendroglioma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 71,
+      "measured_growth_pct": -2.16700433003615,
+      "baseline_slug": "glioma_ucsf_100137_baseline",
+      "followup_slug": "glioma_ucsf_100137_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100137_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100149",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "unmethylated",
+      "diagnosis": "Glioblastoma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 56,
+      "measured_growth_pct": 19.438079855763814,
+      "baseline_slug": "glioma_ucsf_100149_baseline",
+      "followup_slug": "glioma_ucsf_100149_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100149_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100184",
+      "disease": "Glioma",
+      "grade": 3.0,
+      "idh_status": "mut",
+      "mgmt_status": null,
+      "diagnosis": "IDH mut Astrocytoma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 105,
+      "measured_growth_pct": 123.71227471472753,
+      "baseline_slug": "glioma_ucsf_100184_baseline",
+      "followup_slug": "glioma_ucsf_100184_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100184_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100210",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "diagnosis": "Glioblastoma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 60,
+      "measured_growth_pct": 81.45794392523365,
+      "baseline_slug": "glioma_ucsf_100210_baseline",
+      "followup_slug": "glioma_ucsf_100210_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100210_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100213",
+      "disease": "Glioma",
+      "grade": 3.0,
+      "idh_status": "WT",
+      "mgmt_status": null,
+      "diagnosis": "IDH WT Astrocytoma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 57,
+      "measured_growth_pct": 94.27111311139825,
+      "baseline_slug": "glioma_ucsf_100213_baseline",
+      "followup_slug": "glioma_ucsf_100213_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100213_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100215",
+      "disease": "Glioma",
+      "grade": 3.0,
+      "idh_status": "WT",
+      "mgmt_status": null,
+      "diagnosis": "IDH WT Astrocytoma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 63,
+      "measured_growth_pct": -10.688185140073081,
+      "baseline_slug": "glioma_ucsf_100215_baseline",
+      "followup_slug": "glioma_ucsf_100215_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100215_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    },
+    {
+      "patient_id": "100219",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "WT",
+      "mgmt_status": null,
+      "diagnosis": "IDH WT Astrocytoma",
+      "cohort_group": "primary",
+      "cohort_selection": "no_resection_cavity",
+      "interval_days": 37,
+      "measured_growth_pct": 21.56381127827244,
+      "baseline_slug": "glioma_ucsf_100219_baseline",
+      "followup_slug": "glioma_ucsf_100219_followup",
+      "longitudinal_qc_plot": "data/qc/slice-plots-philip-chandan/100219_longitudinal_mid-z-overlay.png",
+      "calibrated_params": null
+    }
+  ],
+  "volumes": [
+    {
+      "slug": "glioma_ucsf_100002_baseline",
+      "patient_id": "100002",
+      "disease": "Glioma",
+      "grade": "2",
+      "idh_status": "mut",
+      "mgmt_status": "positive",
+      "timepoint": "baseline",
+      "study_date": "time1",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100002/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100002/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100002/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100002/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100002_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100002_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100002_followup",
+      "patient_id": "100002",
+      "disease": "Glioma",
+      "grade": "2",
+      "idh_status": "mut",
+      "mgmt_status": "positive",
+      "timepoint": "followup",
+      "study_date": "time2",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100002/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100002/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100002/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100002/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100002_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100002_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100014_baseline",
+      "patient_id": "100014",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100014/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100014/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100014/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100014/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100014_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100014_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100014_followup",
+      "patient_id": "100014",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "timepoint": "followup",
+      "study_date": "day53",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100014/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100014/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100014/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100014/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100014_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100014_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100020_baseline",
+      "patient_id": "100020",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "unmethylated",
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100020/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100020/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100020/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100020/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100020_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100020_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100020_followup",
+      "patient_id": "100020",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "unmethylated",
+      "timepoint": "followup",
+      "study_date": "day72",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100020/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100020/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100020/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100020/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100020_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100020_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100038_baseline",
+      "patient_id": "100038",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100038/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100038/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100038/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100038/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100038_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100038_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100038_followup",
+      "patient_id": "100038",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "timepoint": "followup",
+      "study_date": "day63",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100038/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100038/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100038/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100038/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100038_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100038_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100039_baseline",
+      "patient_id": "100039",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100039/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100039/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100039/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100039/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100039_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100039_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100039_followup",
+      "patient_id": "100039",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "timepoint": "followup",
+      "study_date": "day27",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100039/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100039/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100039/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100039/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100039_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100039_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100118_baseline",
+      "patient_id": "100118",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100118/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100118/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100118/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100118/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100118_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100118_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100118_followup",
+      "patient_id": "100118",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "timepoint": "followup",
+      "study_date": "day56",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100118/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100118/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100118/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100118/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100118_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100118_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100129_baseline",
+      "patient_id": "100129",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "mut",
+      "mgmt_status": null,
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100129/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100129/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100129/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100129/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100129_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100129_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100129_followup",
+      "patient_id": "100129",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "mut",
+      "mgmt_status": null,
+      "timepoint": "followup",
+      "study_date": "day109",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100129/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100129/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100129/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100129/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100129_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100129_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100137_baseline",
+      "patient_id": "100137",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "mut",
+      "mgmt_status": null,
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100137/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100137/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100137/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100137/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100137_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100137_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100137_followup",
+      "patient_id": "100137",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "mut",
+      "mgmt_status": null,
+      "timepoint": "followup",
+      "study_date": "day71",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100137/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100137/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100137/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100137/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100137_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100137_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100149_baseline",
+      "patient_id": "100149",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "unmethylated",
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100149/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100149/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100149/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100149/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100149_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100149_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100149_followup",
+      "patient_id": "100149",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "unmethylated",
+      "timepoint": "followup",
+      "study_date": "day56",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100149/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100149/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100149/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100149/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100149_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100149_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100184_baseline",
+      "patient_id": "100184",
+      "disease": "Glioma",
+      "grade": 3.0,
+      "idh_status": "mut",
+      "mgmt_status": null,
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100184/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100184/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100184/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100184/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100184_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100184_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100184_followup",
+      "patient_id": "100184",
+      "disease": "Glioma",
+      "grade": 3.0,
+      "idh_status": "mut",
+      "mgmt_status": null,
+      "timepoint": "followup",
+      "study_date": "day105",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100184/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100184/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100184/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100184/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100184_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100184_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100210_baseline",
+      "patient_id": "100210",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100210/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100210/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100210/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100210/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100210_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100210_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100210_followup",
+      "patient_id": "100210",
+      "disease": "Glioma",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "mgmt_status": "positive",
+      "timepoint": "followup",
+      "study_date": "day60",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100210/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100210/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100210/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100210/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100210_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100210_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100213_baseline",
+      "patient_id": "100213",
+      "disease": "Glioma",
+      "grade": 3.0,
+      "idh_status": "WT",
+      "mgmt_status": null,
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100213/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100213/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100213/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100213/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100213_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100213_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100213_followup",
+      "patient_id": "100213",
+      "disease": "Glioma",
+      "grade": 3.0,
+      "idh_status": "WT",
+      "mgmt_status": null,
+      "timepoint": "followup",
+      "study_date": "day57",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100213/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100213/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100213/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100213/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100213_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100213_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100215_baseline",
+      "patient_id": "100215",
+      "disease": "Glioma",
+      "grade": 3.0,
+      "idh_status": "WT",
+      "mgmt_status": null,
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100215/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100215/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100215/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100215/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100215_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100215_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100215_followup",
+      "patient_id": "100215",
+      "disease": "Glioma",
+      "grade": 3.0,
+      "idh_status": "WT",
+      "mgmt_status": null,
+      "timepoint": "followup",
+      "study_date": "day63",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100215/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100215/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100215/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100215/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100215_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100215_followup_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100219_baseline",
+      "patient_id": "100219",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "WT",
+      "mgmt_status": null,
+      "timepoint": "baseline",
+      "study_date": "day0",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100219/baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100219/baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100219/g64/baseline.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100219/g64/baseline.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100219_baseline_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100219_baseline_mid-z-overlay.png"
+    },
+    {
+      "slug": "glioma_ucsf_100219_followup",
+      "patient_id": "100219",
+      "disease": "Glioma",
+      "grade": 2.0,
+      "idh_status": "WT",
+      "mgmt_status": null,
+      "timepoint": "followup",
+      "study_date": "day37",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/100219/followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/100219/followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/100219/g64/followup.npy",
+      "pde_json": "data/processed/pde-input-vinesh/100219/g64/followup.json",
+      "segmentation_path": "data/processed/segmentations/glioma_ucsf_100219_followup_mask.nii.gz",
+      "shape": [
+        155,
+        240,
+        240
+      ],
+      "spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "pde_shape": [
+        64,
+        64,
+        64
+      ],
+      "pde_spacing_mm": [
+        1.0,
+        1.0,
+        1.0
+      ],
+      "grid_size": 64,
+      "qc_plot": "data/qc/slice-plots-philip-chandan/glioma_ucsf_100219_followup_mid-z-overlay.png"
+    }
+  ]
+}

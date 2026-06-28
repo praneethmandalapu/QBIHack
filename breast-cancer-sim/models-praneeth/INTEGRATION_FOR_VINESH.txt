@@ -1,0 +1,151 @@
+================================================================================
+HOW TO INCORPORATE PRANEETH'S GENOMIC RISK MODEL
+(instructions for Vinesh's coding agent — read fully before writing code)
+================================================================================
+
+You are wiring Praneeth's genomic risk model into the tumor-growth simulator.
+The seam between the two is ONE scalar:  risk  ->  risk_multiplier, where the
+solver already uses  rho_eff = rho * risk_multiplier  (tumor_pde_solver.py).
+This document tells you exactly what to call and what NOT to rebuild.
+
+
+--------------------------------------------------------------------------------
+1. THE ADAPTER ALREADY EXISTS. DO NOT REIMPLEMENT risk -> risk_multiplier.
+--------------------------------------------------------------------------------
+Praneeth shipped the mapping in oncopulse.py. Call it:
+
+    import sys, pathlib
+    # oncopulse.py lives at breast-cancer-sim/oncopulse.py.
+    # From vinesh/ that is parents[2]:
+    _BCS = pathlib.Path(__file__).resolve().parents[2]   # -> breast-cancer-sim/
+    sys.path.insert(0, str(_BCS))
+
+    from oncopulse import growth_multiplier, get_patient
+
+    rm = growth_multiplier("TCGA-AR-A1AX")    # -> 1.047  (this IS risk->multiplier)
+    p  = get_patient("TCGA-AR-A1AX")          # -> {"risk":0.247,"pam50":"BRCA_LumA",...}
+
+- growth_multiplier(barcode, lo=0.8, hi=1.8) returns  lo + (hi-lo)*risk.
+- Both functions are PURE PANDAS CSV LOOKUPS. They do NOT import xgboost and do
+  NOT need the macOS libomp fix. No model loading. No z-scoring on your side.
+- Do not write your own risk->multiplier formula; call growth_multiplier so the
+  mapping stays in one place.
+
+
+--------------------------------------------------------------------------------
+2. ID MATCHING IS ALREADY RESOLVED — NO FALLBACK NEEDED FOR THE DEMO PAIR.
+--------------------------------------------------------------------------------
+Praneeth's model scores ALL 1,082 patients in the TCGA-BRCA PanCancer Atlas 2018
+RNA-seq cohort. Both imaging patients are in it and are already scored:
+
+    TCGA-AR-A1AX  (Luminal A)  risk 0.247  ->  risk_multiplier 1.047
+    TCGA-AR-A1AQ  (Basal)      risk 0.083  ->  risk_multiplier 0.883
+
+So the "fall back to subtype" branch should NEVER fire for the demo. It only
+matters if someone swaps in an imaging patient that is not in the expression
+cohort.
+
+
+--------------------------------------------------------------------------------
+3. IF YOU BUILD A FALLBACK, DO NOT USE TEXTBOOK SUBTYPE VALUES.
+--------------------------------------------------------------------------------
+WARNING: the common assumption "Basal = aggressive (~1.6), Luminal A = mild
+(~0.7)" is INVERTED for this pair. Praneeth's model says the Luminal A grows
+FASTER than the Basal (1.047 vs 0.883), because this Basal is an immune-hot,
+better-prognosis triple-negative tumor. A textbook subtype fallback would
+silently contradict the genomic model AND the EXPLAIN/SHAP tab.
+
+If a barcode genuinely cannot be scored, fall back to Praneeth's MODEL-DERIVED
+per-subtype medians (already consistent with the model), not textbook numbers:
+
+    SUBTYPE_FALLBACK = {
+        "BRCA_Her2":   1.09,
+        "BRCA_LumB":   1.07,
+        "BRCA_Normal": 1.04,
+        "BRCA_LumA":   0.96,
+        "BRCA_Basal":  0.96,   # low on purpose — matches the model, not the cliche
+    }
+
+
+--------------------------------------------------------------------------------
+4. RECOMMENDED FACADE WRAPPER (copy this shape)
+--------------------------------------------------------------------------------
+    import sys, pathlib
+    _BCS = pathlib.Path(__file__).resolve().parents[2]
+    if str(_BCS) not in sys.path:
+        sys.path.insert(0, str(_BCS))
+
+    SUBTYPE_FALLBACK = {
+        "BRCA_Her2": 1.09, "BRCA_LumB": 1.07, "BRCA_Normal": 1.04,
+        "BRCA_LumA": 0.96, "BRCA_Basal": 0.96,
+    }
+
+    def resolve_risk_multiplier(tcga_id: str, pam50: str | None = None) -> float:
+        """risk_multiplier from Praneeth's model; subtype-median fallback if the
+        patient was never scored. Never invents textbook subtype numbers."""
+        try:
+            from oncopulse import growth_multiplier
+            return growth_multiplier(tcga_id)          # scored patient (the demo case)
+        except Exception:
+            return SUBTYPE_FALLBACK.get(pam50, 1.0)     # un-scored: model-median
+
+Use it in the solver:
+
+    params = {**DEFAULT_PARAMS,
+              "risk_multiplier": resolve_risk_multiplier(tcga_id, pam50)}
+    frames = solve_growth(baseline_volume, timesteps=50, dt=0.1, params=params)
+
+
+--------------------------------------------------------------------------------
+5. SEMANTICS YOU MUST RESPECT
+--------------------------------------------------------------------------------
+- `risk` is a RELATIVE RANK, not a calibrated probability (training used
+  scale_pos_weight, which inflates absolute values). Use it monotonically; do
+  not interpret 0.5 as "50% chance".
+- SCALE vs RATIO: the genomic multiplier sets the PER-PATIENT RATIO (who grows
+  faster). Your calibrate_growth() sets the ABSOLUTE SCALE (what 1.0 means in
+  real months). Don't double-count: pick ONE source of absolute scale (calibrate
+  on one anchor patient) and let genomics set everyone else's ratio via the
+  lo/hi anchors in growth_multiplier.
+- There is a validate_growth() helper in the open PR branch
+  `praneeth/genomics-sim-wiring` (added to your calibrate.py). It grows from the
+  baseline with a FIXED genomic multiplier instead of brentq-fitting it to the
+  follow-up, so the follow-up scan becomes held-out ground truth. Use it for the
+  "genomics predicts, imaging validates" demo claim instead of calibrating the
+  multiplier to the answer.
+
+
+--------------------------------------------------------------------------------
+6. DEMO-NARRATIVE FLAG (tell the team)
+--------------------------------------------------------------------------------
+For the primary pair the simulated Luminal A grows FASTER than the Basal. That is
+the intended per-patient precision-oncology result, but it contradicts the
+hardcoded assumption in vinesh/test_solver.py (risk_multiplier 0.7 for LumA, 1.6
+for Basal). The demo must commit to the per-patient genomic story. If a test
+encodes "Basal must be faster than LumA", update its expectation or use synthetic
+inputs, not these two real patients.
+
+
+--------------------------------------------------------------------------------
+7. DO / DON'T SUMMARY
+--------------------------------------------------------------------------------
+DO    call oncopulse.growth_multiplier(barcode) for the risk_multiplier.
+DO    wrap it in your facade with a try/except KeyError fallback.
+DO    use the model-median SUBTYPE_FALLBACK table if a patient is unscored.
+DON'T reimplement risk -> risk_multiplier.
+DON'T load model.pkl or z-score anything for the demo patients (precomputed).
+DON'T use textbook subtype values (0.7 / 1.6) — they invert this pair.
+DON'T treat `risk` as a calibrated probability.
+
+
+--------------------------------------------------------------------------------
+8. REFERENCES (all on main, breast-cancer-sim/)
+--------------------------------------------------------------------------------
+  oncopulse.py                                  the API (get_patient, growth_multiplier)
+  models-praneeth/HOWTOUSEMODEL.md              full model usage guide (read section 7)
+  models-praneeth/GENOMICS_HANDOFF.md           focused genomics -> solver handoff
+  data/processed/tcga_patient_features.csv      per-patient risk for all 1,082 TCGA patients
+  simulation-vinesh-philip-chandan/handoff_contract.json   "genomics" section has the values
+
+Questions a doc can't answer -> ping Praneeth.
+================================================================================

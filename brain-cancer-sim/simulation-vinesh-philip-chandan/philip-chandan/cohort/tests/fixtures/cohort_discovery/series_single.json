@@ -1,0 +1,11 @@
+[
+  {
+    "PatientId": "GLIO-002",
+    "StudyDate": "20190501",
+    "SeriesDescription": "FLAIR",
+    "Modality": "MR",
+    "ImageCount": 160,
+    "FileSize": 42000000,
+    "SeriesInstanceUID": "1.2.4.1"
+  }
+]

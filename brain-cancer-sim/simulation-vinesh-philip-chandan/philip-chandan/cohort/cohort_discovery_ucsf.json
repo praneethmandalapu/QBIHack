@@ -1,0 +1,5301 @@
+{
+  "dataset_key": "ucsf_longitudinal_glioma",
+  "generated_at": "2026-06-28T17:49:20Z",
+  "criteria": {
+    "imaging": "UCSF-ALPTDG local NIfTI: baseline + followup visit folders with expert segmentation masks (*_time1_seg.nii.gz, *_time2_seg.nii.gz)",
+    "same_id_genomics_idh_grade": "Same UCSF subjectid with IDH + grade in data/processed/ucsf_longitudinal_master.csv (UCSF clinical workbook; not TCGA expression data)"
+  },
+  "counts": {
+    "imaging_two_timepoint_expert_seg": 298,
+    "same_id_genomics_idh_grade": 213,
+    "in_cohort_json": 7,
+    "missing_from_cohort_json": 206
+  },
+  "genomics_source": "data/processed/ucsf_longitudinal_master.csv",
+  "cohort_json_patient_ids": [
+    "100002",
+    "100118",
+    "100130",
+    "100134",
+    "100192",
+    "100220",
+    "100260"
+  ],
+  "missing_from_cohort_json": [
+    "100003",
+    "100004",
+    "100005",
+    "100008",
+    "100010",
+    "100012",
+    "100014",
+    "100020",
+    "100021",
+    "100022",
+    "100024",
+    "100025",
+    "100026",
+    "100028",
+    "100029",
+    "100030",
+    "100031",
+    "100032",
+    "100035",
+    "100038",
+    "100039",
+    "100041",
+    "100042",
+    "100044",
+    "100045",
+    "100049",
+    "100050",
+    "100051",
+    "100052",
+    "100053",
+    "100055",
+    "100056",
+    "100058",
+    "100064",
+    "100066",
+    "100069",
+    "100073",
+    "100074",
+    "100075",
+    "100078",
+    "100080",
+    "100082",
+    "100083",
+    "100084",
+    "100085",
+    "100086",
+    "100087",
+    "100089",
+    "100090",
+    "100092",
+    "100093",
+    "100094",
+    "100095",
+    "100096",
+    "100098",
+    "100100",
+    "100101",
+    "100102",
+    "100104",
+    "100106",
+    "100107",
+    "100109",
+    "100110",
+    "100111",
+    "100112",
+    "100113",
+    "100114",
+    "100116",
+    "100117",
+    "100119",
+    "100120",
+    "100121",
+    "100122",
+    "100123",
+    "100124",
+    "100126",
+    "100128",
+    "100129",
+    "100131",
+    "100133",
+    "100135",
+    "100136",
+    "100137",
+    "100138",
+    "100141",
+    "100142",
+    "100143",
+    "100145",
+    "100146",
+    "100147",
+    "100149",
+    "100150",
+    "100151",
+    "100153",
+    "100154",
+    "100155",
+    "100156",
+    "100157",
+    "100158",
+    "100160",
+    "100161",
+    "100162",
+    "100164",
+    "100165",
+    "100166",
+    "100168",
+    "100169",
+    "100170",
+    "100171",
+    "100172",
+    "100174",
+    "100175",
+    "100176",
+    "100177",
+    "100178",
+    "100179",
+    "100180",
+    "100182",
+    "100184",
+    "100185",
+    "100186",
+    "100187",
+    "100188",
+    "100190",
+    "100191",
+    "100193",
+    "100194",
+    "100195",
+    "100196",
+    "100197",
+    "100201",
+    "100202",
+    "100203",
+    "100206",
+    "100207",
+    "100210",
+    "100211",
+    "100212",
+    "100213",
+    "100214",
+    "100215",
+    "100216",
+    "100217",
+    "100218",
+    "100219",
+    "100221",
+    "100222",
+    "100223",
+    "100224",
+    "100225",
+    "100226",
+    "100227",
+    "100229",
+    "100230",
+    "100231",
+    "100232",
+    "100233",
+    "100235",
+    "100236",
+    "100238",
+    "100239",
+    "100240",
+    "100241",
+    "100245",
+    "100246",
+    "100247",
+    "100249",
+    "100250",
+    "100251",
+    "100252",
+    "100255",
+    "100256",
+    "100257",
+    "100258",
+    "100259",
+    "100261",
+    "100262",
+    "100263",
+    "100264",
+    "100265",
+    "100266",
+    "100267",
+    "100269",
+    "100271",
+    "100272",
+    "100273",
+    "100274",
+    "100276",
+    "100277",
+    "100278",
+    "100279",
+    "100281",
+    "100282",
+    "100284",
+    "100286",
+    "100287",
+    "100288",
+    "100289",
+    "100290",
+    "100292",
+    "100293",
+    "100294",
+    "100295",
+    "100300",
+    "100301",
+    "100302"
+  ],
+  "patients": [
+    {
+      "patient_id": "100001",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": null,
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-4.261937784822667"
+    },
+    {
+      "patient_id": "100002",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": true,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "2.802015484822416"
+    },
+    {
+      "patient_id": "100003",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-3.0662124129758555"
+    },
+    {
+      "patient_id": "100004",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "1.7171154804114044"
+    },
+    {
+      "patient_id": "100005",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "17.39560355974747"
+    },
+    {
+      "patient_id": "100006",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": null,
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "19.021668444190098"
+    },
+    {
+      "patient_id": "100007",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": null,
+      "mgmt": null,
+      "who_2021_diagnosis": "Other",
+      "wt_growth_pct": "0.5625"
+    },
+    {
+      "patient_id": "100008",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "37.97054386752801"
+    },
+    {
+      "patient_id": "100009",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-1.1406880099964027"
+    },
+    {
+      "patient_id": "100010",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-1.8842573682739643"
+    },
+    {
+      "patient_id": "100011",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": null,
+      "mgmt": null,
+      "who_2021_diagnosis": "Other",
+      "wt_growth_pct": "11.173941214584438"
+    },
+    {
+      "patient_id": "100012",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-3.5132627267782293"
+    },
+    {
+      "patient_id": "100013",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-7.629517961539876"
+    },
+    {
+      "patient_id": "100014",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "2.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH WT Astrocytoma",
+      "wt_growth_pct": "-40.314491862684825"
+    },
+    {
+      "patient_id": "100015",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "1.9769754686275691"
+    },
+    {
+      "patient_id": "100016",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": null,
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "9.765762592462135"
+    },
+    {
+      "patient_id": "100017",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "155.75967474777894"
+    },
+    {
+      "patient_id": "100018",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-7.286361560886516"
+    },
+    {
+      "patient_id": "100019",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "65.38103429229726"
+    },
+    {
+      "patient_id": "100020",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "68.23482555360842"
+    },
+    {
+      "patient_id": "100021",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-5.329113382661135"
+    },
+    {
+      "patient_id": "100022",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "161.77638570389843"
+    },
+    {
+      "patient_id": "100023",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Gliosarcoma",
+      "wt_growth_pct": "-46.134059945504085"
+    },
+    {
+      "patient_id": "100024",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "6.459643605870021"
+    },
+    {
+      "patient_id": "100025",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-1.5705468898062773"
+    },
+    {
+      "patient_id": "100026",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "64.18655832063654"
+    },
+    {
+      "patient_id": "100027",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Other",
+      "wt_growth_pct": "10.057414373391408"
+    },
+    {
+      "patient_id": "100028",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-10.76658726129574"
+    },
+    {
+      "patient_id": "100029",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH WT Astrocytoma",
+      "wt_growth_pct": "16.71723943264413"
+    },
+    {
+      "patient_id": "100030",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "0.8949030779711401"
+    },
+    {
+      "patient_id": "100031",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "0.39923591212989495"
+    },
+    {
+      "patient_id": "100032",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-3.9430234011031184"
+    },
+    {
+      "patient_id": "100033",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": null,
+      "mgmt": null,
+      "who_2021_diagnosis": "Other",
+      "wt_growth_pct": "33.997509339975096"
+    },
+    {
+      "patient_id": "100034",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": null,
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH WT Astrocytoma",
+      "wt_growth_pct": "-41.573762516722745"
+    },
+    {
+      "patient_id": "100035",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut NOS",
+      "wt_growth_pct": "-3.7936220496608453"
+    },
+    {
+      "patient_id": "100036",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-4.2186586698518385"
+    },
+    {
+      "patient_id": "100037",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-4.910175626759619"
+    },
+    {
+      "patient_id": "100038",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "81.74980388537676"
+    },
+    {
+      "patient_id": "100039",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-23.347484761520764"
+    },
+    {
+      "patient_id": "100040",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "14.346886397406458"
+    },
+    {
+      "patient_id": "100041",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "4.22319809486356"
+    },
+    {
+      "patient_id": "100042",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "3.173588073064471"
+    },
+    {
+      "patient_id": "100043",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-24.417411837572097"
+    },
+    {
+      "patient_id": "100044",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "2.372227699137541"
+    },
+    {
+      "patient_id": "100045",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-5.017393631255017"
+    },
+    {
+      "patient_id": "100046",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-7.998387421890748"
+    },
+    {
+      "patient_id": "100047",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-3.487843465294321"
+    },
+    {
+      "patient_id": "100048",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "9.179372020643738"
+    },
+    {
+      "patient_id": "100049",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "10.295868531672431"
+    },
+    {
+      "patient_id": "100050",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "6.171041334478106"
+    },
+    {
+      "patient_id": "100051",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-0.6915791447861965"
+    },
+    {
+      "patient_id": "100052",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-4.906996824281805"
+    },
+    {
+      "patient_id": "100053",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-2.837041313658884"
+    },
+    {
+      "patient_id": "100054",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-2.9234012649332395"
+    },
+    {
+      "patient_id": "100055",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "1.5114452712619408"
+    },
+    {
+      "patient_id": "100056",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "1.2585128838265165"
+    },
+    {
+      "patient_id": "100057",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "25.38577373338299"
+    },
+    {
+      "patient_id": "100058",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "20.221363433793844"
+    },
+    {
+      "patient_id": "100059",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-9.617064069653585"
+    },
+    {
+      "patient_id": "100060",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "0.8498854087089381"
+    },
+    {
+      "patient_id": "100061",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "23.039579140627758"
+    },
+    {
+      "patient_id": "100062",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-0.6892019112918983"
+    },
+    {
+      "patient_id": "100063",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "89.15216586449463"
+    },
+    {
+      "patient_id": "100064",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "19.5027445915402"
+    },
+    {
+      "patient_id": "100065",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-6.182359307359308"
+    },
+    {
+      "patient_id": "100066",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "10.014099207148481"
+    },
+    {
+      "patient_id": "100067",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "5.893530808998183"
+    },
+    {
+      "patient_id": "100068",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-50.14075434787795"
+    },
+    {
+      "patient_id": "100069",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-4.912417891773537"
+    },
+    {
+      "patient_id": "100070",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-13.347142495124558"
+    },
+    {
+      "patient_id": "100072",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "6.879815654929071"
+    },
+    {
+      "patient_id": "100073",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "4.095776408100662"
+    },
+    {
+      "patient_id": "100074",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-69.65958688943871"
+    },
+    {
+      "patient_id": "100075",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "3.378802641550287"
+    },
+    {
+      "patient_id": "100076",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": null,
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-5.31580159115909"
+    },
+    {
+      "patient_id": "100077",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "10.064251924027396"
+    },
+    {
+      "patient_id": "100078",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "6.015655577299413"
+    },
+    {
+      "patient_id": "100079",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "24.481159681267727"
+    },
+    {
+      "patient_id": "100080",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-8.28078607390048"
+    },
+    {
+      "patient_id": "100081",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "62.484477907543344"
+    },
+    {
+      "patient_id": "100082",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-23.24113461274577"
+    },
+    {
+      "patient_id": "100083",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "75.12974051896208"
+    },
+    {
+      "patient_id": "100084",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "2.010741059809007"
+    },
+    {
+      "patient_id": "100085",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "5.292796355468379"
+    },
+    {
+      "patient_id": "100086",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "0.1726714978712842"
+    },
+    {
+      "patient_id": "100087",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "11.158604350109302"
+    },
+    {
+      "patient_id": "100088",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": null,
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Gliosarcoma",
+      "wt_growth_pct": "32.89433756144929"
+    },
+    {
+      "patient_id": "100089",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-6.820172568287305"
+    },
+    {
+      "patient_id": "100090",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "7.7812906825367305"
+    },
+    {
+      "patient_id": "100092",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-3.935297609411257"
+    },
+    {
+      "patient_id": "100093",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "8.728678038379531"
+    },
+    {
+      "patient_id": "100094",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-8.208219178082192"
+    },
+    {
+      "patient_id": "100095",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut NOS",
+      "wt_growth_pct": "0.4750219106047327"
+    },
+    {
+      "patient_id": "100096",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut NOS",
+      "wt_growth_pct": "-4.344173346868764"
+    },
+    {
+      "patient_id": "100097",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": null,
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "6.267280175980303"
+    },
+    {
+      "patient_id": "100098",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "8.889601319013488"
+    },
+    {
+      "patient_id": "100099",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-27.05364083959575"
+    },
+    {
+      "patient_id": "100100",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-8.044166404128598"
+    },
+    {
+      "patient_id": "100101",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "8.871817182634182"
+    },
+    {
+      "patient_id": "100102",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "61.25212091831435"
+    },
+    {
+      "patient_id": "100103",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "32.6207718930867"
+    },
+    {
+      "patient_id": "100104",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "3.073972678886588"
+    },
+    {
+      "patient_id": "100105",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "26.02827763496144"
+    },
+    {
+      "patient_id": "100106",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-3.161302947821601"
+    },
+    {
+      "patient_id": "100107",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-3.8089914557214724"
+    },
+    {
+      "patient_id": "100108",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "39.21249066932073"
+    },
+    {
+      "patient_id": "100109",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "232.35959351406453"
+    },
+    {
+      "patient_id": "100110",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "62.58408041293127"
+    },
+    {
+      "patient_id": "100111",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "28.85595783288689"
+    },
+    {
+      "patient_id": "100112",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "7.2492915257336135"
+    },
+    {
+      "patient_id": "100113",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut NOS",
+      "wt_growth_pct": "1.3211719181868435"
+    },
+    {
+      "patient_id": "100114",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "53.92408386987369"
+    },
+    {
+      "patient_id": "100115",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-3.8332046839330585"
+    },
+    {
+      "patient_id": "100116",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "5.890299672304729"
+    },
+    {
+      "patient_id": "100117",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-2.1328085525091085"
+    },
+    {
+      "patient_id": "100118",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": true,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "609.096744612563"
+    },
+    {
+      "patient_id": "100119",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH WT Astrocytoma",
+      "wt_growth_pct": "5.496609057099103"
+    },
+    {
+      "patient_id": "100120",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "9.309483607710709"
+    },
+    {
+      "patient_id": "100121",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "13.919839339938784"
+    },
+    {
+      "patient_id": "100122",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-5.170239596469105"
+    },
+    {
+      "patient_id": "100123",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-1.0212457749879285"
+    },
+    {
+      "patient_id": "100124",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-19.462277732383953"
+    },
+    {
+      "patient_id": "100125",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "0.21480778887463037"
+    },
+    {
+      "patient_id": "100126",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-2.722539052814282"
+    },
+    {
+      "patient_id": "100127",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-6.917432609871012"
+    },
+    {
+      "patient_id": "100128",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-3.677711646086879"
+    },
+    {
+      "patient_id": "100129",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-2.1328458257160268"
+    },
+    {
+      "patient_id": "100130",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": true,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-29.818488813845505"
+    },
+    {
+      "patient_id": "100131",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "18.992840479446546"
+    },
+    {
+      "patient_id": "100132",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-3.688626458907552"
+    },
+    {
+      "patient_id": "100133",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-4.544510770827927"
+    },
+    {
+      "patient_id": "100134",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": true,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-42.43324778243055"
+    },
+    {
+      "patient_id": "100135",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-1.6379880873593646"
+    },
+    {
+      "patient_id": "100136",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-76.03100086113503"
+    },
+    {
+      "patient_id": "100137",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-2.16700433003615"
+    },
+    {
+      "patient_id": "100138",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "8.18827074824537"
+    },
+    {
+      "patient_id": "100139",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "13.856304985337243"
+    },
+    {
+      "patient_id": "100140",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "2.7002108537572855"
+    },
+    {
+      "patient_id": "100141",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-3.104862331575864"
+    },
+    {
+      "patient_id": "100142",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "99.86286781332517"
+    },
+    {
+      "patient_id": "100143",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-7.278848851657381"
+    },
+    {
+      "patient_id": "100144",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-4.449217551396134"
+    },
+    {
+      "patient_id": "100145",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "1.9749835418038184"
+    },
+    {
+      "patient_id": "100146",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-9.329399249312539"
+    },
+    {
+      "patient_id": "100147",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "25.65105455985741"
+    },
+    {
+      "patient_id": "100148",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-2.1820145827707265"
+    },
+    {
+      "patient_id": "100149",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "19.438079855763814"
+    },
+    {
+      "patient_id": "100150",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "0.22838362879304822"
+    },
+    {
+      "patient_id": "100151",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "11.605469563406677"
+    },
+    {
+      "patient_id": "100152",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "22.753495273545926"
+    },
+    {
+      "patient_id": "100153",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Other",
+      "wt_growth_pct": "19.797931200384895"
+    },
+    {
+      "patient_id": "100154",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-4.35709526982012"
+    },
+    {
+      "patient_id": "100155",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-9.058171745152354"
+    },
+    {
+      "patient_id": "100156",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "31.062032574814626"
+    },
+    {
+      "patient_id": "100157",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "4.461386418184385"
+    },
+    {
+      "patient_id": "100158",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-1.5384497042330443"
+    },
+    {
+      "patient_id": "100160",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-2.124110698846036"
+    },
+    {
+      "patient_id": "100161",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "11.308920635551406"
+    },
+    {
+      "patient_id": "100162",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-26.151755017190375"
+    },
+    {
+      "patient_id": "100163",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-7.835949367088608"
+    },
+    {
+      "patient_id": "100164",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "13.957222317793452"
+    },
+    {
+      "patient_id": "100165",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "52.218227737188656"
+    },
+    {
+      "patient_id": "100166",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "7.440668982980979"
+    },
+    {
+      "patient_id": "100167",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "11.356019943873799"
+    },
+    {
+      "patient_id": "100168",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "7.1248344949911315"
+    },
+    {
+      "patient_id": "100169",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "34.18472903277669"
+    },
+    {
+      "patient_id": "100170",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "22.0584652862363"
+    },
+    {
+      "patient_id": "100171",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "29.7771880014813"
+    },
+    {
+      "patient_id": "100172",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-11.834495432679315"
+    },
+    {
+      "patient_id": "100173",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": null,
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-0.046704419405686266"
+    },
+    {
+      "patient_id": "100174",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "4.852636426433341"
+    },
+    {
+      "patient_id": "100175",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-6.860758860458718"
+    },
+    {
+      "patient_id": "100176",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "44.202802399023405"
+    },
+    {
+      "patient_id": "100177",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "12.53440080060045"
+    },
+    {
+      "patient_id": "100178",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "11.085179843538308"
+    },
+    {
+      "patient_id": "100179",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "3.468384842197226"
+    },
+    {
+      "patient_id": "100180",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-8.286546059471824"
+    },
+    {
+      "patient_id": "100181",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "37.78903768046005"
+    },
+    {
+      "patient_id": "100182",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "5.907563838464835"
+    },
+    {
+      "patient_id": "100183",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Other",
+      "wt_growth_pct": "-19.242321480476697"
+    },
+    {
+      "patient_id": "100184",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "123.71227471472753"
+    },
+    {
+      "patient_id": "100185",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "2.9212722761109857"
+    },
+    {
+      "patient_id": "100186",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "36.37476014349676"
+    },
+    {
+      "patient_id": "100187",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "9.012156328107249"
+    },
+    {
+      "patient_id": "100188",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "55.857150963739194"
+    },
+    {
+      "patient_id": "100189",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "16.379365622194673"
+    },
+    {
+      "patient_id": "100190",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "3.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Other",
+      "wt_growth_pct": "27.181776058855235"
+    },
+    {
+      "patient_id": "100191",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "19.558630305955543"
+    },
+    {
+      "patient_id": "100192",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": true,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-40.8150026537713"
+    },
+    {
+      "patient_id": "100193",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "1.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Other",
+      "wt_growth_pct": "66.42761816768592"
+    },
+    {
+      "patient_id": "100194",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-0.6973444151631867"
+    },
+    {
+      "patient_id": "100195",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "3.4970115698853976"
+    },
+    {
+      "patient_id": "100196",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "36.96710273181993"
+    },
+    {
+      "patient_id": "100197",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "1.6178623718887262"
+    },
+    {
+      "patient_id": "100198",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "2.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-1.904422969877814"
+    },
+    {
+      "patient_id": "100199",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "24.39878462523674"
+    },
+    {
+      "patient_id": "100200",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-6.775506201892435"
+    },
+    {
+      "patient_id": "100201",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "4.058864386178156"
+    },
+    {
+      "patient_id": "100202",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "8.023728813559321"
+    },
+    {
+      "patient_id": "100203",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "13.31129931832266"
+    },
+    {
+      "patient_id": "100204",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "9.107202867704716"
+    },
+    {
+      "patient_id": "100205",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-33.4719094635949"
+    },
+    {
+      "patient_id": "100206",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-2.623698845002139"
+    },
+    {
+      "patient_id": "100207",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "5.547664800735233"
+    },
+    {
+      "patient_id": "100208",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "2.541688092264747"
+    },
+    {
+      "patient_id": "100209",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "9.926341634514205"
+    },
+    {
+      "patient_id": "100210",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "81.45794392523365"
+    },
+    {
+      "patient_id": "100211",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-26.116523463868727"
+    },
+    {
+      "patient_id": "100212",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-3.167038614398378"
+    },
+    {
+      "patient_id": "100213",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH WT Astrocytoma",
+      "wt_growth_pct": "94.27111311139825"
+    },
+    {
+      "patient_id": "100214",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-6.323286010676737"
+    },
+    {
+      "patient_id": "100215",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH WT Astrocytoma",
+      "wt_growth_pct": "-10.688185140073081"
+    },
+    {
+      "patient_id": "100216",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "5.25541248054337"
+    },
+    {
+      "patient_id": "100217",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "IDH mut NOS",
+      "wt_growth_pct": "-23.023034243120552"
+    },
+    {
+      "patient_id": "100218",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-4.76616339628597"
+    },
+    {
+      "patient_id": "100219",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH WT Astrocytoma",
+      "wt_growth_pct": "21.56381127827244"
+    },
+    {
+      "patient_id": "100220",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": true,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "173.8830584707646"
+    },
+    {
+      "patient_id": "100221",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "19.432835055511397"
+    },
+    {
+      "patient_id": "100222",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-10.427937300596477"
+    },
+    {
+      "patient_id": "100223",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-2.495678478824546"
+    },
+    {
+      "patient_id": "100224",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "164.80376086351404"
+    },
+    {
+      "patient_id": "100225",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "0.34183635962655295"
+    },
+    {
+      "patient_id": "100226",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "-10.670571450026282"
+    },
+    {
+      "patient_id": "100227",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "37.48800940681375"
+    },
+    {
+      "patient_id": "100228",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "8.99595537579448"
+    },
+    {
+      "patient_id": "100229",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "53.294475891572795"
+    },
+    {
+      "patient_id": "100230",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "33.780985710119566"
+    },
+    {
+      "patient_id": "100231",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-15.775314701160452"
+    },
+    {
+      "patient_id": "100232",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "28.526930783088915"
+    },
+    {
+      "patient_id": "100233",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Gliosarcoma",
+      "wt_growth_pct": "-7.857750415164648"
+    },
+    {
+      "patient_id": "100234",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-7.688651218062983"
+    },
+    {
+      "patient_id": "100235",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-1.858727843345268"
+    },
+    {
+      "patient_id": "100236",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "76.35420578295155"
+    },
+    {
+      "patient_id": "100237",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-10.310836961780359"
+    },
+    {
+      "patient_id": "100238",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "56.49844452125821"
+    },
+    {
+      "patient_id": "100239",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "7.199623056384483"
+    },
+    {
+      "patient_id": "100240",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-29.590969128837504"
+    },
+    {
+      "patient_id": "100241",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "16.81845369672067"
+    },
+    {
+      "patient_id": "100243",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-17.551600358959018"
+    },
+    {
+      "patient_id": "100244",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-1.0797266514806378"
+    },
+    {
+      "patient_id": "100245",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "7.086039553382471"
+    },
+    {
+      "patient_id": "100246",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH WT Astrocytoma",
+      "wt_growth_pct": "76.70316301703163"
+    },
+    {
+      "patient_id": "100247",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "17.283760156330352"
+    },
+    {
+      "patient_id": "100248",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": null,
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Gliosarcoma",
+      "wt_growth_pct": "100.29898289929585"
+    },
+    {
+      "patient_id": "100249",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "30.35273721410949"
+    },
+    {
+      "patient_id": "100250",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-4.915339327278536"
+    },
+    {
+      "patient_id": "100251",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-2.5218756046696624"
+    },
+    {
+      "patient_id": "100252",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "0.45212498744097257"
+    },
+    {
+      "patient_id": "100253",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-18.451572458468288"
+    },
+    {
+      "patient_id": "100254",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-12.200346541251738"
+    },
+    {
+      "patient_id": "100255",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "1.1827342242549845"
+    },
+    {
+      "patient_id": "100256",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "102.43002622111105"
+    },
+    {
+      "patient_id": "100257",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-9.829817408260947"
+    },
+    {
+      "patient_id": "100258",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "2.026900803287876"
+    },
+    {
+      "patient_id": "100259",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "36.820863085998134"
+    },
+    {
+      "patient_id": "100260",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": true,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "201.57471264367817"
+    },
+    {
+      "patient_id": "100261",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-21.88546150167384"
+    },
+    {
+      "patient_id": "100262",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-4.92453939631517"
+    },
+    {
+      "patient_id": "100263",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-8.088548318433375"
+    },
+    {
+      "patient_id": "100264",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-19.45630195461694"
+    },
+    {
+      "patient_id": "100265",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-9.187913309794588"
+    },
+    {
+      "patient_id": "100266",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-54.99808455159971"
+    },
+    {
+      "patient_id": "100267",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "14.015420144382013"
+    },
+    {
+      "patient_id": "100268",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "8.188811507123674"
+    },
+    {
+      "patient_id": "100269",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "10.243302456086406"
+    },
+    {
+      "patient_id": "100270",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-36.16970862690166"
+    },
+    {
+      "patient_id": "100271",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "7.804413317197517"
+    },
+    {
+      "patient_id": "100272",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "1.2433257055682685"
+    },
+    {
+      "patient_id": "100273",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "13.746283965855948"
+    },
+    {
+      "patient_id": "100274",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH mut NOS",
+      "wt_growth_pct": "-11.945681737553707"
+    },
+    {
+      "patient_id": "100275",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-21.15124078908238"
+    },
+    {
+      "patient_id": "100276",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "106.5166908563135"
+    },
+    {
+      "patient_id": "100277",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "14.026060004212933"
+    },
+    {
+      "patient_id": "100278",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-3.6841121495327105"
+    },
+    {
+      "patient_id": "100279",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-0.3566890340415097"
+    },
+    {
+      "patient_id": "100280",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-3.9084431008421507"
+    },
+    {
+      "patient_id": "100281",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "38.934737533616634"
+    },
+    {
+      "patient_id": "100282",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "52.27026376008671"
+    },
+    {
+      "patient_id": "100283",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "0.3662592441868624"
+    },
+    {
+      "patient_id": "100284",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "3.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "IDH WT Astrocytoma",
+      "wt_growth_pct": "-3.5583457849327615"
+    },
+    {
+      "patient_id": "100285",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "2.9279187817258885"
+    },
+    {
+      "patient_id": "100286",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut NOS",
+      "wt_growth_pct": "16.61447569767625"
+    },
+    {
+      "patient_id": "100287",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-10.013519803187128"
+    },
+    {
+      "patient_id": "100288",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "3.936515871032242"
+    },
+    {
+      "patient_id": "100289",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut NOS",
+      "wt_growth_pct": "18.96147730759575"
+    },
+    {
+      "patient_id": "100290",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "49.19940240794446"
+    },
+    {
+      "patient_id": "100291",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "11.720500988793672"
+    },
+    {
+      "patient_id": "100292",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "-33.08929862617498"
+    },
+    {
+      "patient_id": "100293",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "24.94320823646629"
+    },
+    {
+      "patient_id": "100294",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "3.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "8.455138295480099"
+    },
+    {
+      "patient_id": "100295",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "IDH mut Astrocytoma",
+      "wt_growth_pct": "11.135265700483092"
+    },
+    {
+      "patient_id": "100296",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-2.2982265653275427"
+    },
+    {
+      "patient_id": "100297",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "10.850613209870463"
+    },
+    {
+      "patient_id": "100298",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "105.83357473928157"
+    },
+    {
+      "patient_id": "100299",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": false,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": null,
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioma NOS",
+      "wt_growth_pct": "-19.383443020436438"
+    },
+    {
+      "patient_id": "100300",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "positive",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "3.1010651029200575"
+    },
+    {
+      "patient_id": "100301",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "mut",
+      "grade": "2.0",
+      "mgmt": null,
+      "who_2021_diagnosis": "Oligodendroglioma",
+      "wt_growth_pct": "-8.202884928238314"
+    },
+    {
+      "patient_id": "100302",
+      "imaging_eligible": true,
+      "same_id_genomics_idh_grade": true,
+      "in_cohort_json": false,
+      "study_dates": [
+        "baseline",
+        "followup",
+        "subtraction"
+      ],
+      "span_days": null,
+      "idh_status": "WT",
+      "grade": "4.0",
+      "mgmt": "unmethylated",
+      "who_2021_diagnosis": "Glioblastoma",
+      "wt_growth_pct": "51.81491076568797"
+    }
+  ],
+  "notes": "cohort.json is curated for demo pairs/backups, not a full inventory. Regenerate this file after downloading UCSF NIfTI or refreshing clean_ucsf.py output."
+}

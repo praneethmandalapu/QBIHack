@@ -19,6 +19,11 @@ sys.path.insert(0, str(PHILIP_CHANDAN_DIR))
 from qc_otsu_plot import ensure_otsu_norm_overlay, ensure_pde_input_slice  # noqa: E402
 from qc_slice_plot import ensure_overlay_plot, slice_plot_path  # noqa: E402
 
+STRETCH_DIR = PHILIP_CHANDAN_DIR / "stretch"
+sys.path.insert(0, str(STRETCH_DIR))
+from validate_segmentation import ensure_validation_artifacts  # noqa: E402
+from paths import validation_qc_les_overlay, validation_qc_otsu_overlay  # noqa: E402
+
 # Rev2 slugs referenced in cohort.json exports
 SLUG_LUMA_BASELINE = "luminal_a_TCGA-AR-A1AX_baseline"
 SLUG_LUMA_FOLLOWUP = "luminal_a_TCGA-AR-A1AX_followup"
@@ -159,6 +164,64 @@ def embed_pde_figure_pair(
     pdf.ln(3)
     pdf.set_font("Helvetica", "", 10)
     return True
+
+
+def embed_validation_figure_quad(
+    pdf: "ReportPDF",
+    luma_slug: str,
+    basal_slug: str,
+    caption: str,
+) -> bool:
+    """Embed four validation overlays: .les and Otsu for each baseline primary."""
+    image_paths = [
+        validation_qc_les_overlay(luma_slug),
+        validation_qc_otsu_overlay(luma_slug),
+        validation_qc_les_overlay(basal_slug),
+        validation_qc_otsu_overlay(basal_slug),
+    ]
+    if not all(path.exists() for path in image_paths):
+        pdf.body(
+            "[Validation overlays missing. Download TCIA .les masks and run "
+            "stretch/validate_segmentation.py --all-primary.]"
+        )
+        return False
+
+    gap_mm = 5.0
+    each_w = (pdf.epw - gap_mm) / 2
+    row_h = each_w
+    if pdf.get_y() + 2 * row_h + gap_mm > 250:
+        pdf.add_page()
+    y0 = pdf.get_y()
+    x0 = pdf.l_margin
+    for index, path in enumerate(image_paths):
+        row, col = divmod(index, 2)
+        pdf.image(
+            str(path),
+            x=x0 + col * (each_w + gap_mm),
+            y=y0 + row * (row_h + gap_mm),
+            w=each_w,
+        )
+    pdf.set_y(y0 + 2 * row_h + gap_mm + 4)
+    pdf.set_font("Helvetica", "I", 9)
+    pdf.set_x(pdf.l_margin)
+    pdf.multi_cell(pdf.epw, 4, caption)
+    pdf.ln(3)
+    pdf.set_font("Helvetica", "", 10)
+    return True
+
+
+def _format_percent(value: object) -> str:
+    try:
+        return f"{100.0 * float(value):.1f}%"
+    except (TypeError, ValueError):
+        return "n/a"
+
+
+def _format_mm3(value: object) -> str:
+    try:
+        return f"{float(value):,.0f}"
+    except (TypeError, ValueError):
+        return "n/a"
 
 
 class ReportPDF(FPDF):
@@ -479,16 +542,63 @@ def build_report() -> FPDF:
         "colormap shows continuous initial tumor burden; cyan contour marks tumor voxels > 0.",
     )
 
+    # --- 7. Segmentation validation (.les) ---
+    _, validation_rows = ensure_validation_artifacts()
+    pdf.section_title("7", "Segmentation validation vs TCIA radiologist masks")
+    pdf.body(
+        "TCGA-Breast-Radiogenomics publishes expert lesion segmentations (*.les) for 91 "
+        "patients. We downloaded the public ZIP (~103 KB), parsed cuboid masks, and compared "
+        "them to our Otsu + largest-component heuristic on the matching DCE series "
+        "(S2 = VIBRANT for both rev2 baselines). Follow-up timepoints have no .les annotations."
+    )
+    if validation_rows:
+        pdf.table(
+            ["Slug", "Dice", "Area (Otsu/.les)", "Expert vol", "Otsu vol"],
+            [
+                [
+                    row["slug"].replace("_", " "),
+                    f"{row['dice']:.3f}",
+                    f"{row['area_fraction_otsu_over_les']:.1f}x",
+                    _format_mm3(row["expert_volume_mm3"]),
+                    _format_mm3(row["otsu_volume_mm3"]),
+                ]
+                for row in validation_rows
+            ],
+            [62, 16, 28, 32, 32],
+        )
+        pdf.body(
+            "Dice is near zero on both primaries: Otsu selects a much larger bright region "
+            "than the radiologist ROI. Area fraction (Otsu voxels / .les voxels) is ~2650x "
+            "for Luminal A and ~620x for Basal-like. Treat Otsu masks as demo heuristics, "
+            "not clinician-equivalent segmentations."
+        )
+        pdf.subsection("Figure 6 - Radiologist .les vs Otsu (baseline)")
+        embed_validation_figure_quad(
+            pdf,
+            SLUG_LUMA_BASELINE,
+            SLUG_BASAL_BASELINE,
+            "Figure 6. Baseline validation (2x2): top row = Luminal A .les then Otsu; "
+            "bottom row = Basal-like .les then Otsu. Green = TCIA .les; magenta = Otsu. "
+            "Each panel uses its own best z slice (masks do not overlap in slice space). "
+            "Titles show voxel counts and area=Otsu/.les.",
+        )
+    else:
+        pdf.body(
+            "Validation artifacts not generated. Download .les masks to "
+            "data/raw/tcia-radiogenomics/lesions/ and run stretch/validate_segmentation.py."
+        )
+
     # --- Summary ---
-    pdf.section_title("7", "End-to-end summary")
+    pdf.section_title("8", "End-to-end summary")
     pdf.body(
         "We defined strict patient criteria (longitudinal MRI on TCIA, PAM50-aligned subtypes, "
         "genomics for the team), built cohort_discovery.py to search and audit candidates against "
         "TCIA and cBioPortal, locked rev2 primaries after rev1 failed imaging availability, downloaded "
         "four DICOM timepoints with contrast-aware series selection, validated each series structurally "
         "before extraction and visually via slice QC, exported four raw .npy volumes plus JSON "
-        "sidecars and a manifest, and documented Vinesh Otsu segmentation into 64^3 PDE inputs "
-        "for downstream simulation and UI integration."
+        "sidecars and a manifest, documented Vinesh Otsu segmentation into 64^3 PDE inputs "
+        "for downstream simulation, and benchmarked Otsu against TCIA radiologist .les masks "
+        "on baseline VIBRANT (Dice near zero - heuristic only)."
     )
     pdf.subsection("Deliverables")
     pdf.table(
@@ -499,6 +609,7 @@ def build_report() -> FPDF:
             ["Validate", "validate_series pass + QC PNGs", "4 volumes"],
             ["Export", "Raw .npy + .json + manifest.json", "4 slugs"],
             ["PDE prep", "Otsu segmentation QC + pde-input-vinesh/", "4 slugs"],
+            ["Seg. validation", ".les comparison + validation_metrics.csv", "2 baselines"],
         ],
         [35, 85, 60],
     )

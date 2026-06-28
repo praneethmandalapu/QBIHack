@@ -49,5 +49,26 @@ git push origin HEAD
 
 ## Do not commit
 
-- `breast-cancer-sim/data/` (DICOM, `.npy` — gitignored)
 - Secrets (`.env`, credentials)
+- **`.npy` volume arrays** under `breast-cancer-sim/data/` or `brain-cancer-sim/data/` — see below
+
+## Do not upload `.npy` files (agent rule)
+
+**Never `git add` NumPy volume arrays** unless the user explicitly names a specific file and confirms they want it in git.
+
+| Why | Detail |
+|-----|--------|
+| GitHub limit | Files over **100 MB** are rejected; full MR volumes are often 88–550 MB |
+| Handoff pattern | Share binary volumes via **Drive / Slack / `pde-handoff*.zip`**, not git |
+| What to commit instead | JSON sidecars (`.json`), `manifest.json`, QC PNGs, CSV metrics, small code |
+
+**Applies to all pipeline outputs**, including:
+
+- `data/processed/raw-extract-philip-chandan/*.npy`
+- `data/processed/pde-input-vinesh/*.npy`
+- `data/processed/segmentations/*.npy`, `*_mask.npy`, `radiomics-philip-chandan/*.npy`
+- Any other `**/data/**/*.npy`
+
+When committing imaging work, stage **code + docs + JSON/PNG/CSV only**. If `git status` shows untracked `.npy` files, leave them unstaged and mention that volumes stay local.
+
+`data/raw/` (DICOM, NIfTI downloads) is also gitignored — never commit raw downloads.

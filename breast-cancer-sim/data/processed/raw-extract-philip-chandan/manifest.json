@@ -1,0 +1,58 @@
+{
+  "version": "1.1.0",
+  "contract_version": "1.0.0",
+  "volumes": [
+    {
+      "slug": "luminal_a_TCGA-AR-A1AX_baseline",
+      "subtype": "Luminal A",
+      "tcga_id": "TCGA-AR-A1AX",
+      "timepoint": "baseline",
+      "study_date": "2002-09-12",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/luminal_a_TCGA-AR-A1AX_baseline.npy",
+      "shape": [352, 256, 256],
+      "spacing_mm": [3.0, 0.8594, 0.8594],
+      "qc_plot": "data/qc/slice-plots-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline_mid-z.png"
+    },
+    {
+      "slug": "luminal_a_TCGA-AR-A1AX_followup",
+      "subtype": "Luminal A",
+      "tcga_id": "TCGA-AR-A1AX",
+      "timepoint": "followup",
+      "study_date": "2003-09-24",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/luminal_a_TCGA-AR-A1AX_followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/luminal_a_TCGA-AR-A1AX_followup.npy",
+      "shape": [552, 512, 512],
+      "spacing_mm": [2.2, 0.5273, 0.5273],
+      "qc_plot": "data/qc/slice-plots-philip-chandan/luminal_a_TCGA-AR-A1AX_followup_mid-z.png"
+    },
+    {
+      "slug": "basal_TCGA-AR-A1AQ_baseline",
+      "subtype": "Basal-like",
+      "tcga_id": "TCGA-AR-A1AQ",
+      "timepoint": "baseline",
+      "study_date": "2001-11-21",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/basal_TCGA-AR-A1AQ_baseline.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/basal_TCGA-AR-A1AQ_baseline.json",
+      "pde_npy": "data/processed/pde-input-vinesh/basal_TCGA-AR-A1AQ_baseline.npy",
+      "shape": [464, 256, 256],
+      "spacing_mm": [3.0, 0.859375, 0.859375],
+      "qc_plot": "data/qc/slice-plots-philip-chandan/basal_TCGA-AR-A1AQ_baseline_mid-z.png"
+    },
+    {
+      "slug": "basal_TCGA-AR-A1AQ_followup",
+      "subtype": "Basal-like",
+      "tcga_id": "TCGA-AR-A1AQ",
+      "timepoint": "followup",
+      "study_date": "2003-05-07",
+      "raw_npy": "data/processed/raw-extract-philip-chandan/basal_TCGA-AR-A1AQ_followup.npy",
+      "raw_json": "data/processed/raw-extract-philip-chandan/basal_TCGA-AR-A1AQ_followup.json",
+      "pde_npy": "data/processed/pde-input-vinesh/basal_TCGA-AR-A1AQ_followup.npy",
+      "shape": [448, 256, 256],
+      "spacing_mm": [3.0, 0.9375, 0.9375],
+      "qc_plot": "data/qc/slice-plots-philip-chandan/basal_TCGA-AR-A1AQ_followup_mid-z.png"
+    }
+  ]
+}

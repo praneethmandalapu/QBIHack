@@ -1,0 +1,218 @@
+{
+  "generated_at": "2026-06-28T18:31:44.388895+00:00",
+  "grid_size": 64,
+  "comparison": {
+    "wt_volume_source": "wt_volume_report.json computed_mm3 (labels 1+2+3)",
+    "pde_burden_rule": "voxels > 0 in g64 PDE cube at 1 mm spacing",
+    "growth_match_tolerance_pct": 5.0
+  },
+  "patient_count": 7,
+  "patients": [
+    {
+      "patient_id": "100002",
+      "grade": "2",
+      "idh_status": "mut",
+      "interval_days": 182.56874999999854,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 8137.0,
+        "pde_voxels": 8137,
+        "pde_mm3": 8137.0,
+        "capture_pct": 100.0
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 8365.0,
+        "pde_voxels": 8365,
+        "pde_mm3": 8365.0,
+        "capture_pct": 100.0
+      },
+      "wt_growth_pct": 2.802015484822416,
+      "workbook_growth_pct": 2.802015484822416,
+      "pde_growth_pct": 2.802015484822416,
+      "growth_pct_delta": 0.0,
+      "growth_pct_delta_workbook": 0.0,
+      "qc_flags": [
+        "ok"
+      ]
+    },
+    {
+      "patient_id": "100118",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "interval_days": 55.93819444444671,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 10905.0,
+        "pde_voxels": 10881,
+        "pde_mm3": 10881.0,
+        "capture_pct": 99.7799174690509
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 77327.0,
+        "pde_voxels": 72755,
+        "pde_mm3": 72755.0,
+        "capture_pct": 94.08744681676517
+      },
+      "wt_growth_pct": 609.096744612563,
+      "workbook_growth_pct": 609.096744612563,
+      "pde_growth_pct": 568.6425879974267,
+      "growth_pct_delta": -40.4541566151363,
+      "growth_pct_delta_workbook": -40.4541566151363,
+      "qc_flags": [
+        "crop_loss_followup",
+        "growth_mismatch"
+      ]
+    },
+    {
+      "patient_id": "100192",
+      "grade": 2.0,
+      "idh_status": "mut",
+      "interval_days": 83.04999999999563,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 11463.0,
+        "pde_voxels": 16941,
+        "pde_mm3": 16941.0,
+        "capture_pct": 147.78853703219053
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 4798.0,
+        "pde_voxels": 10028,
+        "pde_mm3": 10028.0,
+        "capture_pct": 209.00375156315133
+      },
+      "wt_growth_pct": -58.14359242781122,
+      "workbook_growth_pct": -40.8150026537713,
+      "pde_growth_pct": -40.80632784369281,
+      "growth_pct_delta": 17.337264584118408,
+      "growth_pct_delta_workbook": 0.008674810078488804,
+      "qc_flags": [
+        "label_inflation_baseline",
+        "label_inflation_followup",
+        "growth_mismatch"
+      ]
+    },
+    {
+      "patient_id": "100260",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "interval_days": 62.9555555555562,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 18547.0,
+        "pde_voxels": 33600,
+        "pde_mm3": 33600.0,
+        "capture_pct": 181.16137380708471
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 97533.0,
+        "pde_voxels": 80262,
+        "pde_mm3": 80262.0,
+        "capture_pct": 82.2921472732306
+      },
+      "wt_growth_pct": 425.86941284304737,
+      "workbook_growth_pct": 201.57471264367817,
+      "pde_growth_pct": 138.875,
+      "growth_pct_delta": -286.99441284304737,
+      "growth_pct_delta_workbook": -62.69971264367817,
+      "qc_flags": [
+        "label_inflation_baseline",
+        "crop_loss_followup",
+        "growth_mismatch"
+      ]
+    },
+    {
+      "patient_id": "100220",
+      "grade": 4.0,
+      "idh_status": "WT",
+      "interval_days": 27.0715277777781,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 38492.0,
+        "pde_voxels": 38842,
+        "pde_mm3": 38842.0,
+        "capture_pct": 100.90927985035852
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 108441.0,
+        "pde_voxels": 92327,
+        "pde_mm3": 92327.0,
+        "capture_pct": 85.1403067105615
+      },
+      "wt_growth_pct": 181.72347500779384,
+      "workbook_growth_pct": 173.8830584707646,
+      "pde_growth_pct": 137.69888265279852,
+      "growth_pct_delta": -44.02459235499532,
+      "growth_pct_delta_workbook": -36.18417581796609,
+      "qc_flags": [
+        "crop_loss_followup",
+        "growth_mismatch"
+      ]
+    },
+    {
+      "patient_id": "100134",
+      "grade": 3.0,
+      "idh_status": "mut",
+      "interval_days": 105.10624999999709,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 11235.0,
+        "pde_voxels": 65801,
+        "pde_mm3": 65801.0,
+        "capture_pct": 585.6786826880285
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 12288.0,
+        "pde_voxels": 37584,
+        "pde_mm3": 37584.0,
+        "capture_pct": 305.859375
+      },
+      "wt_growth_pct": 9.372496662216289,
+      "workbook_growth_pct": -42.43324778243055,
+      "pde_growth_pct": -42.882327016306746,
+      "growth_pct_delta": -52.25482367852304,
+      "growth_pct_delta_workbook": -0.44907923387619775,
+      "qc_flags": [
+        "label_inflation_baseline",
+        "label_inflation_followup",
+        "growth_mismatch"
+      ]
+    },
+    {
+      "patient_id": "100130",
+      "grade": 3.0,
+      "idh_status": "mut",
+      "interval_days": 181.9777777777781,
+      "baseline": {
+        "label": "baseline",
+        "wt_mm3": 4144.0,
+        "pde_voxels": 11836,
+        "pde_mm3": 11836.0,
+        "capture_pct": 285.6177606177606
+      },
+      "followup": {
+        "label": "followup",
+        "wt_mm3": 4722.0,
+        "pde_voxels": 8313,
+        "pde_mm3": 8313.0,
+        "capture_pct": 176.04828462515883
+      },
+      "wt_growth_pct": 13.947876447876448,
+      "workbook_growth_pct": -29.818488813845505,
+      "pde_growth_pct": -29.765123352483947,
+      "growth_pct_delta": -43.71299980036039,
+      "growth_pct_delta_workbook": 0.053365461361558175,
+      "qc_flags": [
+        "label_inflation_baseline",
+        "label_inflation_followup",
+        "growth_mismatch"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "slug": "basal_TCGA-AR-A1AQ_baseline",
+  "method": "cuboid_enhancement",
+  "role": "predicted",
+  "tcga_id": "TCGA-AR-A1AQ",
+  "subtype": "Basal-like",
+  "timepoint": "baseline",
+  "study_date": "2001-11-21",
+  "les_file": "TCGA-AR-A1AQ-S2-1.les",
+  "dce_index": 2,
+  "annotated_series": "VIBRANT",
+  "volume_source": "raw_extract",
+  "shape_zyx": [
+    464,
+    256,
+    256
+  ],
+  "spacing_mm": [
+    3.0,
+    0.859375,
+    0.859375
+  ],
+  "mask_voxels": 13710,
+  "expert_voxels": 2742,
+  "expert_overlap_voxels": 1735,
+  "expert_yx_overlap_voxels": 708,
+  "z_aligned_to_expert": false,
+  "selected_phase": 1,
+  "phase_split_source": "dicom_acquisition_time",
+  "precontrast_used": true,
+  "params": {
+    "margin_yx": 5,
+    "margin_z": 2,
+    "candidate_phases": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "threshold_percentile": 90.0,
+    "use_otsu_within_roi": true,
+    "max_volume_multiple": 5.0
+  },
+  "roi_voxels": 39621,
+  "candidate_voxels": 54236,
+  "enhancement_kind": "normalized_phase",
+  "phase_z_range": [
+    0,
+    116
+  ],
+  "volume_capped": true,
+  "cap_voxels": 13710,
+  "y_start": 107,
+  "y_end": 145,
+  "x_start": 133,
+  "x_end": 164,
+  "z_start": 78,
+  "z_end": 84,
+  "mask_npy": "/Users/fio/Projects/QBIHack/breast-cancer-sim/data/processed/segmentation-philip-chandan/basal_TCGA-AR-A1AQ_baseline_cuboid_enhancement_mask.npy"
+}

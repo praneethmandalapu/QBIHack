@@ -1,0 +1,45 @@
+{
+  "slug": "luminal_a_TCGA-AR-A1AX_baseline",
+  "method": "les",
+  "role": "reference",
+  "tcga_id": "TCGA-AR-A1AX",
+  "subtype": "Luminal A",
+  "timepoint": "baseline",
+  "study_date": "2002-09-12",
+  "les_file": "TCGA-AR-A1AX-S2-1.les",
+  "dce_index": 2,
+  "annotated_series": "VIBRANT",
+  "volume_source": "raw_extract",
+  "shape_zyx": [
+    352,
+    256,
+    256
+  ],
+  "spacing_mm": [
+    3.0,
+    0.8594,
+    0.8594
+  ],
+  "mask_voxels": 1321,
+  "mask_npy": "/Users/fio/Projects/QBIHack/breast-cancer-sim/data/processed/segmentation-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline_les_mask.npy",
+  "path": "/Users/fio/Projects/QBIHack/breast-cancer-sim/data/raw/tcia-radiogenomics/lesions/TCGA_Segmented_Lesions_UofC/TCGA-AR-A1AX-S2-1.les",
+  "y_start": 109,
+  "y_end": 132,
+  "x_start": 105,
+  "x_end": 124,
+  "z_start": 19,
+  "z_end": 26,
+  "cuboid_shape_yxz": [
+    24,
+    20,
+    8
+  ],
+  "lesion_voxels": 1321,
+  "patient_id": "TCGA-AR-A1AX",
+  "lesion_index": 1,
+  "mask_shape_zyx": [
+    352,
+    256,
+    256
+  ]
+}

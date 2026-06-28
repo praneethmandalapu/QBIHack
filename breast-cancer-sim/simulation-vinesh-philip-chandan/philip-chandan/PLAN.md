@@ -35,7 +35,7 @@ Philip and Chandan work as **one unit** — same deliverables, same schedule, sa
 | **`manifest.json`** | Maps subtype → file path → TCGA ID → array metadata (after spike) |
 | **Handoff to Vinesh** | `solve_growth()` runs on real data without you reformatting on Vinesh's side |
 
-**Out of scope for the 2-day sprint:** full PyRadiomics feature extraction (Phase 2 stretch). Focus on **DICOM → single 3D volume** that Vinesh can simulate.
+**Out of scope for the 2-day sprint:** full PyRadiomics feature extraction — that work lives in post-sprint [`stretch/`](stretch/) (see [Post-sprint stretch](#post-sprint-stretch-pyradiomics) below). Sprint focus was **DICOM → single 3D volume** for Vinesh.
 
 ---
 
@@ -62,9 +62,11 @@ breast-cancer-sim/
 │   │       └── 2003-09-24/        # follow-up (optional until spike green)
 │   ├── processed/
 │   │   ├── raw-extract-philip-chandan/   # your raw .npy + .json handoff
-│   │   └── pde-input-vinesh/             # Vinesh PDE-ready .npy + .json
+│   │   ├── pde-input-vinesh/             # Vinesh PDE-ready .npy + .json
+│   │   └── radiomics-philip-chandan/     # stretch: masks + features CSV (gitignored locally)
 │   └── qc/
 │       ├── slice-plots-philip-chandan/
+│       ├── radiomics-philip-chandan/     # stretch: mask overlay QC PNGs
 │       └── solver-runs-vinesh/
 └── simulation-vinesh-philip-chandan/
     ├── handoff_contract.json      # versioned Philip-Chandan ↔ Vinesh contract
@@ -77,6 +79,8 @@ breast-cancer-sim/
     │   ├── qc_slice_plot.py
     │   ├── tcia_extractor.py
     │   ├── download_tcia.py
+    │   ├── validation/                   # .les ground-truth guide + napari viewer
+    │   ├── stretch/                      # post-sprint PyRadiomics (isolated)
     │   └── cohort/
     └── vinesh/
         ├── SPIKE_CHECKLIST.md
@@ -263,7 +267,7 @@ Philip-Chandan **phases 1–2 are done** (downloads + extraction). Public APIs u
 | **0 — Spike bootstrap** | **done** | [`../download_spike_data.ps1`](../download_spike_data.ps1) / [`.sh`](../download_spike_data.sh) for one-patient handoff |
 | **1 — Scale-up downloads** | **done** | `download_tcia.py` uses **idc-index** (`IDCClient`) primary; **tcia-utils** NBIA fallback |
 | **2 — Extraction hardening** | **done** | `tcia_extractor.py` loads volumes via **SimpleITK** `ImageSeriesReader`; pydicom kept for validation metadata |
-| **3 — Phase 2 stretch** | **deferred** | **PyRadiomics** feature pipeline on `.npy`/NIfTI — dep in `requirements.txt`, no extractor wired yet |
+| **3 — Phase 2 stretch** | **done** | [`stretch/`](stretch/) — prep, PyRadiomics + fastrad extraction, batch CSV, tests ([`STRETCH_PLAN.md`](stretch/STRETCH_PLAN.md)) |
 
 #### What to keep vs replace
 
@@ -276,7 +280,7 @@ Philip-Chandan **phases 1–2 are done** (downloads + extraction). Public APIs u
 | **DICOM → 3D + validate** | SimpleITK read + pydicom validate | **done** | highdicom / dicom-numpy in `requirements.txt` but unused — only if ITK gaps appear |
 | **Base DICOM I/O** | pydicom | **Keep** | Used for slice metadata and validation checks |
 | **PDE resample/crop** (Vinesh) | `scipy.ndimage.zoom` in `prepare_pde_input.py` | **unchanged** | SimpleITK `Resample` only if Vinesh hits axis/spacing bugs |
-| **Radiomics (Phase 2)** | PyRadiomics | **deferred** | Out of spike scope |
+| **Radiomics (Phase 2 stretch)** | PyRadiomics + optional `fastrad` in [`stretch/`](stretch/) | **done** | Canonical handoff: PyRadiomics CSV; fastrad for parity/speed; see [`validation/VALIDATION.md`](validation/VALIDATION.md) for `.les` ground truth |
 
 #### Migration rules (still apply for future changes)
 
@@ -344,7 +348,7 @@ flowchart LR
 | 4-phase doc | Your 2-day work |
 |-------------|-----------------|
 | Phase 1: Data scaffolding | Day 1 AM — env, TCIA query, downloads |
-| Phase 2: PyRadiomics | **Defer** unless Day 2 PM is idle |
+| Phase 2: PyRadiomics | **done (post-sprint)** — [`stretch/STRETCH_PLAN.md`](stretch/STRETCH_PLAN.md); Praneeth CSV handoff pending |
 | Phase 3: Integration | Day 2 AM handoff to Vinesh |
 | Phase 4: Polish | Day 2 PM — orientation bugs, demo prep |
 
@@ -400,7 +404,115 @@ flowchart LR
 - Keep **QC slice PNGs** handy for demo (`data/qc/slice-plots-philip-chandan/`).
 - Optional: `load_volume_for_subtype(subtype, timepoint)` helper in `philip-chandan/` if Vihari wants a one-liner to resolve manifest paths (coordinate first).
 
-Optional code cleanup (not blocking): PyRadiomics pipeline still deferred.
+Optional code cleanup (not blocking): PyRadiomics stretch — see [`stretch/STRETCH_PLAN.md`](stretch/STRETCH_PLAN.md) and [Known issue — Luminal A follow-up](#known-issue--luminal-a-follow-up-stretch-blocked) below (basal CSV in progress; Luminal A blocked on mask fix).
+
+---
+
+## Post-sprint: stretch (PyRadiomics)
+
+Isolated pipeline under [`stretch/`](stretch/). Does **not** modify sprint handoff (`tcia_extractor.py`, `vinesh/`). Reads raw extracts only; writes to `data/processed/radiomics-philip-chandan/` and `data/qc/radiomics-philip-chandan/`.
+
+**Breast tumor segmentation:** automated lesion segmentation benchmark (Otsu, nnU-Net, vs `.les` ground truth) — [`segmentation/PLAN.md`](segmentation/PLAN.md).
+
+### Status
+
+| Phase | Item | Status |
+|-------|------|--------|
+| 1 | Scaffold (`paths`, `load_manifest`, docs) | **done** |
+| 2 | `prep_volume.py` — percentile norm, Otsu mask, SITK | **done** |
+| 2b | `qc_mask_overlay.py` | **done** — 4 slugs on disk |
+| 3 | `extract_radiomics.py` | **done** — PyRadiomics default + optional `fastrad` backend |
+| 4 | `run_all_radiomics.py`, `compare_longitudinal.py` | **partial** — basal slugs only; Luminal A deferred (see Known issue) |
+| 5 | `PRANEETH_HANDOFF.md`, CSV to Praneeth | **pending** (basal CSV first) |
+| 6 | `stretch/tests/` | **done** (10 tests: prep + dual-backend parity) |
+
+### Libraries
+
+| Role | Package | Notes |
+|------|---------|-------|
+| Canonical features | **PyRadiomics** | [`radiomics_params.yaml`](stretch/radiomics_params.yaml) — firstorder, shape, glcm; `normalize: false` (prep scales to [0,1]) |
+| Optional fast backend | **fastrad** | `--backend fastrad --device cpu` (Mac); NVIDIA users can opt into `fastrad[cuda]` separately — not in default `requirements.txt` |
+| Mask (heuristic) | skimage Otsu + scipy CC | Mirrors [`vinesh/calibrate.py`](../vinesh/calibrate.py); not radiologist ground truth |
+
+### Validation (`.les` ground truth — done)
+
+[`validation/VALIDATION.md`](validation/VALIDATION.md) — TCIA radiologist `.les` masks downloaded; [`stretch/load_les_mask.py`](stretch/load_les_mask.py) + [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) compare Otsu vs expert (Dice **0** on rev2 baselines; Otsu captures orders of magnitude more tissue). 3D inspection: [`validation/view_les_napari.py`](validation/view_les_napari.py) (`--phases-only` for P1–P4 grid; `--cuboid-enhancement` for automated overlay). See [`PIPELINE_REPORT.pdf`](PIPELINE_REPORT.pdf) Section 7 / Figure 6.
+
+#### TCIA `.les` files — what they provide
+
+The `.les` file is TCIA’s **radiologist tumor annotation** for a baseline DCE study ([TCGA-Breast-Radiogenomics segmented lesions](https://www.cancerimagingarchive.net/analysis-result/tcga-breast-radiogenomics/)). **We do not generate it** — it is expert ground truth from UChicago.
+
+**Clinical origin (not a hand-traced contour):** Per [Li et al., npj Breast Cancer 2016](https://www.nature.com/articles/npjbcancer201612), radiologists clicked an approximate **tumor center** on ClearCanvas; a **consensus center** fed **fuzzy c-means (FCM)** 3D segmentation (Chicago Dynamic MRI Explorer / UChicago V2010). The file stores FCM-positive voxels inside a bounding cuboid only.
+
+**Binary on-disk format** (parsed by [`stretch/load_les_mask.py`](stretch/load_les_mask.py)):
+
+| Part | Contents |
+|------|----------|
+| Header (12 bytes) | Six `uint16` bounds: `y_start, x_start, z_start, y_end, x_end, z_end` in MR index space |
+| Payload | `int8` voxels (0 = background, 1 = lesion), row-major **(Y, X, Z)** inside that box |
+| Embedded mask | Transposed and pasted into dense **`(Z, Y, X)`** matching the annotated VIBRANT stack |
+
+**Naming:** `TCGA-XX-XXXX-Sn-m.les` — `n` = DCE sequence index (rev2 baselines use **S2 = VIBRANT**), `m` = lesion index.
+
+**Metadata from the loader:** `patient_id`, `dce_index`, `lesion_index`, cuboid bounds, `lesion_voxels` / `mask_voxels` (~**1.3k–2.7k** for rev2 primaries). Rev2 cuboids are only ~**31–34%** filled — the rest is padding. In napari this reads as sparse “dots”, especially when viewing **phases 2–4** while the FCM cluster sits at **phase-1 z**.
+
+**What we use `.les` for in this repo:**
+
+| Use | Module |
+|-----|--------|
+| Segmentation validation (Dice / volume vs Otsu) | [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) |
+| 3D QC viewer (expert overlay, optional cuboid shell via `--cuboid`) | [`validation/view_les_napari.py`](validation/view_les_napari.py) |
+| Radiomics ROI (planned — `cohort.json` `"use_les_mask": true`) | [`stretch/prep_volume.py`](stretch/prep_volume.py) |
+| Automated segmentation prior (`cuboid_enhancement` uses **bounds + Y/X footprint**, not FCM voxels as input) | [`segmentation/methods/cuboid_enhancement.py`](segmentation/methods/cuboid_enhancement.py) |
+
+**What `.les` does *not* provide:**
+
+- No follow-up annotations (rev2 follow-ups have **no** `.les`)
+- Not on every TCIA patient (~48 BRCA MRI cases lack `.les`)
+- Not intensity values — binary mask + bounding box only
+- Not phase-separated — z indices refer to the **full stacked VIBRANT volume**, not individual DCE phases
+
+**One-line summary:** `.les` gives **expert tumor location and sparse FCM shape** (mask + cuboid) on the annotated DCE series, for baseline cases with TCIA annotations.
+
+**Automated alternative under test:** [`segmentation/methods/cuboid_enhancement.py`](segmentation/methods/cuboid_enhancement.py) — cuboid spatial prior + local enhancement on phases 2–4; see [`segmentation/PLAN.md`](segmentation/PLAN.md).
+
+### Known issue — Luminal A follow-up (stretch blocked)
+
+**Do not run full `run_all_radiomics.py` until fixed.** Batch extraction hung for 20+ minutes on the first slug because PyRadiomics is CPU-bound on large cropped volumes.
+
+| Slug | Raw shape | Cropped mask shape | Masked voxels | Notes |
+|------|-----------|-------------------|---------------|-------|
+| `luminal_a_TCGA-AR-A1AX_baseline` | 352×256×256 | 277×256×212 | ~3.5M | Slow but feasible |
+| **`luminal_a_TCGA-AR-A1AX_followup`** | **552×512×512** | **552×367×512** | **~18.3M** | **Root cause** — Otsu + largest-CC mask spans nearly full FOV; PyRadiomics runtime explodes |
+
+**Symptoms:** `run_all_radiomics.py` at 100% CPU with no `features_all.csv` for extended periods.
+
+**Workaround (current):** Skip Luminal A stretch; run basal slugs only:
+```bash
+cd breast-cancer-sim
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/stretch/extract_radiomics.py --slug basal_TCGA-AR-A1AQ_baseline
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/stretch/extract_radiomics.py --slug basal_TCGA-AR-A1AQ_followup
+# Or: run_all_radiomics.py --slug basal_TCGA-AR-A1AQ_baseline --slug basal_TCGA-AR-A1AQ_followup
+```
+
+**Fix needed (pick one or combine):**
+1. Tighten tumor isolation in `stretch/prep_volume.py` (Otsu threshold / connected-component logic) so follow-up ROI is tumor-sized, not breast-sized.
+2. Wire TCIA radiologist `.les` masks (`cohort.json` has `"use_les_mask": true` — loader not implemented; see [`validation/VALIDATION.md`](validation/VALIDATION.md)).
+3. Cap crop bbox max extent or resample to isotropic spacing before PyRadiomics (document if chosen — affects feature comparability).
+
+Sprint handoff (raw extracts + Vinesh PDE inputs) is **unaffected** — this issue is stretch-only.
+
+### Stretch next steps (Philip-Chandan)
+
+1. Review mask QC overlays in `data/qc/radiomics-philip-chandan/` — **basal OK**; **re-check Luminal A follow-up** after fix.
+2. Run basal batch extraction (Luminal A deferred until mask fix):
+   ```bash
+   cd breast-cancer-sim
+   .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/stretch/run_all_radiomics.py \
+     --slug basal_TCGA-AR-A1AQ_baseline --slug basal_TCGA-AR-A1AQ_followup
+   .venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/stretch/compare_longitudinal.py
+   ```
+3. Write `stretch/PRANEETH_HANDOFF.md` and share basal `features_all.csv` (join on `tcga_id`; Luminal A rows TBD).
 
 ---
 
@@ -415,6 +527,7 @@ Philip-Chandan raw pipeline for rev2 primaries is **complete**. Vinesh delivered
 | **Spike** | 1 · Luminal A | baseline | 1 | **done** | Vinesh: PDE input **done** (in zip) |
 | **Two-subtype demo** | 2 · LumA + Basal | baseline each | 2 | **done** | Vinesh: 2 PDE inputs **done**; UI subtype toggle pending |
 | **Longitudinal** | 2 | baseline + follow-up | 4 | **done** | Vinesh: 4 PDE inputs **done**; Jasim render **in progress** |
+| **Radiomics (stretch)** | 2 | baseline + follow-up | 4 | sprint **done**; stretch **basal only** (2 slugs → CSV); Luminal A **blocked** — mask fix | Praneeth: basal CSV first; LumA after fix |
 
 Primary cohort (rev2) in [`cohort/cohort.json`](cohort/cohort.json):
 
@@ -488,10 +601,10 @@ flowchart TD
 
 ### Batch export — `export_all_raw.py`
 
-Loops `cohort.json` and calls `export_raw_extract()` + QC plot per slug. Patient and timepoint scope mirror `download_tcia.py`.
+Loops `cohort.json` and calls `export_raw_extract()` + QC plot per slug. Patient and timepoint scope mirror `download_tcia.py`. Progress is checkpointed to `data/processed/raw-extract-philip-chandan/.export_all_raw.state.json` (resume by default; one slug flushed at a time with per-job timing).
 
 ```bash
-# All primary patients, every timepoint (default)
+# All primary patients, every timepoint (default; resumes if interrupted)
 python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary
 
 # Baselines only
@@ -503,9 +616,16 @@ python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py \
 
 # Skip QC PNGs for a faster re-export
 python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary --no-qc
+
+# Clean restart (delete checkpoint)
+python simulation-vinesh-philip-chandan/philip-chandan/export_all_raw.py --all-primary --fresh
+
+# Monitor a long run (another terminal)
+jq '{status: .run_status, current: .current_job_id, summary: .summary}' \
+  data/processed/raw-extract-philip-chandan/.export_all_raw.state.json
 ```
 
-`--timepoints` accepts `all` (default), a single label (`baseline`, `followup`), or comma-separated labels. Backups without `study_date` in cohort are skipped with a message.
+`--timepoints` accepts `all` (default), a single label (`baseline`, `followup`), or comma-separated labels. Backups without `study_date` in cohort are skipped with a message. Also: `--resume` / `--no-resume`, `--force`, `--retry-failed`, `--status-file PATH`.
 
 ### `manifest.json` schema (Philip-Chandan source of truth)
 

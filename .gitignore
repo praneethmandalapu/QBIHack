@@ -1,8 +1,11 @@
 # Raw cohort downloads (~800MB, reproducible via models-praneeth/download_data.py)
 breast-cancer-sim/data/raw/
+brain-cancer-sim/data/raw/
 # Large pooled training matrix (~11MB, reproducible via build_features.py)
 breast-cancer-sim/data/processed/train_matrix.csv
-# Derived artifacts in data/processed/ ARE tracked -- they are the team handoff.
+# Volume arrays (.npy) — too large for GitHub; share via Drive/Slack/handoff zip (see .cursor/rules/git-commits.mdc)
+breast-cancer-sim/data/processed/**/*.npy
+brain-cancer-sim/data/processed/**/*.npy
 
 # Philip-Chandan → Vinesh handoff packages (share via Drive/Slack, not git)
 breast-cancer-sim/pde-handoff*.zip

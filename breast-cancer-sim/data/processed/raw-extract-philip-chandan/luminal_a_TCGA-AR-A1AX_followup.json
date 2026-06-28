@@ -1,0 +1,33 @@
+{
+  "contract_version": "1.0.0",
+  "slug": "luminal_a_TCGA-AR-A1AX_followup",
+  "tcga_id": "TCGA-AR-A1AX",
+  "subtype": "Luminal A",
+  "study_date": "2003-09-24",
+  "source_dicom_dir": "data/raw/tcia/luminal_a/TCGA-AR-A1AX/2003-09-24",
+  "shape": [
+    552,
+    512,
+    512
+  ],
+  "dtype": "float32",
+  "spacing_mm": [
+    2.2,
+    0.5273,
+    0.5273
+  ],
+  "axis_order": [
+    "Z",
+    "Y",
+    "X"
+  ],
+  "normalize": false,
+  "value_semantics": {
+    "description": "Raw MR scanner intensity; not scaled to [0, 1]"
+  },
+  "handoff": "Option B \u2014 Vinesh resamples in prepare_pde_input.py",
+  "validate_series": {
+    "n_slices": 552,
+    "ok": true
+  }
+}

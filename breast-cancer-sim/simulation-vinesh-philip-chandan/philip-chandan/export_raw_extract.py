@@ -52,7 +52,9 @@ def export_raw_extract(
     npy_path = raw_extract_npy(output_slug)
     json_path = raw_extract_metadata(output_slug)
 
-    np.save(npy_path, volume)
+    tmp_npy = npy_path.with_suffix(".tmp.npy")
+    np.save(tmp_npy, volume)
+    tmp_npy.replace(npy_path)
 
     raw_spec = raw_extract_spec()
     metadata = {
