@@ -28,7 +28,7 @@ import render_3d as r  # noqa: E402
 HERE = Path(__file__).resolve().parent
 BREAST = HERE.parent                      # breast-cancer-sim/
 REPO = BREAST.parent                      # qbihack/
-BRAIN = REPO / "brain-cancer-sim"
+BRAIN_SIM = REPO / "brain-cancer-sim"
 FRAMES = BREAST / "data/processed/brain-frames-jasim"
 SITE = HERE / "site"
 SITE.mkdir(exist_ok=True)
@@ -68,7 +68,7 @@ for key in ("model", "measured"):           # model first = default (shows growt
     BRAIN_SLICES[key] = theme_2d(r.render_slices(arr[-1], (1.0, 1.0, 1.0)))
 
 # imaging-cohort risk summary (visualization-jasim/risk/patients.csv)
-_brain_risk_csv = BRAIN / "visualization-jasim" / "risk" / "patients.csv"
+_brain_risk_csv = BRAIN_SIM / "visualization-jasim" / "risk" / "patients.csv"
 _rows = list(csv.DictReader(open(_brain_risk_csv)))
 _wt = [x for x in _rows if x["idh"] == "WT"]
 _mut = [x for x in _rows if x["idh"] and x["idh"] != "WT"]
