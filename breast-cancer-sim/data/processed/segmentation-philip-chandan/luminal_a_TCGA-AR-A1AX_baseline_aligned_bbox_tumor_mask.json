@@ -1,0 +1,37 @@
+{
+  "slug": "luminal_a_TCGA-AR-A1AX_baseline",
+  "method": "aligned_bbox_tumor",
+  "role": "predicted",
+  "shape_zyx": [
+    352,
+    256,
+    256
+  ],
+  "z_band_local": [
+    19,
+    26
+  ],
+  "selected_phase": 4,
+  "threshold": 0.7303797468354432,
+  "les_fraction": 0.34401041666666665,
+  "mask_npy": "/Users/fio/Projects/QBIHack/breast-cancer-sim/data/processed/segmentation-philip-chandan/luminal_a_TCGA-AR-A1AX_baseline_aligned_bbox_tumor_mask.npy",
+  "phase_index": 4,
+  "les_voxels": 1321,
+  "bbox_voxels": 3840,
+  "mask_voxels": 1324,
+  "candidate_voxels": 1325,
+  "tcga_id": "TCGA-AR-A1AX",
+  "study_date": "2002-09-12",
+  "volume_source": "raw_extract",
+  "spacing_mm": [
+    3.0,
+    0.8594,
+    0.8594
+  ],
+  "y_start": 109,
+  "y_end": 132,
+  "x_start": 105,
+  "x_end": 124,
+  "z_start": 19,
+  "z_end": 26
+}

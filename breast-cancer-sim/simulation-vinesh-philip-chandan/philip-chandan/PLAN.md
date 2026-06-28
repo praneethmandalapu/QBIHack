@@ -462,6 +462,7 @@ The `.les` file is TCIA’s **radiologist tumor annotation** for a baseline DCE 
 |-----|--------|
 | Segmentation validation (Dice / volume vs Otsu) | [`stretch/validate_segmentation.py`](stretch/validate_segmentation.py) |
 | 3D QC viewer (expert overlay, optional cuboid shell via `--cuboid`) | [`validation/view_les_napari.py`](validation/view_les_napari.py) |
+| P1 z-band alignment + bbox threshold workflow | [`validation/run_aligned_bbox_workflow.py`](validation/run_aligned_bbox_workflow.py) |
 | Radiomics ROI (planned — `cohort.json` `"use_les_mask": true`) | [`stretch/prep_volume.py`](stretch/prep_volume.py) |
 | Automated segmentation prior (`cuboid_enhancement` uses **bounds + Y/X footprint**, not FCM voxels as input) | [`segmentation/methods/cuboid_enhancement.py`](segmentation/methods/cuboid_enhancement.py) |
 
@@ -475,6 +476,64 @@ The `.les` file is TCIA’s **radiologist tumor annotation** for a baseline DCE 
 **One-line summary:** `.les` gives **expert tumor location and sparse FCM shape** (mask + cuboid) on the annotated DCE series, for baseline cases with TCIA annotations.
 
 **Automated alternative under test:** [`segmentation/methods/cuboid_enhancement.py`](segmentation/methods/cuboid_enhancement.py) — cuboid spatial prior + local enhancement on phases 2–4; see [`segmentation/PLAN.md`](segmentation/PLAN.md).
+
+#### Aligned bbox workflow → tumor mask volume
+
+For baseline cases with `.les`, we build a **motion-corrected tumor mask** by aligning DCE phases inside the expert z-band, then thresholding inside the tight bounding box.
+
+**Geometry (two ROIs):**
+
+| Step | ROI | Shape intent |
+|------|-----|----------------|
+| Registration | P1 `.les` local z-band, **full in-plane Y/X** | Same slab grid for P1–P4 after rigid align |
+| Metrics + mask | Same z-band, **tight `.les` Y/X bbox** | Bright-fraction curves and final mask |
+
+P1 anchors local z (e.g. 19–26 on A1AX); P2–P4 use the same slice indices even though expert FCM voxels only exist on P1.
+
+**Pipeline:**
+
+```
+load VIBRANT + .les
+  → extract P1 z-band slab (full Y/X) per phase
+  → rigid register P2–P4 slabs → P1 grid
+  → inside .les bbox on aligned slabs: sweep threshold (0.05 step)
+  → plot % bbox voxels ≥ threshold for P1–P4 (horizontal line = .les fill ~34%)
+  → pick post-contrast phase (P2–P4) + threshold where curve crosses .les fill
+  → connected component inside bbox, seeded by expert Y/X footprint
+  → embed mask in full `(Z,Y,X)` stack at global .les indices
+```
+
+**Commands** (from `breast-cancer-sim/`, shared venv):
+
+```bash
+# Napari QC — aligned z-band slabs + registration metrics + bbox threshold slider
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/view_aligned_cuboid_napari.py \
+  --slug luminal_a_TCGA-AR-A1AX_baseline
+```
+
+Right dock **Bbox threshold**: one slider (0–1) thresholds voxels inside the bbox on the selected phase; overlay shown on **P1 only** (P2–P4 are clean aligned tissue). **Bbox margin** expands Y/X; **Jump to steepest drop** snaps to the knee of the bright-fraction curve. Launch also **regenerates** the overlay + 2×2 grid PNGs under `data/qc/segmentation-philip-chandan/` (use `--no-plots` to skip).
+
+```bash
+# Full workflow: align → threshold curves PNG → aligned_bbox_tumor mask (.npy local)
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/run_aligned_bbox_workflow.py \
+  --slug luminal_a_TCGA-AR-A1AX_baseline
+
+# Plot/table only (no mask write)
+.venv/bin/python simulation-vinesh-philip-chandan/philip-chandan/validation/run_aligned_bbox_workflow.py \
+  --slug luminal_a_TCGA-AR-A1AX_baseline --no-mask
+```
+
+**Outputs** (git: PNG + JSON only; `.npy` stays local):
+
+| Artifact | Path |
+|----------|------|
+| Threshold curve PNG | `data/qc/segmentation-philip-chandan/{slug}_aligned_bbox_bright_vs_threshold.png` |
+| Tumor mask volume | `data/processed/segmentation-philip-chandan/{slug}_aligned_bbox_tumor_mask.npy` |
+| Mask sidecar | `data/processed/segmentation-philip-chandan/{slug}_aligned_bbox_tumor_mask.json` |
+
+**Modules:** [`validation/cuboid_phase_registration.py`](validation/cuboid_phase_registration.py), [`validation/les_cuboid_brightness.py`](validation/les_cuboid_brightness.py), [`validation/aligned_bbox_tumor.py`](validation/aligned_bbox_tumor.py), [`validation/run_aligned_bbox_workflow.py`](validation/run_aligned_bbox_workflow.py).
+
+Pre-alignment cuboid curves (no registration) remain in [`validation/view_les_napari.py`](validation/view_les_napari.py) brightness dock and [`validation/plot_les_cuboid_histograms.py`](validation/plot_les_cuboid_histograms.py).
 
 ### Known issue — Luminal A follow-up (stretch blocked)
 

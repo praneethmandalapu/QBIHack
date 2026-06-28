@@ -124,6 +124,30 @@ def cuboid_boundary_mask(
     return mask
 
 
+def cuboid_filled_mask(
+    metadata: dict[str, Any],
+    volume_shape: tuple[int, ...],
+) -> np.ndarray:
+    """Return a (Z, Y, X) mask that is 1 throughout the .les annotation cuboid."""
+    if len(volume_shape) != 3:
+        raise ValueError(f"volume_shape must be (Z, Y, X), got {volume_shape}")
+
+    z_size, y_size, x_size = volume_shape
+    y0, y1 = metadata["y_start"], metadata["y_end"]
+    x0, x1 = metadata["x_start"], metadata["x_end"]
+    z0, z1 = metadata["z_start"], metadata["z_end"]
+
+    if y0 < 0 or x0 < 0 or z0 < 0 or y1 >= y_size or x1 >= x_size or z1 >= z_size:
+        raise ValueError(
+            f"Lesion bounds y[{y0},{y1}] x[{x0},{x1}] z[{z0},{z1}] "
+            f"outside volume shape (Z,Y,X)={volume_shape}"
+        )
+
+    mask = np.zeros(volume_shape, dtype=np.uint8)
+    mask[z0 : z1 + 1, y0 : y1 + 1, x0 : x1 + 1] = 1
+    return mask
+
+
 def load_les_cuboid_boundary(
     path: Path | str,
     volume_shape: tuple[int, ...],
