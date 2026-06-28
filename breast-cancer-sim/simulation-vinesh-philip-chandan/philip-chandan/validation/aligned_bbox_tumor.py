@@ -199,4 +199,20 @@ def write_aligned_bbox_tumor_mask(
         **{k: les_meta[k] for k in ("y_start", "y_end", "x_start", "x_end", "z_start", "z_end")},
     }
     meta_path.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+
+    spacing = (extra_metadata or {}).get("spacing_mm")
+    if spacing and len(spacing) == 3:
+        import sys
+
+        sys.path.insert(0, str(PHILIP_CHANDAN_DIR))
+        from publish_expert_mask import publish_expert_mask_from_volume  # noqa: E402
+
+        expert_nii = publish_expert_mask_from_volume(
+            slug,
+            full_mask,
+            spacing_mm=[float(v) for v in spacing],
+        )
+        metadata["segmentation_path"] = str(expert_nii.relative_to(REPO_ROOT))
+        meta_path.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
+
     return full_mask, metadata

@@ -14,6 +14,9 @@ RAW_TCIA_PHILIP_CHANDAN = REPO_ROOT / "data" / "raw" / "tcia"
 # Philip-Chandan deliverable → Vinesh input
 RAW_EXTRACT_PHILIP_CHANDAN = REPO_ROOT / "data" / "processed" / "raw-extract-philip-chandan"
 
+# Expert / napari masks for PDE prep (brain-parity layout)
+SEGMENTATIONS_DIR = REPO_ROOT / "data" / "processed" / "segmentations"
+
 # Vinesh deliverable → solve_growth input
 PDE_INPUT_VINESH = REPO_ROOT / "data" / "processed" / "pde-input-vinesh"
 
@@ -48,6 +51,7 @@ def ensure_spike_dirs() -> None:
     """Create gitignored data subfolders for the parallel spike."""
     for path in (
         RAW_EXTRACT_PHILIP_CHANDAN,
+        SEGMENTATIONS_DIR,
         PDE_INPUT_VINESH,
         QC_SLICE_PLOTS_PHILIP_CHANDAN,
         QC_OTSU_PLOTS_VINESH,
@@ -185,6 +189,11 @@ def resolve_pde_input_metadata(slug: str | None = None, *, grid_size: int | None
     name = slug or SPIKE_PATIENT["slug"]
     npy = resolve_pde_input_npy(name, grid_size=grid_size)
     return npy.with_suffix(".json")
+
+
+def segmentation_mask_path(slug: str | None = None) -> Path:
+    name = slug or SPIKE_PATIENT["slug"]
+    return SEGMENTATIONS_DIR / f"{name}_mask.nii.gz"
 
 
 def slice_plot_path(slug: str, *, overlay: bool = False) -> Path:

@@ -30,5 +30,6 @@
     "n_slices": 352,
     "ok": true
   },
-  "timepoint": "baseline"
+  "timepoint": "baseline",
+  "segmentation_path": "data/processed/segmentations/luminal_a_TCGA-AR-A1AX_baseline_mask.nii.gz"
 }

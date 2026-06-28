@@ -95,6 +95,7 @@ def _volume_entry(json_path: Path, meta: dict[str, Any]) -> dict[str, Any]:
         "pde_shape": pde_meta.get("shape"),
         "pde_spacing_mm": pde_meta.get("spacing_mm"),
         "grid_size": pde_meta.get("grid_size", default_grid_size()),
+        "segmentation_path": meta.get("segmentation_path"),
         "qc_plot": _rel(slice_plot_path(slug)),
     }
 

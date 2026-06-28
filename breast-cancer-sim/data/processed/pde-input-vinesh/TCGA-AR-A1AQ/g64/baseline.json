@@ -1,8 +1,9 @@
 {
-  "contract_version": "1.0.0",
+  "contract_version": "1.1.0",
   "slug": "basal_TCGA-AR-A1AQ_baseline",
   "grid_size": 64,
   "source_raw_extract": "data/processed/raw-extract-philip-chandan/TCGA-AR-A1AQ/baseline.npy",
+  "source_segmentation": "data/processed/segmentations/basal_TCGA-AR-A1AQ_baseline_mask.nii.gz",
   "shape": [
     64,
     64,
@@ -25,9 +26,13 @@
   ],
   "background_value": 0.0,
   "tumor_burden_rule": "values strictly greater than background_value",
+  "segmentation": {
+    "method": "expert_mask",
+    "notes": "Napari aligned_bbox mask published to data/processed/segmentations/{slug}_mask.nii.gz; resample to target grid. No Otsu fallback."
+  },
   "value_semantics": {
     "0.0": "background/healthy",
-    ">0": "initial tumor burden"
+    ">0": "initial tumor burden (expert mask)"
   },
   "upstream": {
     "tcga_id": "TCGA-AR-A1AQ",

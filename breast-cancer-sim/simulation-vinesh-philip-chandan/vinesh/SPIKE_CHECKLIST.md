@@ -87,6 +87,14 @@ Implement in `prepare_pde_input.py` (you own this). Read targets from `handoff_c
 4. Normalize to contract `value_range`; tumor voxels follow `tumor_burden_rule`.
 5. Write `pde-input-vinesh\{tcga_id}\g64\{timepoint}.npy` + `.json` with matching `contract_version`.
 
+**Requires expert mask:** publish napari aligned_bbox to `data/processed/segmentations/{slug}_mask.nii.gz` first:
+
+```powershell
+.\.venv\Scripts\python.exe simulation-vinesh-philip-chandan\philip-chandan\publish_expert_mask.py --slug luminal_a_TCGA-AR-A1AX_baseline
+```
+
+Napari export does this automatically when `spacing_mm` is present in the export metadata.
+
 You do **not** need DICOM for the spike if you have the raw extract. Use `download_spike_data.ps1 -ExportRaw` only if Philip-Chandan did not share the `.npy`/`.json`.
 
 ---

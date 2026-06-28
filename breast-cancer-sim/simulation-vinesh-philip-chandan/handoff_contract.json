@@ -1,6 +1,6 @@
 {
-  "version": "1.0.0",
-  "description": "Philip-Chandan ↔ Vinesh array handoff contract for the one-patient Option B spike. Edit numbers here; both sides load this file.",
+  "version": "1.1.0",
+  "description": "Philip-Chandan ↔ Vinesh array handoff contract. PDE input uses napari expert mask (aligned_bbox) published to segmentations/, brain-parity prep pipeline.",
   "spike_patient": {
     "tcga_id": "TCGA-AR-A1AX",
     "subtype": "Luminal A",
@@ -26,7 +26,8 @@
       "source_dicom_dir",
       "shape",
       "dtype",
-      "spacing_mm"
+      "spacing_mm",
+      "segmentation_path"
     ]
   },
   "pde_input": {
@@ -43,13 +44,14 @@
     "background_value": 0.0,
     "tumor_burden_rule": "values strictly greater than background_value",
     "segmentation": {
-      "method": "otsu",
-      "notes": "Applied after normalize; Vinesh-owned in prepare_pde_input.py"
+      "method": "expert_mask",
+      "notes": "Napari aligned_bbox mask published to data/processed/segmentations/{slug}_mask.nii.gz; resample to target grid. No Otsu fallback."
     },
     "required_metadata_fields": [
       "contract_version",
       "slug",
       "source_raw_extract",
+      "source_segmentation",
       "shape",
       "dtype",
       "spacing_mm",

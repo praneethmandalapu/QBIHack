@@ -8,6 +8,7 @@ numpy
 
 # Simulation & imaging (PLAN.md library migration table)
 pydicom
+nibabel
 scipy
 SimpleITK
 highdicom
